@@ -1,29 +1,11 @@
 ---
 layout: default
-title: home
-use_lightbox: true
+title: digital designer
 ---
 
 <aside>
-    <h1>digital designer and systems thinker, shaping intuitive and scalable experiences</h1>
+    <h1>digital designer and systems thinker, building intuitive and scalable apps</h1>
 </aside>
-
-{% comment %}
-<aside>
-    <h2>💾 recent projects</h2>
-    {% for project in site.projects %}
-    <a href="{{ project.link }}" target="_blank" class="row-link">
-        <div class="row-link-content">
-            <figure>
-                <img src="{{ project.image }}" alt="{{ project.title }}" />
-            </figure>
-            <h3>{{ project.title }}</h3>
-        </div>
-        <small>{{ project.role }}, {{ project.year }}</small>
-    </a>
-    {% endfor %}
-</aside>
-{% endcomment %}
 
 <aside>
     <h2>💼 experience</h2>
@@ -41,12 +23,16 @@ use_lightbox: true
 </aside>
 
 <aside>
-    <h2>🍭 visual snippets</h2>
-    <div class="grid gallery">
-        {% for image in site.data.gallery %}
-        <a href="{{ image.full }}" class="grid-item">
-            <img src="{{ image.thumb | default: image.full }}">
-        </a>
-        {% endfor %}
-    </div>
+    <h2>💾 projects</h2>
+    {% for project in site.data.projects %}
+    <a href="{{ project.link }}" target="_blank" class="row-link">
+        <div class="row-link-content">
+            <figure>
+                <img src="{{ project.image }}" alt="{{ project.title }}" />
+            </figure>
+            <h3>{{ project.title }}<br><small>{{ project.platform }}</small></h3>
+        </div>
+        <small>{{ project.role }}, {{ project.year }}</small>
+    </a>
+    {% endfor %}
 </aside>
