@@ -1,19 +1,19 @@
 - company: PartyDAO
   role: Designer
   period: 2022 - Present
-  image: https://pbs.twimg.com/profile_images/1587859502312968196/LQW03sTy_400x400.jpg
+  image: /assets/images/party-logo.jpg
   link: http://x.com/prtyDAO
 
 - company: Showtime
   role: Founding Designer
   period: 2021 - 2022
-  image: https://developers.moralis.com/wp-content/uploads/web3wiki/281-showtime/637adccd3dba572f17c113e9_fHOjg_vNxPNQgdUQf4Mr9ppGaTh8UxMdpEzwhrDGw1o-700x700.png
+  image: /assets/images/showtime-appicon.jpg
   link: https://www.crunchbase.com/organization/showtime-732e
 
 - company: WorkOS
   role: Product Designer
   period: 2021 - 2021
-  image: https://pbs.twimg.com/profile_images/1598027328642318337/rpG0VA6P_400x400.jpg
+  image: /assets/images/workos-logo.jpg
   link: http://workos.com
 
 - company: Freelance
@@ -25,11 +25,11 @@
 - company: Bitovi
   role: UI Engineer
   period: 2015 - 2017
-  image: https://pbs.twimg.com/profile_images/1717631289103204352/52I8GaXv_400x400.jpg
+  image: /assets/images/bitovi-logo.jpg
   link: http://bitovi.com
 
 - company: Scribd
   role: Designer
   period: 2010 - 2012
-  image: https://pbs.twimg.com/profile_images/1598396115937886216/7VThFdt9_400x400.png
+  image: /assets/images/scribd-logo.jpg
   link: http://scribd.com 

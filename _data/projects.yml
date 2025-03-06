@@ -14,14 +14,14 @@
 
 - title: "Party"
   link: "https://party.app"
-  image: "https://partyprod.nyc3.cdn.digitaloceanspaces.com/app-icon.png"
+  image: /assets/images/party-logo.jpg
   platform: "Web & Mobile"
   role: "Team Designer"
   year: "2024"
 
 - title: "Showtime"
   link: "https://play.google.com/store/apps/details?id=io.showtime&hl=en_US&pli=1"
-  image: "https://developers.moralis.com/wp-content/uploads/web3wiki/281-showtime/637adccd3dba572f17c113e9_fHOjg_vNxPNQgdUQf4Mr9ppGaTh8UxMdpEzwhrDGw1o-700x700.png"
+  image: /assets/images/showtime-appicon.jpg
   platform: "Android & iOS"
   role: "Lead Designer"
   year: "2022"
