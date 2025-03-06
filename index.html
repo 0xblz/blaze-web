@@ -4,35 +4,35 @@ title: digital designer
 ---
 
 <aside>
-    <h1>digital designer and systems thinker, building intuitive and scalable experiences</h1>
+    <h1>digital designer building engaging, thoughtful experiences</h1>
 </aside>
 
 <aside>
-    <h2>💼 experience</h2>
-    {% for experience in site.data.experiences %}
-    <a href="{{ experience.link }}" {% if experience.link != "#" %}target="_blank"{% endif %} class="row-link">
-        <div class="row-link-content">
-            <figure class="rounded">
-                <img src="{{ experience.image }}" alt="{{ experience.company }}" />
-            </figure>
-            <h3>{{ experience.company }}<br><small>{{ experience.role }}</small></h3>
-        </div>
-        <small>{{ experience.period }}</small>
-    </a>
-    {% endfor %}
-</aside>
-
-<aside>
-    <h2>💾 projects</h2>
+    <h3>💾 projects</h3>
     {% for project in site.data.projects %}
     <a href="{{ project.link }}" target="_blank" class="row-link">
         <div class="row-link-content">
             <figure>
                 <img src="{{ project.image }}" alt="{{ project.title }}" />
             </figure>
-            <h3>{{ project.title }}<br><small>{{ project.platform }}</small></h3>
+            <h2>{{ project.title }}<br><small>{{ project.platform }}</small></h2>
         </div>
         <small>{{ project.role }}, {{ project.year }}</small>
+    </a>
+    {% endfor %}
+</aside>
+
+<aside>
+    <h3>💼 experience</h3>
+    {% for experience in site.data.experiences %}
+    <a href="{{ experience.link }}" {% if experience.link != "#" %}target="_blank"{% endif %} class="row-link">
+        <div class="row-link-content">
+            <figure class="rounded">
+                <img src="{{ experience.image }}" alt="{{ experience.company }}" />
+            </figure>
+            <h2>{{ experience.company }}<br><small>{{ experience.role }}</small></h2>
+        </div>
+        <small>{{ experience.period }}</small>
     </a>
     {% endfor %}
 </aside>

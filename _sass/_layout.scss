@@ -2,7 +2,7 @@
 body {
     font-family: 'DM Sans', sans-serif;
     font-size: 16px;
-    color: white;
+    color: var(--tertiary-color);
     background-color: var(--primary-color);
 }
 
@@ -10,7 +10,7 @@ main {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: var(--secondary-color);
+    background-color: var(--quaternary-color);
     min-height: 100vh;
 }
 
@@ -50,8 +50,4 @@ aside {
     padding-top: 2rem;
     padding-bottom: 2rem;
     animation: fade 0.4s ease-in-out;
-    
-    h2 {
-        width: 100%;
-    }
 } 
