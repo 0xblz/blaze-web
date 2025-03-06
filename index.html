@@ -4,11 +4,7 @@ title: digital designer
 ---
 
 <aside>
-    <h1>digital designer building engaging, thoughtful experiences</h1>
-</aside>
-
-<aside>
-    <h3>💾 projects</h3>
+    <h1>projects</h1>
     {% for project in site.data.projects %}
     <a href="{{ project.link }}" target="_blank" class="row-link">
         <div class="row-link-content">
@@ -23,7 +19,7 @@ title: digital designer
 </aside>
 
 <aside>
-    <h3>💼 experience</h3>
+    <h1>experience</h1>
     {% for experience in site.data.experiences %}
     <a href="{{ experience.link }}" {% if experience.link != "#" %}target="_blank"{% endif %} class="row-link">
         <div class="row-link-content">
