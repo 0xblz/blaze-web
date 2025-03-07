@@ -95,7 +95,8 @@ class EtherealAnimation {
         
         // FOV adjustment parameters - same for both pages now
         this.baseFOV = 75; // Default FOV
-        this.maxFOV = 95; // Same maximum FOV for both pages
+        this.maxFOV = 100; // Maximum FOV for regular boost
+        this.ultraBoostFOV = 120; // Wider FOV for ultra boost
         this.currentFOV = this.baseFOV; // Current FOV value
         this.fovInterpolationSpeed = 0.05; // How quickly FOV changes
         
@@ -1016,12 +1017,24 @@ class EtherealAnimation {
     }
 
     updateFOV() {
-        // Calculate target FOV based on speed boost
-        const speedFactor = (this.speedBoost - 1.0) / (this.maxSpeedBoost - 1.0);
-        const targetFOV = this.baseFOV + (this.maxFOV - this.baseFOV) * speedFactor;
+        // Calculate target FOV based on speed boost and ultra boost state
+        let targetFOV;
+        
+        if (this.isUltraBoost) {
+            // Use wider FOV for ultra boost
+            const ultraBoostFactor = (this.speedBoost - this.maxSpeedBoost) / (this.ultraBoostMaxSpeed - this.maxSpeedBoost);
+            const ultraBoostFOVRange = this.ultraBoostFOV - this.maxFOV;
+            targetFOV = this.maxFOV + ultraBoostFOVRange * Math.min(1, Math.max(0, ultraBoostFactor));
+        } else {
+            // Regular FOV calculation for normal boost
+            const speedFactor = Math.min(1, Math.max(0, (this.speedBoost - 1.0) / (this.maxSpeedBoost - 1.0)));
+            targetFOV = this.baseFOV + (this.maxFOV - this.baseFOV) * speedFactor;
+        }
         
         // Smoothly interpolate current FOV towards target
-        this.currentFOV += (targetFOV - this.currentFOV) * this.fovInterpolationSpeed;
+        // Use faster interpolation for ultra boost for more dramatic effect
+        const interpolationSpeed = this.isUltraBoost ? this.fovInterpolationSpeed * 1.5 : this.fovInterpolationSpeed;
+        this.currentFOV += (targetFOV - this.currentFOV) * interpolationSpeed;
         
         // Apply the new FOV to the camera
         this.camera.fov = this.currentFOV;
