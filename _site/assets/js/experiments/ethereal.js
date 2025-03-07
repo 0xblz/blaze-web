@@ -161,7 +161,7 @@ class EtherealAnimation {
         // Mobile touch handling properties
         this.touchStartTime = 0;
         this.touchStartPosition = { x: 0, y: 0 };
-        this.touchBoostDelay = 1000; // 1 second delay before activating boost
+        this.touchBoostDelay = 500; // 1 second delay before activating boost
         this.touchBoostTimer = null;
         this.touchScrollThreshold = 20; // pixels of movement to consider a scroll
         this.isBoostActivated = false; // Flag to track if boost is activated
