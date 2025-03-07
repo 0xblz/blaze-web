@@ -1250,7 +1250,7 @@ class EtherealAnimation {
         whiteFlash.style.left = '0';
         whiteFlash.style.width = '100vw';
         whiteFlash.style.height = '100vh';
-        whiteFlash.style.backgroundColor = 'rgba(255, 255, 255, 0)';
+        whiteFlash.style.backgroundColor = 'rgba(21, 18, 30, 0)';
         whiteFlash.style.pointerEvents = 'none';
         whiteFlash.style.zIndex = '9999'; // Above everything
         whiteFlash.style.transition = 'background-color 0.05s ease-in, background-color 0.3s ease-out';
@@ -1277,14 +1277,15 @@ class EtherealAnimation {
         lightBurst.style.top = '50%';
         lightBurst.style.left = '50%';
         lightBurst.style.transform = 'translate(-50%, -50%) scale(0)';
-        lightBurst.style.width = '10px';
-        lightBurst.style.height = '10px';
+        lightBurst.style.width = '600px';
+        lightBurst.style.height = '600px';
         lightBurst.style.borderRadius = '50%';
-        lightBurst.style.boxShadow = '0 0 150px 150px rgba(220, 80, 255, 0.8)'; // Secondary color
+        lightBurst.style.boxShadow = '0 0 400px 400px rgba(220, 80, 255, 0.2)'; // Secondary color
         lightBurst.style.pointerEvents = 'none';
         lightBurst.style.zIndex = '9997'; // Below chromatic aberration
         lightBurst.style.transition = 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease-out';
         lightBurst.style.opacity = '0';
+        lightBurst.style.filter = 'blur(4px)';
         
         // 4. Create a colored flash for the aftermath
         const coloredFlash = document.createElement('div');
@@ -1294,7 +1295,7 @@ class EtherealAnimation {
         coloredFlash.style.left = '0';
         coloredFlash.style.width = '100vw';
         coloredFlash.style.height = '100vh';
-        coloredFlash.style.backgroundColor = 'rgba(220, 80, 255, 0)'; // Secondary color
+        coloredFlash.style.backgroundColor = 'rgba(21, 18, 30, 0)'; // Secondary color
         coloredFlash.style.pointerEvents = 'none';
         coloredFlash.style.zIndex = '9996'; // Below light burst
         coloredFlash.style.transition = 'background-color 0.2s ease-in, background-color 0.5s ease-out';
@@ -1331,15 +1332,15 @@ class EtherealAnimation {
         
         // Step 2: Blinding white flash
         setTimeout(() => {
-            whiteFlash.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+            whiteFlash.style.backgroundColor = 'rgba(220, 80, 255, 0.1)';
             chromaticAberration.style.opacity = '1';
             lightFlash.intensity = 5;
         }, 100);
         
         // Step 3: Transition to colored flash
         setTimeout(() => {
-            whiteFlash.style.backgroundColor = 'rgba(255, 255, 255, 0)';
-            coloredFlash.style.backgroundColor = 'rgba(220, 80, 255, 0.3)';
+            whiteFlash.style.backgroundColor = 'rgba(115, 80, 255, 0)';
+            coloredFlash.style.backgroundColor = 'rgba(21, 18, 30, 0.3)';
             lightBurst.style.opacity = '0';
             lightBurst.style.transform = 'translate(-50%, -50%) scale(2)';
             lightFlash.intensity = 2;
@@ -1348,7 +1349,7 @@ class EtherealAnimation {
         // Step 4: Fade everything out
         setTimeout(() => {
             chromaticAberration.style.opacity = '0';
-            coloredFlash.style.backgroundColor = 'rgba(220, 80, 255, 0)';
+            coloredFlash.style.backgroundColor = 'rgba(21, 18, 30, 0)';
             
             // Gradually reduce the light intensity
             const fadeLight = () => {
