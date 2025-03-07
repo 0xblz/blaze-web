@@ -5,6 +5,20 @@
   role: "Creator"
   year: "2025"
 
+- title: "UNO"
+  link: "https://worldcoin.org/ecosystem/app_a4f7f3e62c1de0b9490a5260cb390b56"
+  image: "/assets/images/uno-appicon.jpg"
+  platform: "World App"
+  role: "Team Designer"
+  year: "2025"
+
+- title: "ORO"
+  link: "https://worldcoin.org/ecosystem/app_f1e44837a5e3c2af4da8925b46027645"
+  image: "/assets/images/oro-appicon.jpg"
+  platform: "World App"
+  role: "Team Designer"
+  year: "2025"
+
 - title: "Holy Hues"
   link: "https://apps.apple.com/us/app/holy-hues/id6740889386"
   image: "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/8b/24/a9/8b24a947-7eb5-e7ca-aa5a-ab8d1d6989e2/AppIcon-0-0-1x_U007ephone-0-85-220.jpeg/460x0w.webp"
@@ -18,10 +32,3 @@
   platform: "Web & Mobile"
   role: "Team Designer"
   year: "2024"
-
-- title: "Showtime"
-  link: "https://play.google.com/store/apps/details?id=io.showtime&hl=en_US&pli=1"
-  image: /assets/images/showtime-appicon.jpg
-  platform: "Android & iOS"
-  role: "Lead Designer"
-  year: "2022"

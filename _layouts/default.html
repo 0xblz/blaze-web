@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if page.title %}{{ site.title }} - {{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
-    <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
+    <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
+    <meta name="description" content="{% if page.description %}{{ page.description }}{% endif %}">
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="stylesheet" href="/assets/css/main.css">
+    <script src="https://kit.fontawesome.com/53df3a2a07.js" crossorigin="anonymous"></script>
 </head>
-<body>
+<body{% if page.is_experiment %} class="experiment"{% endif %}>
     <main>
         {% include header.html %}
         <section>
@@ -24,5 +25,9 @@
     gtag('js', new Date());
     gtag('config', 'G-355V4GHGSF');
     </script>
+    
+    {% if page.js_file %}
+    <script src="/assets/js/experiments/{{ page.js_file }}.js"></script>
+    {% endif %}
 </body>
 </html> 

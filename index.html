@@ -1,17 +1,22 @@
 ---
 layout: default
-title: digital designer
+title: blaze - digital designer
+description: building fun and intuitive experiences
+is_home: true
 ---
 
 <aside>
-    <h1>projects</h1>
+    <h1>digital designer, building fun and intuitive experiences</h1>
+</aside>
+<aside>
+    <h2>projects</h2>
     {% for project in site.data.projects %}
     <a href="{{ project.link }}" target="_blank" class="row-link">
         <div class="row-link-content">
             <figure>
                 <img src="{{ project.image }}" alt="{{ project.title }}" />
             </figure>
-            <h2>{{ project.title }}<br><small>{{ project.platform }}</small></h2>
+            <h3>{{ project.title }}<br><small>{{ project.platform }}</small></h3>
         </div>
         <small>{{ project.role }}, {{ project.year }}</small>
     </a>
@@ -19,14 +24,14 @@ title: digital designer
 </aside>
 
 <aside>
-    <h1>experience</h1>
+    <h2>experience</h2>
     {% for experience in site.data.experiences %}
     <a href="{{ experience.link }}" {% if experience.link != "#" %}target="_blank"{% endif %} class="row-link">
         <div class="row-link-content">
             <figure class="rounded">
                 <img src="{{ experience.image }}" alt="{{ experience.company }}" />
             </figure>
-            <h2>{{ experience.company }}<br><small>{{ experience.role }}</small></h2>
+            <h3>{{ experience.company }}<br><small>{{ experience.role }}</small></h3>
         </div>
         <small>{{ experience.period }}</small>
     </a>

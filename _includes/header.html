@@ -1,10 +1,22 @@
 <header>
-    <nav>
-        <div class="avatar"><img src="/avatar.png"/></div>
-        <h2>blaze, designer</h2>
-    </nav>
-    <nav>
-        <h3><a href="https://x.com/0xblz" target="_blank">@0xblz</a></h3>
-        <h3><a href="https://forms.gle/2tDqRA8P79LEguBt8" target="_blank" class="email">✉️</a></h3>
-    </nav>
-</header> 
+    {% if page.url == "/" %}
+        <nav class="logo">
+            <div class="avatar"><img src="/avatar.png"/></div>
+            <h3>blaze</h3>
+        </nav>
+        <nav>
+            <p><a href="https://x.com/0xblz" target="_blank"><i class="fa-brands fa-x-twitter"></i></a></p>
+            <p><a href="https://forms.gle/2tDqRA8P79LEguBt8" target="_blank"><i class="fa-solid fa-envelope"></i></a></p>
+        </nav>
+    {% else %}
+        <nav>
+            <p><a href="/"><i class="fa-solid fa-arrow-left"></i> back home</a></p>
+        </nav>
+    {% endif %}
+</header>
+{% if page.url != "/" %}
+    <header>
+        <h1>{{ page.title }}</h1>
+        <h2>{{ page.description }}</h2>
+    </header>
+{% endif %}

@@ -77,25 +77,8 @@ figure {
     border-radius: 9999px;
 }
 
-.email {
+.logo {
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    background-color: white;
-    color: white;
-    border-radius: 9999px;
-    
-    @media (prefers-color-scheme: dark) {
-        background-color: var(--primary-color);
-    }
-
-    &:hover {
-        background-color: var(--tertiary-color);
-
-        @media (prefers-color-scheme: dark) {
-            background-color: var(--secondary-color);
-        }
-    }
+    gap: 0.75rem;
 }
