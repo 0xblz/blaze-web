@@ -90,7 +90,7 @@ class EtherealAnimation {
         this.speedBoostIncrement = 0.15; // Faster acceleration
         this.speedBoostDecrement = 0.08; // Slightly faster deceleration
         this.boostStartTime = 0; // When the current boost started
-        this.ultraBoostThreshold = 5.0; // Time in seconds before ultra boost
+        this.ultraBoostThreshold = 3.0; // Time in seconds before ultra boost (reduced from 5.0)
         this.isUltraBoost = false; // Whether ultra boost is active
         
         // FOV adjustment parameters - same for both pages now
