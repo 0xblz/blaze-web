@@ -175,10 +175,18 @@ class EtherealAnimation {
         this.renderer.setSize(this.width, this.height);
         this.renderer.setPixelRatio(window.devicePixelRatio);
         
-        // Allow touch events to pass through on mobile
-        // but still capture them for interaction
+        // Set up the container for proper scrolling
+        // Make the container fixed position with a lower z-index
+        this.container.style.position = 'fixed';
+        this.container.style.top = '0';
+        this.container.style.left = '0';
+        this.container.style.width = '100%';
+        this.container.style.height = '100%';
+        this.container.style.zIndex = '1'; // Lower than content
+        this.container.style.pointerEvents = 'none'; // Allow clicks to pass through to content
+        
+        // But the renderer should receive pointer events
         this.renderer.domElement.style.pointerEvents = 'auto';
-        this.renderer.domElement.style.touchAction = 'none'; // Prevent default touch actions like scrolling
         
         this.container.appendChild(this.renderer.domElement);
         
@@ -211,11 +219,23 @@ class EtherealAnimation {
         // Add wheel event listener for scroll direction
         window.addEventListener('wheel', this.onScroll.bind(this), { passive: true });
         
-        // Touch events for mobile - use specific touch handlers
+        // Set up touch events - ALWAYS use passive listeners for document-level events
         document.addEventListener('touchstart', this.onTouchStart.bind(this), { passive: true });
         document.addEventListener('touchmove', this.onTouchMove.bind(this), { passive: true });
         document.addEventListener('touchend', this.onTouchEnd.bind(this), { passive: true });
         document.addEventListener('touchcancel', this.onTouchEnd.bind(this), { passive: true });
+        
+        // Add canvas-specific touch handlers for boost functionality
+        // These are attached directly to the renderer's DOM element
+        this.renderer.domElement.addEventListener('touchstart', this.onCanvasTouchStart.bind(this), { passive: false });
+        this.renderer.domElement.addEventListener('touchmove', this.onCanvasTouchMove.bind(this), { passive: false });
+        this.renderer.domElement.addEventListener('touchend', this.onCanvasTouchEnd.bind(this), { passive: false });
+        
+        // Prevent text selection on mobile devices
+        this.preventTextSelection();
+        
+        // Fix iOS scrolling issues
+        this.fixIOSScrolling();
     }
     
     setupPostProcessing() {
@@ -637,6 +657,12 @@ class EtherealAnimation {
         mobileIndicator.style.zIndex = '999';
         mobileIndicator.style.opacity = '0.7';
         
+        // iOS-specific styles
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+            mobileIndicator.style.webkitUserSelect = 'none';
+            mobileIndicator.style.webkitTouchCallout = 'none';
+        }
+        
         // Add inner circle to show boost progress
         const innerCircle = document.createElement('div');
         innerCircle.className = 'mobile-boost-progress';
@@ -649,6 +675,12 @@ class EtherealAnimation {
         innerCircle.style.borderRadius = '50%';
         innerCircle.style.backgroundColor = 'rgba(115, 80, 255, 0.3)';
         innerCircle.style.transition = 'width 0.1s ease, height 0.1s ease, background-color 0.3s ease';
+        
+        // iOS-specific styles
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+            innerCircle.style.webkitUserSelect = 'none';
+            innerCircle.style.webkitTouchCallout = 'none';
+        }
         
         mobileIndicator.appendChild(innerCircle);
         document.body.appendChild(mobileIndicator);
@@ -1339,40 +1371,14 @@ class EtherealAnimation {
         this.scrollMomentum = (this.scrollDirection * 0.1) + (this.scrollMomentum * this.scrollMomentumDecay);
     }
     
-    // Touch event handlers for mobile devices
+    // Touch event handlers for mobile devices - document level (passive)
     onTouchStart(event) {
-        // Prevent default behavior to avoid scrolling
-        // event.preventDefault(); // Not needed with passive listeners
-        
         if (event.touches.length > 0) {
             const touch = event.touches[0];
             
             // Update mouse position for camera movement
             this.targetMouse.x = (touch.clientX / this.width) * 2 - 1;
             this.targetMouse.y = -(touch.clientY / this.height) * 2 + 1;
-            
-            // Check if touch is over the canvas area
-            const rect = this.container.getBoundingClientRect();
-            this.isMouseOverCanvas = (
-                touch.clientX >= rect.left &&
-                touch.clientX <= rect.right &&
-                touch.clientY >= rect.top &&
-                touch.clientY <= rect.bottom
-            );
-            
-            // Start boost if touch is over canvas
-            if (this.isMouseOverCanvas) {
-                // Record boost start time if not already boosting
-                if (!this.isMouseDown) {
-                    this.boostStartTime = this.clock.getElapsedTime();
-                    this.isUltraBoost = false;
-                }
-                
-                this.isMouseDown = true;
-                
-                // Create a visual indicator for speed boost
-                this.createSpeedBoostIndicator();
-            }
         }
     }
     
@@ -1385,28 +1391,60 @@ class EtherealAnimation {
                 this.targetMouse.x = (touch.clientX / this.width) * 2 - 1;
                 this.targetMouse.y = -(touch.clientY / this.height) * 2 + 1;
             }
-            
-            // Check if touch is still over the canvas area
-            const rect = this.container.getBoundingClientRect();
-            const stillOverCanvas = (
-                touch.clientX >= rect.left &&
-                touch.clientX <= rect.right &&
-                touch.clientY >= rect.top &&
-                touch.clientY <= rect.bottom
-            );
-            
-            // If touch moved outside canvas, end boost
-            if (this.isMouseDown && !stillOverCanvas) {
-                this.isMouseDown = false;
-                this.isUltraBoost = false;
-                this.removeSpeedBoostIndicator();
-            }
-            
-            this.isMouseOverCanvas = stillOverCanvas;
         }
     }
     
     onTouchEnd(event) {
+        // This is handled by the canvas-specific handler
+    }
+    
+    // Canvas-specific touch handlers (non-passive)
+    onCanvasTouchStart(event) {
+        // Prevent default to avoid text selection on the canvas
+        event.preventDefault();
+        
+        if (event.touches.length > 0) {
+            const touch = event.touches[0];
+            
+            // Record boost start time if not already boosting
+            if (!this.isMouseDown) {
+                this.boostStartTime = this.clock.getElapsedTime();
+                this.isUltraBoost = false;
+            }
+            
+            this.isMouseDown = true;
+            
+            // Create a visual indicator for speed boost
+            this.createSpeedBoostIndicator();
+            
+            // Update mouse position for camera movement
+            this.targetMouse.x = (touch.clientX / this.width) * 2 - 1;
+            this.targetMouse.y = -(touch.clientY / this.height) * 2 + 1;
+            
+            // Set flag that we're over the canvas
+            this.isMouseOverCanvas = true;
+        }
+    }
+    
+    onCanvasTouchMove(event) {
+        // Prevent default to avoid text selection on the canvas
+        event.preventDefault();
+        
+        if (event.touches.length > 0) {
+            const touch = event.touches[0];
+            
+            // Only update target mouse position if not boosting
+            if (!this.isMouseDown) {
+                this.targetMouse.x = (touch.clientX / this.width) * 2 - 1;
+                this.targetMouse.y = -(touch.clientY / this.height) * 2 + 1;
+            }
+        }
+    }
+    
+    onCanvasTouchEnd(event) {
+        // Prevent default to avoid text selection on the canvas
+        event.preventDefault();
+        
         // End boost on touch end
         if (this.isMouseDown) {
             this.isMouseDown = false;
@@ -1415,6 +1453,9 @@ class EtherealAnimation {
             // Remove the speed boost indicator
             this.removeSpeedBoostIndicator();
         }
+        
+        // Reset canvas hover state
+        this.isMouseOverCanvas = false;
     }
 
     // Helper method to activate ultra boost
@@ -1430,6 +1471,99 @@ class EtherealAnimation {
         // Add haptic feedback for mobile devices if supported
         if (navigator.vibrate) {
             navigator.vibrate(200); // Vibrate for 200ms
+        }
+    }
+
+    // Helper method to prevent text selection on mobile devices
+    preventTextSelection() {
+        if (this.isMobile) {
+            // Create a style element for more targeted coverage
+            const style = document.createElement('style');
+            style.textContent = `
+                /* Only prevent selection on the canvas */
+                #etherealCanvas {
+                    -webkit-user-select: none;
+                    -moz-user-select: none;
+                    -ms-user-select: none;
+                    user-select: none;
+                    -webkit-touch-callout: none;
+                }
+                
+                /* Make sure the renderer doesn't interfere with scrolling */
+                #etherealCanvas canvas {
+                    touch-action: none;
+                    -webkit-user-select: none;
+                    -moz-user-select: none;
+                    -ms-user-select: none;
+                    user-select: none;
+                    -webkit-touch-callout: none;
+                }
+                
+                /* Explicitly enable scrolling on the body */
+                body {
+                    touch-action: auto !important;
+                    overflow-y: auto !important;
+                    -webkit-overflow-scrolling: touch !important;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Add specific handling for iOS
+            if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+                // Add meta viewport tag to ensure proper scaling
+                let viewportMeta = document.querySelector('meta[name="viewport"]');
+                if (!viewportMeta) {
+                    viewportMeta = document.createElement('meta');
+                    viewportMeta.name = 'viewport';
+                    document.head.appendChild(viewportMeta);
+                }
+                viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0';
+                
+                // Add a small delay to ensure styles are applied
+                setTimeout(() => {
+                    // Force body to be scrollable
+                    document.body.style.overflow = 'auto';
+                    document.body.style.webkitOverflowScrolling = 'touch';
+                    
+                    // Ensure the canvas doesn't interfere with scrolling
+                    this.container.style.pointerEvents = 'none';
+                    this.renderer.domElement.style.pointerEvents = 'auto';
+                }, 100);
+            }
+        }
+    }
+
+    // Helper method to fix iOS scrolling issues
+    fixIOSScrolling() {
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+            // Create a dummy scrollable element to force iOS to allow scrolling
+            const scrollFix = document.createElement('div');
+            scrollFix.style.width = '100%';
+            scrollFix.style.height = '101%'; // Slightly taller to ensure scrolling is possible
+            scrollFix.style.position = 'absolute';
+            scrollFix.style.top = '0';
+            scrollFix.style.left = '0';
+            scrollFix.style.pointerEvents = 'none';
+            scrollFix.style.zIndex = '0';
+            document.body.appendChild(scrollFix);
+            
+            // Force body to be scrollable
+            document.body.style.height = 'auto';
+            document.body.style.overflow = 'auto';
+            document.body.style.webkitOverflowScrolling = 'touch';
+            
+            // Add a small amount of content at the bottom to ensure scrolling works
+            const spacer = document.createElement('div');
+            spacer.style.height = '1px';
+            spacer.style.width = '100%';
+            spacer.style.clear = 'both';
+            document.body.appendChild(spacer);
+            
+            // Periodically check and re-enable scrolling if needed
+            setInterval(() => {
+                document.body.style.overflow = 'auto';
+                document.body.style.webkitOverflowScrolling = 'touch';
+            }, 1000);
         }
     }
 } 
