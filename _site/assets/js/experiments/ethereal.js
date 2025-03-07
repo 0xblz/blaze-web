@@ -316,7 +316,8 @@ class EtherealAnimation {
     
     createGlowingParticles() {
         // Create glowing particles
-        const particleCount = 800;
+        // Reduce particle count on mobile devices
+        const particleCount = this.isMobile ? 300 : 800;
         const particleGeometry = new THREE.BufferGeometry();
         const particlePositions = new Float32Array(particleCount * 3);
         const particleSizes = new Float32Array(particleCount);
