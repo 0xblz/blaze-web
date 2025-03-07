@@ -148,6 +148,7 @@ class EtherealAnimation {
         this.vignetteIntensity = 0;
         this.maxVignetteIntensity = 0.8;
         this.vignetteColor = '#7350ff'; // Primary color for vignette
+        this.vignetteUltraBoostColor = '#dc50ff'; // Secondary color for ultra boost vignette
         
         // Shake effect parameters
         this.shakeIntensity = 0;
@@ -1117,7 +1118,13 @@ class EtherealAnimation {
         vignette.style.height = '100vh';
         vignette.style.pointerEvents = 'none';
         vignette.style.zIndex = '2'; // Above canvas but below UI
-        vignette.style.boxShadow = `inset 0 0 150px rgba(115, 80, 255, 0)`; // Start transparent with primary color
+        
+        // Extract RGB components from the primary color hex
+        const r = parseInt(this.vignetteColor.slice(1, 3), 16);
+        const g = parseInt(this.vignetteColor.slice(3, 5), 16);
+        const b = parseInt(this.vignetteColor.slice(5, 7), 16);
+        
+        vignette.style.boxShadow = `inset 0 0 150px rgba(${r}, ${g}, ${b}, 0)`; // Start transparent with primary color
         vignette.style.transition = 'box-shadow 0.3s ease';
         
         // Add to DOM
@@ -1134,13 +1141,16 @@ class EtherealAnimation {
         // Smoothly interpolate current intensity
         this.vignetteIntensity += (targetIntensity - this.vignetteIntensity) * 0.1;
         
-        // Apply vignette effect with primary color
+        // Determine which color to use based on ultra boost state
+        const currentColor = this.isUltraBoost ? this.vignetteUltraBoostColor : this.vignetteColor;
+        
+        // Apply vignette effect with the appropriate color
         const alpha = this.vignetteIntensity.toFixed(2);
         
-        // Extract RGB components from the primary color hex
-        const r = parseInt(this.vignetteColor.slice(1, 3), 16);
-        const g = parseInt(this.vignetteColor.slice(3, 5), 16);
-        const b = parseInt(this.vignetteColor.slice(5, 7), 16);
+        // Extract RGB components from the color hex
+        const r = parseInt(currentColor.slice(1, 3), 16);
+        const g = parseInt(currentColor.slice(3, 5), 16);
+        const b = parseInt(currentColor.slice(5, 7), 16);
         
         this.vignetteElement.style.boxShadow = `inset 0 0 150px rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
