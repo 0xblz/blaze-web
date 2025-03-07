@@ -74,12 +74,16 @@ class EtherealAnimation {
         // Check if we're on the home page
         this.isHomePage = !window.location.pathname.includes('/experiments/');
         
-        // Speed boost parameters - same for both pages now
+        // Speed boost parameters - adjusted for more noticeable acceleration
         this.isMouseDown = false;
         this.speedBoost = 1.0; // Normal speed multiplier
-        this.maxSpeedBoost = 10.0; // Same maximum speed boost for both pages
+        this.maxSpeedBoost = 10.0; // Initial maximum speed boost
+        this.ultraBoostMaxSpeed = 20.0; // Ultra boost speed after 5 seconds
         this.speedBoostIncrement = 0.15; // Faster acceleration
         this.speedBoostDecrement = 0.08; // Slightly faster deceleration
+        this.boostStartTime = 0; // When the current boost started
+        this.ultraBoostThreshold = 5.0; // Time in seconds before ultra boost
+        this.isUltraBoost = false; // Whether ultra boost is active
         
         // FOV adjustment parameters - same for both pages now
         this.baseFOV = 75; // Default FOV
@@ -525,17 +529,39 @@ class EtherealAnimation {
     }
     
     onMouseDown(event) {
-        this.isMouseDown = true;
-        
-        // Create a visual indicator for speed boost
-        this.createSpeedBoostIndicator();
+        // Left click for speed boost
+        if (event.button === 0) {
+            // Record boost start time if not already boosting
+            if (!this.isMouseDown) {
+                this.boostStartTime = this.clock.getElapsedTime();
+                this.isUltraBoost = false;
+            }
+            
+            this.isMouseDown = true;
+            
+            // Create a visual indicator for speed boost
+            this.createSpeedBoostIndicator();
+        }
+        // Right click for orbit
+        else if (event.button === 2) {
+            this.startOrbiting(event);
+        }
     }
     
     onMouseUp(event) {
-        this.isMouseDown = false;
+        // Handle speed boost release
+        if (this.isMouseDown) {
+            this.isMouseDown = false;
+            this.isUltraBoost = false;
+            
+            // Remove the speed boost indicator
+            this.removeSpeedBoostIndicator();
+        }
         
-        // Remove the speed boost indicator
-        this.removeSpeedBoostIndicator();
+        // Handle orbit release
+        if (this.isOrbiting) {
+            this.isOrbiting = false;
+        }
     }
     
     createSpeedBoostIndicator() {
@@ -574,11 +600,42 @@ class EtherealAnimation {
     
     updateSpeedBoostIndicator() {
         if (this.speedBoostIndicator) {
-            this.speedBoostIndicator.textContent = `SPEED: ${this.speedBoost.toFixed(1)}x`;
+            // Update text with current speed
+            const speedText = this.isUltraBoost ? 
+                `ULTRA BOOST: ${this.speedBoost.toFixed(1)}x` : 
+                `SPEED: ${this.speedBoost.toFixed(1)}x`;
+            
+            this.speedBoostIndicator.textContent = speedText;
             
             // Change color based on speed
-            const hue = 240 - (this.speedBoost / this.maxSpeedBoost) * 240; // Blue to red
+            let hue;
+            if (this.isUltraBoost) {
+                // Purple to red for ultra boost
+                hue = 280 - ((this.speedBoost - this.maxSpeedBoost) / (this.ultraBoostMaxSpeed - this.maxSpeedBoost)) * 280;
+            } else {
+                // Blue to purple for normal boost
+                hue = 240 - (this.speedBoost / this.maxSpeedBoost) * 60;
+            }
+            
             this.speedBoostIndicator.style.color = `hsl(${hue}, 100%, 70%)`;
+            
+            // Add pulsing effect for ultra boost
+            if (this.isUltraBoost) {
+                this.speedBoostIndicator.style.animation = 'pulse 0.5s infinite alternate';
+                if (!this.speedBoostIndicator.style.animationName) {
+                    // Add keyframes if they don't exist
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @keyframes pulse {
+                            0% { transform: scale(1); }
+                            100% { transform: scale(1.1); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            } else {
+                this.speedBoostIndicator.style.animation = '';
+            }
         }
     }
     
@@ -620,10 +677,32 @@ class EtherealAnimation {
         const opacities = this.particleSystem.geometry.attributes.opacity.array;
         const streaks = this.particleSystem.geometry.attributes.streak.array;
         
+        // Get current time
+        const currentTime = this.clock.getElapsedTime();
+        
+        // Check for ultra boost activation
+        if (this.isMouseDown && !this.isUltraBoost) {
+            const boostDuration = currentTime - this.boostStartTime;
+            
+            // If boosting for more than the threshold, activate ultra boost
+            if (boostDuration >= this.ultraBoostThreshold) {
+                this.isUltraBoost = true;
+                
+                // Create a visual effect for ultra boost activation
+                this.createUltraBoostEffect();
+                
+                // Update the speed boost indicator
+                this.updateSpeedBoostIndicator();
+            }
+        }
+        
         // Update speed boost based on mouse down state
         if (this.isMouseDown) {
+            // Determine max speed based on ultra boost state
+            const maxSpeed = this.isUltraBoost ? this.ultraBoostMaxSpeed : this.maxSpeedBoost;
+            
             // Increase speed boost when mouse is down
-            this.speedBoost = Math.min(this.speedBoost + this.speedBoostIncrement, this.maxSpeedBoost);
+            this.speedBoost = Math.min(this.speedBoost + this.speedBoostIncrement, maxSpeed);
             
             // Increase glitch intensity when boosting
             this.glitchIntensity = Math.min(this.glitchIntensity + this.glitchIncrement, this.maxGlitchIntensity);
@@ -640,7 +719,7 @@ class EtherealAnimation {
         
         // Calculate streak factor based on speed boost
         // Only add streaks when speed is above normal
-        const streakFactor = Math.max(0, (this.speedBoost - 1.0) / (this.maxSpeedBoost - 1.0));
+        const streakFactor = Math.max(0, (this.speedBoost - 1.0) / (this.ultraBoostMaxSpeed - 1.0));
         
         // Smoothly interpolate mouse position for more natural movement
         this.mouse.x += (this.targetMouse.x - this.mouse.x) * this.mouseInterpolationSpeed;
@@ -1039,6 +1118,88 @@ class EtherealAnimation {
         } else {
             // Fallback to body if main not found
             document.body.style.transform = `translate(${shakeX}px, ${shakeY}px)`;
+        }
+    }
+
+    createUltraBoostEffect() {
+        // Create a flash effect to indicate ultra boost activation
+        const flash = document.createElement('div');
+        flash.className = 'ultra-boost-flash';
+        flash.style.position = 'fixed';
+        flash.style.top = '0';
+        flash.style.left = '0';
+        flash.style.width = '100vw';
+        flash.style.height = '100vh';
+        flash.style.backgroundColor = 'rgba(220, 80, 255, 0.3)'; // Secondary color
+        flash.style.pointerEvents = 'none';
+        flash.style.zIndex = '3'; // Above vignette
+        flash.style.opacity = '0';
+        flash.style.transition = 'opacity 0.1s ease-in, opacity 0.5s ease-out';
+        
+        // Add to DOM
+        document.body.appendChild(flash);
+        
+        // Trigger flash animation
+        setTimeout(() => {
+            flash.style.opacity = '1';
+            
+            // Play a sound if available
+            if (window.AudioContext || window.webkitAudioContext) {
+                this.playUltraBoostSound();
+            }
+            
+            // Remove flash after animation
+            setTimeout(() => {
+                flash.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(flash);
+                }, 500);
+            }, 100);
+        }, 0);
+        
+        // Add more particles for ultra boost
+        this.addUltraBoostParticles();
+    }
+
+    playUltraBoostSound() {
+        try {
+            // Create audio context
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContext();
+            
+            // Create oscillator for sound effect
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            // Configure oscillator
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(220, audioCtx.currentTime); // Start at A3
+            oscillator.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1); // Ramp to A5
+            
+            // Configure gain (volume)
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            
+            // Connect nodes
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            // Play sound
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        } catch (e) {
+            console.log('Audio not supported');
+        }
+    }
+
+    addUltraBoostParticles() {
+        // Add more wind streaks for ultra boost
+        if (this.windStreaks && this.windStreaks.length > 0) {
+            // Increase opacity of existing wind streaks
+            for (let i = 0; i < this.windStreaks.length; i++) {
+                const streak = this.windStreaks[i];
+                streak.userData.targetOpacity *= 1.5;
+            }
         }
     }
 } 
