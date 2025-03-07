@@ -136,6 +136,14 @@ class EtherealAnimation {
         this.vignetteIntensity = 0;
         this.maxVignetteIntensity = 0.8;
         this.vignetteColor = '#7350ff'; // Primary color for vignette
+        
+        // Shake effect parameters
+        this.shakeIntensity = 0;
+        this.maxShakeIntensity = 3; // Maximum shake in pixels
+        this.shakeDecay = 0.9; // How quickly shake decays
+        this.shakeThreshold = 1.5; // Speed boost threshold to start shaking
+        this.lastShakeTime = 0;
+        this.shakeInterval = 0.05; // How often to apply shake (in seconds)
     }
     
     init() {
@@ -753,27 +761,41 @@ class EtherealAnimation {
         // Update FOV for zoom effect
         this.updateFOV();
         
-        // Apply subtle camera movement based on mouse position for 3D effect
-        // Reduced camera movement speed for gentler effect
-        this.camera.position.x += (this.mouse.x * 30 - this.camera.position.x) * 0.02;
-        this.camera.position.y += (-this.mouse.y * 30 - this.camera.position.y) * 0.02;
-        
-        // Add a slight camera movement during rotation for enhanced effect
-        if (this.rotationSpeed > 0) {
-            // Calculate a slight offset based on rotation
-            const offsetX = Math.sin(this.rotation * 2) * 5 * this.rotationSpeed / this.maxRotationSpeed;
-            const offsetY = Math.cos(this.rotation * 1.5) * 5 * this.rotationSpeed / this.maxRotationSpeed;
+        // Apply camera position based on orbit or mouse movement
+        if (this.isOrbiting) {
+            // Calculate camera position based on orbit angles
+            const x = Math.sin(this.cameraOrbitX) * Math.cos(this.cameraOrbitY) * this.cameraDistance;
+            const y = Math.sin(this.cameraOrbitY) * this.cameraDistance;
+            const z = Math.cos(this.cameraOrbitX) * Math.cos(this.cameraOrbitY) * this.cameraDistance;
             
-            // Apply the offset to camera position
-            this.camera.position.x += offsetX;
-            this.camera.position.y += offsetY;
+            // Apply camera position
+            this.camera.position.set(x, y, z);
+            
+            // Look at the center
+            this.camera.lookAt(this.cameraTargetX, this.cameraTargetY, this.cameraTargetZ);
+        } else {
+            // Apply subtle camera movement based on mouse position for 3D effect
+            // Reduced camera movement speed for gentler effect
+            this.camera.position.x += (this.mouse.x * 30 - this.camera.position.x) * 0.02;
+            this.camera.position.y += (-this.mouse.y * 30 - this.camera.position.y) * 0.02;
+            
+            // Add a slight camera movement during rotation for enhanced effect
+            if (this.rotationSpeed > 0) {
+                // Calculate a slight offset based on rotation
+                const offsetX = Math.sin(this.rotation * 2) * 5 * this.rotationSpeed / this.maxRotationSpeed;
+                const offsetY = Math.cos(this.rotation * 1.5) * 5 * this.rotationSpeed / this.maxRotationSpeed;
+                
+                // Apply the offset to camera position
+                this.camera.position.x += offsetX;
+                this.camera.position.y += offsetY;
+            }
+            
+            // Reset Z position when not orbiting
+            this.camera.position.z += (1000 - this.camera.position.z) * 0.05;
+            
+            // Look at the center of the scene
+            this.camera.lookAt(this.scene.position);
         }
-        
-        // Instead of moving the camera forward during speed boost,
-        // we'll keep the camera stationary and just increase particle speed
-        // This prevents the direction change issue
-        
-        this.camera.lookAt(this.scene.position);
         
         // Handle glitch effect
         this.updateGlitchEffect(currentTime);
@@ -786,6 +808,9 @@ class EtherealAnimation {
         
         // Update vignette effect
         this.updateVignetteEffect();
+        
+        // Update shake effect
+        this.updateShakeEffect(currentTime);
         
         // Render scene with post-processing
         if (this.composer) {
@@ -965,5 +990,55 @@ class EtherealAnimation {
         const b = parseInt(this.vignetteColor.slice(5, 7), 16);
         
         this.vignetteElement.style.boxShadow = `inset 0 0 150px rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    updateShakeEffect(currentTime) {
+        // Calculate shake intensity based on speed boost
+        const speedFactor = Math.max(0, (this.speedBoost - this.shakeThreshold) / (this.maxSpeedBoost - this.shakeThreshold));
+        
+        // Apply shake at intervals
+        if (speedFactor > 0 && currentTime - this.lastShakeTime > this.shakeInterval) {
+            // Set new shake intensity
+            this.shakeIntensity = this.maxShakeIntensity * speedFactor * (0.5 + Math.random() * 0.5);
+            this.lastShakeTime = currentTime;
+            
+            // Apply shake to main content
+            this.applyShake();
+        } else {
+            // Decay shake intensity
+            this.shakeIntensity *= this.shakeDecay;
+            
+            // If shake is very small, reset it
+            if (this.shakeIntensity < 0.1) {
+                this.shakeIntensity = 0;
+                
+                // Reset content position if needed
+                if (document.body.style.transform !== '') {
+                    document.body.style.transform = '';
+                }
+            } else {
+                // Apply decayed shake
+                this.applyShake();
+            }
+        }
+    }
+
+    applyShake() {
+        // Only apply shake if intensity is non-zero
+        if (this.shakeIntensity <= 0) return;
+        
+        // Calculate random shake offset
+        const shakeX = (Math.random() * 2 - 1) * this.shakeIntensity;
+        const shakeY = (Math.random() * 2 - 1) * this.shakeIntensity;
+        
+        // Find all main content elements except the canvas and its container
+        const mainContent = document.querySelector('main');
+        if (mainContent) {
+            // Apply shake to main content
+            mainContent.style.transform = `translate(${shakeX}px, ${shakeY}px)`;
+        } else {
+            // Fallback to body if main not found
+            document.body.style.transform = `translate(${shakeX}px, ${shakeY}px)`;
+        }
     }
 } 
