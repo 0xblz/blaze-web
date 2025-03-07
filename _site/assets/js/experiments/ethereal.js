@@ -1176,9 +1176,17 @@ class EtherealAnimation {
                 this.shakeIntensity = 0;
                 
                 // Reset content position if needed
-                if (document.body.style.transform !== '') {
-                    document.body.style.transform = '';
-                }
+                // Get all elements that might have been shaken
+                const shakeableElements = document.querySelectorAll('header, main > *, aside, .content-section, .page-section, article, section, .container:not(#etherealCanvas)');
+                
+                // Reset transform on all elements
+                shakeableElements.forEach(element => {
+                    // Skip the canvas container and its parents
+                    if (element.contains(this.container)) return;
+                    
+                    // Reset transform
+                    element.style.transform = '';
+                });
             } else {
                 // Apply decayed shake
                 this.applyShake();
@@ -1194,15 +1202,17 @@ class EtherealAnimation {
         const shakeX = (Math.random() * 2 - 1) * this.shakeIntensity;
         const shakeY = (Math.random() * 2 - 1) * this.shakeIntensity;
         
-        // Find all main content elements except the canvas and its container
-        const mainContent = document.querySelector('main');
-        if (mainContent) {
-            // Apply shake to main content
-            mainContent.style.transform = `translate(${shakeX}px, ${shakeY}px)`;
-        } else {
-            // Fallback to body if main not found
-            document.body.style.transform = `translate(${shakeX}px, ${shakeY}px)`;
-        }
+        // Get all major content elements that should shake
+        const shakeableElements = document.querySelectorAll('header, h1, h2, .row-link > *');
+        
+        // Apply shake to each element
+        shakeableElements.forEach(element => {
+            // Skip the canvas container and its parents to avoid affecting the animation
+            if (element.contains(this.container)) return;
+            
+            // Apply shake to the element
+            element.style.transform = `translate(${shakeX}px, ${shakeY}px)`;
+        });
     }
 
     createUltraBoostEffect() {
