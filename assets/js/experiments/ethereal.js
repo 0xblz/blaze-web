@@ -416,7 +416,11 @@ class EtherealAnimation {
         const particleMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 0 },
-                speedBoost: { value: 1.0 } // Add uniform for speed boost
+                speedBoost: { value: 1.0 }, // Add uniform for speed boost
+                speedColor1: { value: new THREE.Vector3(this.speedColors[0].r, this.speedColors[0].g, this.speedColors[0].b) },
+                speedColor2: { value: new THREE.Vector3(this.speedColors[1].r, this.speedColors[1].g, this.speedColors[1].b) },
+                speedColor3: { value: new THREE.Vector3(this.speedColors[2].r, this.speedColors[2].g, this.speedColors[2].b) },
+                speedColor4: { value: new THREE.Vector3(this.speedColors[3].r, this.speedColors[3].g, this.speedColors[3].b) }
             },
             vertexShader: `
                 attribute float size;
@@ -442,15 +446,31 @@ class EtherealAnimation {
                 varying float vOpacity;
                 varying float vStreak;
                 uniform float speedBoost;
+                uniform vec3 speedColor1; // Red
+                uniform vec3 speedColor2; // Orange
+                uniform vec3 speedColor3; // Yellow
+                uniform vec3 speedColor4; // White
                 
-                // Function to shift color towards red/orange based on speed
-                vec3 shiftColor(vec3 color, float speedFactor) {
-                    // Increase red component and decrease blue component based on speed
-                    vec3 shiftedColor = color;
-                    shiftedColor.r = min(1.0, color.r + speedFactor * 0.5);
-                    shiftedColor.g = min(1.0, color.g + speedFactor * 0.3);
-                    shiftedColor.b = max(0.0, color.b - speedFactor * 0.5);
-                    return shiftedColor;
+                // Function to get color based on speed factor using speedColors
+                vec3 getSpeedColor(vec3 baseColor, float speedFactor) {
+                    if (speedFactor <= 0.0) {
+                        return baseColor; // Use original color at normal speed
+                    }
+                    
+                    // Use the speedColors based on the speed factor
+                    if (speedFactor < 0.33) {
+                        // Mix between original color and first speed color (red)
+                        return mix(baseColor, speedColor1, speedFactor * 3.0);
+                    } else if (speedFactor < 0.66) {
+                        // Mix between first and second speed colors (red to orange)
+                        return mix(speedColor1, speedColor2, (speedFactor - 0.33) * 3.0);
+                    } else if (speedFactor < 0.9) {
+                        // Mix between second and third speed colors (orange to yellow)
+                        return mix(speedColor2, speedColor3, (speedFactor - 0.66) * 4.0);
+                    } else {
+                        // Mix between third and fourth speed colors (yellow to white)
+                        return mix(speedColor3, speedColor4, (speedFactor - 0.9) * 10.0);
+                    }
                 }
                 
                 void main() {
@@ -464,10 +484,10 @@ class EtherealAnimation {
                     alpha *= vOpacity;
                     
                     // Calculate speed factor for color shifting (0 to 1)
-                    float speedFactor = clamp((speedBoost - 1.0) / 7.0, 0.0, 1.0);
+                    float speedFactor = clamp((speedBoost - 1.0) / 9.0, 0.0, 1.0);
                     
-                    // Add enhanced glow effect with brighter center
-                    vec3 baseColor = shiftColor(vColor, speedFactor);
+                    // Get color based on speed using the speedColors
+                    vec3 baseColor = getSpeedColor(vColor, speedFactor);
                     vec3 glow = baseColor * (1.0 - r * 0.4);
                     
                     // Boost brightness in the center
@@ -483,7 +503,7 @@ class EtherealAnimation {
                             float streakIntensity = (1.0 - cxy.x) * vStreak * (1.0 - abs(cxy.y) * 3.0);
                             
                             // Create a more intense color for the streak
-                            vec3 streakColor = mix(baseColor, vec3(1.0, 0.8, 0.4), speedFactor * 0.8);
+                            vec3 streakColor = mix(baseColor, speedColor4, speedFactor * 0.8);
                             
                             // Add streak to the glow
                             glow += streakColor * streakIntensity * 0.8;
@@ -501,8 +521,13 @@ class EtherealAnimation {
             blending: THREE.AdditiveBlending
         });
         
+        // Create the particle system
         this.particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+        this.particleSystem.frustumCulled = false; // Prevent particles from disappearing at screen edges
         this.scene.add(this.particleSystem);
+        
+        // Store a reference to the particle material for later updates
+        this.particleMaterial = particleMaterial;
     }
     
     createWindStreaks() {
@@ -932,6 +957,11 @@ class EtherealAnimation {
         
         // Update particles
         this.updateParticles();
+        
+        // Update the speedBoost uniform in the particle shader
+        if (this.particleMaterial && this.particleMaterial.uniforms) {
+            this.particleMaterial.uniforms.speedBoost.value = this.speedBoost;
+        }
         
         // Update wind streaks
         this.updateWindStreaks();
