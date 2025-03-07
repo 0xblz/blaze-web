@@ -78,7 +78,6 @@ class EtherealAnimation {
         
         // Mobile detection
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        this.mobileBoostIndicator = null;
         
         // Check if we're on the home page
         this.isHomePage = !window.location.pathname.includes('/experiments/');
@@ -157,6 +156,14 @@ class EtherealAnimation {
         this.shakeThreshold = 1.5; // Speed boost threshold to start shaking
         this.lastShakeTime = 0;
         this.shakeInterval = 0.05; // How often to apply shake (in seconds)
+        
+        // Mobile touch handling properties
+        this.touchStartTime = 0;
+        this.touchStartPosition = { x: 0, y: 0 };
+        this.touchBoostDelay = 1000; // 1 second delay before activating boost
+        this.touchBoostTimer = null;
+        this.touchScrollThreshold = 20; // pixels of movement to consider a scroll
+        this.isBoostActivated = false; // Flag to track if boost is activated
     }
     
     init() {
@@ -187,6 +194,9 @@ class EtherealAnimation {
         
         // But the renderer should receive pointer events
         this.renderer.domElement.style.pointerEvents = 'auto';
+        
+        // Set touch-action to allow scrolling
+        this.renderer.domElement.style.touchAction = 'pan-x pan-y';
         
         this.container.appendChild(this.renderer.domElement);
         
@@ -226,10 +236,10 @@ class EtherealAnimation {
         document.addEventListener('touchcancel', this.onTouchEnd.bind(this), { passive: true });
         
         // Add canvas-specific touch handlers for boost functionality
-        // These are attached directly to the renderer's DOM element
-        this.renderer.domElement.addEventListener('touchstart', this.onCanvasTouchStart.bind(this), { passive: false });
-        this.renderer.domElement.addEventListener('touchmove', this.onCanvasTouchMove.bind(this), { passive: false });
-        this.renderer.domElement.addEventListener('touchend', this.onCanvasTouchEnd.bind(this), { passive: false });
+        // Use passive: true to allow natural scrolling
+        this.renderer.domElement.addEventListener('touchstart', this.onCanvasTouchStart.bind(this), { passive: true });
+        this.renderer.domElement.addEventListener('touchmove', this.onCanvasTouchMove.bind(this), { passive: true });
+        this.renderer.domElement.addEventListener('touchend', this.onCanvasTouchEnd.bind(this), { passive: true });
         
         // Prevent text selection on mobile devices
         this.preventTextSelection();
@@ -633,67 +643,7 @@ class EtherealAnimation {
         
         // Create mobile-specific boost indicator if on mobile
         if (this.isMobile) {
-            this.createMobileBoostIndicator();
-        }
-    }
-    
-    createMobileBoostIndicator() {
-        // Remove existing mobile indicator if any
-        this.removeMobileBoostIndicator();
-        
-        // Create a visual indicator for mobile users
-        const mobileIndicator = document.createElement('div');
-        mobileIndicator.className = 'mobile-boost-indicator';
-        mobileIndicator.style.position = 'fixed';
-        mobileIndicator.style.top = '50%';
-        mobileIndicator.style.left = '50%';
-        mobileIndicator.style.transform = 'translate(-50%, -50%)';
-        mobileIndicator.style.width = '150px';
-        mobileIndicator.style.height = '150px';
-        mobileIndicator.style.borderRadius = '50%';
-        mobileIndicator.style.border = '3px solid rgba(115, 80, 255, 0.7)';
-        mobileIndicator.style.boxShadow = '0 0 20px rgba(115, 80, 255, 0.5)';
-        mobileIndicator.style.pointerEvents = 'none';
-        mobileIndicator.style.zIndex = '999';
-        mobileIndicator.style.opacity = '0.7';
-        
-        // iOS-specific styles
-        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-            mobileIndicator.style.webkitUserSelect = 'none';
-            mobileIndicator.style.webkitTouchCallout = 'none';
-        }
-        
-        // Add inner circle to show boost progress
-        const innerCircle = document.createElement('div');
-        innerCircle.className = 'mobile-boost-progress';
-        innerCircle.style.position = 'absolute';
-        innerCircle.style.top = '50%';
-        innerCircle.style.left = '50%';
-        innerCircle.style.transform = 'translate(-50%, -50%)';
-        innerCircle.style.width = '0%';
-        innerCircle.style.height = '0%';
-        innerCircle.style.borderRadius = '50%';
-        innerCircle.style.backgroundColor = 'rgba(115, 80, 255, 0.3)';
-        innerCircle.style.transition = 'width 0.1s ease, height 0.1s ease, background-color 0.3s ease';
-        
-        // iOS-specific styles
-        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-            innerCircle.style.webkitUserSelect = 'none';
-            innerCircle.style.webkitTouchCallout = 'none';
-        }
-        
-        mobileIndicator.appendChild(innerCircle);
-        document.body.appendChild(mobileIndicator);
-        
-        this.mobileBoostIndicator = mobileIndicator;
-        this.mobileBoostProgress = innerCircle;
-    }
-    
-    removeMobileBoostIndicator() {
-        if (this.mobileBoostIndicator) {
-            document.body.removeChild(this.mobileBoostIndicator);
-            this.mobileBoostIndicator = null;
-            this.mobileBoostProgress = null;
+            // We no longer need a mobile boost indicator
         }
     }
     
@@ -702,9 +652,6 @@ class EtherealAnimation {
             document.body.removeChild(this.speedBoostIndicator);
             this.speedBoostIndicator = null;
         }
-        
-        // Also remove mobile indicator
-        this.removeMobileBoostIndicator();
     }
     
     updateSpeedBoostIndicator() {
@@ -727,35 +674,6 @@ class EtherealAnimation {
             }
             
             this.speedBoostIndicator.style.color = `hsl(${hue}, 100%, 70%)`;
-        }
-        
-        // Update mobile boost indicator if available
-        if (this.mobileBoostProgress) {
-            // Calculate progress percentage (0-100%)
-            let progressPercent;
-            
-            if (this.isUltraBoost) {
-                // For ultra boost, show progress from max boost to ultra boost max
-                progressPercent = ((this.speedBoost - this.maxSpeedBoost) / (this.ultraBoostMaxSpeed - this.maxSpeedBoost)) * 100;
-            } else {
-                // For normal boost, show progress from 1 to max boost
-                progressPercent = ((this.speedBoost - 1) / (this.maxSpeedBoost - 1)) * 100;
-            }
-            
-            // Update size of inner circle
-            this.mobileBoostProgress.style.width = `${Math.min(100, progressPercent)}%`;
-            this.mobileBoostProgress.style.height = `${Math.min(100, progressPercent)}%`;
-            
-            // Change color based on boost level
-            if (this.isUltraBoost) {
-                this.mobileBoostProgress.style.backgroundColor = 'rgba(255, 50, 50, 0.5)';
-                this.mobileBoostIndicator.style.border = '3px solid rgba(255, 50, 50, 0.7)';
-                this.mobileBoostIndicator.style.boxShadow = '0 0 30px rgba(255, 50, 50, 0.6)';
-            } else {
-                this.mobileBoostProgress.style.backgroundColor = 'rgba(115, 80, 255, 0.3)';
-                this.mobileBoostIndicator.style.border = '3px solid rgba(115, 80, 255, 0.7)';
-                this.mobileBoostIndicator.style.boxShadow = '0 0 20px rgba(115, 80, 255, 0.5)';
-            }
         }
     }
     
@@ -863,10 +781,10 @@ class EtherealAnimation {
             this.scrollDirection = 0;
         }
         
-        // Update each particle
+        // Update particle positions
         for (let i = 0; i < this.particles.length; i++) {
+            const ix = i * 3;
             const particle = this.particles[i];
-            const ix = particle.index * 3;
             
             // Move particle towards the viewer (positive Z) with time scaling and speed boost
             // Adjust direction based on scroll direction
@@ -1398,24 +1316,47 @@ class EtherealAnimation {
         // This is handled by the canvas-specific handler
     }
     
-    // Canvas-specific touch handlers (non-passive)
+    // Canvas-specific touch handlers (now passive)
     onCanvasTouchStart(event) {
-        // Prevent default to avoid text selection on the canvas
-        event.preventDefault();
-        
         if (event.touches.length > 0) {
             const touch = event.touches[0];
             
-            // Record boost start time if not already boosting
-            if (!this.isMouseDown) {
-                this.boostStartTime = this.clock.getElapsedTime();
-                this.isUltraBoost = false;
+            // Store touch start time and position
+            this.touchStartTime = this.clock.getElapsedTime() * 1000; // Convert to ms
+            this.touchStartPosition = { 
+                x: touch.clientX, 
+                y: touch.clientY 
+            };
+            
+            // Clear any existing timer
+            if (this.touchBoostTimer) {
+                clearTimeout(this.touchBoostTimer);
             }
             
-            this.isMouseDown = true;
+            // Reset boost activation flag
+            this.isBoostActivated = false;
             
-            // Create a visual indicator for speed boost
-            this.createSpeedBoostIndicator();
+            // Set a timer to activate boost after delay
+            this.touchBoostTimer = setTimeout(() => {
+                // Only activate if touch is still held and hasn't moved much
+                if (event.touches.length > 0) {
+                    const currentTouch = event.touches[0];
+                    const distX = Math.abs(currentTouch.clientX - this.touchStartPosition.x);
+                    const distY = Math.abs(currentTouch.clientY - this.touchStartPosition.y);
+                    
+                    // Only activate if the finger hasn't moved much (not scrolling)
+                    if (distX < this.touchScrollThreshold && distY < this.touchScrollThreshold) {
+                        // Record boost start time
+                        this.boostStartTime = this.clock.getElapsedTime();
+                        this.isMouseDown = true;
+                        this.isUltraBoost = false;
+                        this.isBoostActivated = true;
+                        
+                        // Temporarily disable scrolling on the canvas to prevent conflicts
+                        this.renderer.domElement.style.touchAction = 'none';
+                    }
+                }
+            }, this.touchBoostDelay);
             
             // Update mouse position for camera movement
             this.targetMouse.x = (touch.clientX / this.width) * 2 - 1;
@@ -1427,11 +1368,24 @@ class EtherealAnimation {
     }
     
     onCanvasTouchMove(event) {
-        // Prevent default to avoid text selection on the canvas
-        event.preventDefault();
-        
         if (event.touches.length > 0) {
             const touch = event.touches[0];
+            
+            // Calculate distance moved
+            const distX = Math.abs(touch.clientX - this.touchStartPosition.x);
+            const distY = Math.abs(touch.clientY - this.touchStartPosition.y);
+            
+            // If significant movement detected before boost activates, cancel the boost
+            if (!this.isBoostActivated && (distX > this.touchScrollThreshold || distY > this.touchScrollThreshold)) {
+                // Clear the boost timer
+                if (this.touchBoostTimer) {
+                    clearTimeout(this.touchBoostTimer);
+                    this.touchBoostTimer = null;
+                }
+                
+                // Ensure boost is deactivated
+                this.isMouseDown = false;
+            }
             
             // Only update target mouse position if not boosting
             if (!this.isMouseDown) {
@@ -1442,17 +1396,23 @@ class EtherealAnimation {
     }
     
     onCanvasTouchEnd(event) {
-        // Prevent default to avoid text selection on the canvas
-        event.preventDefault();
+        // Clear the boost timer
+        if (this.touchBoostTimer) {
+            clearTimeout(this.touchBoostTimer);
+            this.touchBoostTimer = null;
+        }
         
         // End boost on touch end
         if (this.isMouseDown) {
             this.isMouseDown = false;
             this.isUltraBoost = false;
-            
-            // Remove the speed boost indicator
-            this.removeSpeedBoostIndicator();
         }
+        
+        // Reset boost activation flag
+        this.isBoostActivated = false;
+        
+        // Re-enable scrolling on the canvas
+        this.renderer.domElement.style.touchAction = 'pan-x pan-y';
         
         // Reset canvas hover state
         this.isMouseOverCanvas = false;
