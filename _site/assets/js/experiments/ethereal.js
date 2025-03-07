@@ -135,6 +135,7 @@ class EtherealAnimation {
         this.vignetteElement = null;
         this.vignetteIntensity = 0;
         this.maxVignetteIntensity = 0.8;
+        this.vignetteColor = '#7350ff'; // Primary color for vignette
     }
     
     init() {
@@ -938,7 +939,7 @@ class EtherealAnimation {
         vignette.style.height = '100vh';
         vignette.style.pointerEvents = 'none';
         vignette.style.zIndex = '2'; // Above canvas but below UI
-        vignette.style.boxShadow = 'inset 0 0 150px rgba(0, 0, 0, 0)'; // Start transparent
+        vignette.style.boxShadow = `inset 0 0 150px rgba(115, 80, 255, 0)`; // Start transparent with primary color
         vignette.style.transition = 'box-shadow 0.3s ease';
         
         // Add to DOM
@@ -955,8 +956,14 @@ class EtherealAnimation {
         // Smoothly interpolate current intensity
         this.vignetteIntensity += (targetIntensity - this.vignetteIntensity) * 0.1;
         
-        // Apply vignette effect
+        // Apply vignette effect with primary color
         const alpha = this.vignetteIntensity.toFixed(2);
-        this.vignetteElement.style.boxShadow = `inset 0 0 150px rgba(0, 0, 0, ${alpha})`;
+        
+        // Extract RGB components from the primary color hex
+        const r = parseInt(this.vignetteColor.slice(1, 3), 16);
+        const g = parseInt(this.vignetteColor.slice(3, 5), 16);
+        const b = parseInt(this.vignetteColor.slice(5, 7), 16);
+        
+        this.vignetteElement.style.boxShadow = `inset 0 0 150px rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 } 
