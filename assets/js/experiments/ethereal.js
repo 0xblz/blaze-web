@@ -78,6 +78,14 @@ class EtherealAnimation {
         this.currentFOV = this.baseFOV; // Current FOV value
         this.fovInterpolationSpeed = 0.05; // How quickly FOV changes
         
+        // Rotation parameters for spinning effect - increased for more noticeable effect
+        this.rotation = 0; // Current rotation angle
+        this.rotationSpeed = 0; // Current rotation speed
+        this.maxRotationSpeed = 0.005; // Increased maximum rotation speed (was 0.0015)
+        this.rotationAcceleration = 0.00005; // Increased acceleration (was 0.00001)
+        this.rotationDeceleration = 0.00008; // Increased deceleration (was 0.00002)
+        this.rotationAmplitude = 0.12; // Maximum rotation angle in radians (was 0.05)
+        
         // Glitch effect parameters - adjusted to be more subtle
         this.glitchIntensity = 0.0; // Current glitch intensity
         this.maxGlitchIntensity = 0.4; // Reduced maximum glitch intensity (was 0.8)
@@ -661,6 +669,17 @@ class EtherealAnimation {
         this.camera.position.x += (this.mouse.x * 30 - this.camera.position.x) * 0.02;
         this.camera.position.y += (-this.mouse.y * 30 - this.camera.position.y) * 0.02;
         
+        // Add a slight camera movement during rotation for enhanced effect
+        if (this.rotationSpeed > 0) {
+            // Calculate a slight offset based on rotation
+            const offsetX = Math.sin(this.rotation * 2) * 5 * this.rotationSpeed / this.maxRotationSpeed;
+            const offsetY = Math.cos(this.rotation * 1.5) * 5 * this.rotationSpeed / this.maxRotationSpeed;
+            
+            // Apply the offset to camera position
+            this.camera.position.x += offsetX;
+            this.camera.position.y += offsetY;
+        }
+        
         // Instead of moving the camera forward during speed boost,
         // we'll keep the camera stationary and just increase particle speed
         // This prevents the direction change issue
@@ -669,6 +688,9 @@ class EtherealAnimation {
         
         // Handle glitch effect
         this.updateGlitchEffect(currentTime);
+        
+        // Update rotation based on speed boost
+        this.updateRotation();
         
         // Render scene with post-processing
         if (this.composer) {
@@ -734,5 +756,42 @@ class EtherealAnimation {
         // Apply the new FOV to the camera
         this.camera.fov = this.currentFOV;
         this.camera.updateProjectionMatrix();
+    }
+
+    updateRotation() {
+        // Update rotation speed based on boost state
+        if (this.speedBoost > 1.1) { // Only start spinning after a slight boost
+            // Gradually increase rotation speed, proportional to boost level
+            const boostFactor = (this.speedBoost - 1.1) / (this.maxSpeedBoost - 1.1);
+            this.rotationSpeed = Math.min(
+                this.rotationSpeed + this.rotationAcceleration * boostFactor,
+                this.maxRotationSpeed * boostFactor
+            );
+        } else {
+            // Gradually decrease rotation speed
+            this.rotationSpeed = Math.max(this.rotationSpeed - this.rotationDeceleration, 0);
+        }
+        
+        // Update rotation angle
+        this.rotation += this.rotationSpeed;
+        
+        // Apply rotation to scene for a more noticeable effect
+        // Use both Z and X rotation for a more dynamic effect
+        const zRotation = Math.sin(this.rotation) * this.rotationAmplitude;
+        const xRotation = Math.cos(this.rotation * 0.7) * (this.rotationAmplitude * 0.4); // Smaller X rotation
+        
+        // Apply rotations
+        this.scene.rotation.z = zRotation;
+        this.scene.rotation.x = xRotation;
+        
+        // Add a slight Y rotation for more dynamism
+        if (this.rotationSpeed > 0) {
+            // Gradually increase Y rotation based on speed
+            const yRotationTarget = this.rotationSpeed * 20; // Amplify the effect
+            this.scene.rotation.y += (yRotationTarget - this.scene.rotation.y) * 0.01;
+        } else {
+            // Gradually reset Y rotation
+            this.scene.rotation.y *= 0.98;
+        }
     }
 } 
