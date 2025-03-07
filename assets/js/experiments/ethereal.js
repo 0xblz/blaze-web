@@ -71,33 +71,33 @@ class EtherealAnimation {
         this.parallaxStrength = 0.08;
         this.mouseInterpolationSpeed = 0.15;
         
-        // Adjust parameters for background use
+        // Check if we're on the home page
         this.isHomePage = !window.location.pathname.includes('/experiments/');
         
-        // Speed boost parameters - adjusted for more noticeable acceleration
+        // Speed boost parameters - same for both pages now
         this.isMouseDown = false;
         this.speedBoost = 1.0; // Normal speed multiplier
-        this.maxSpeedBoost = this.isHomePage ? 5.0 : 10.0; // Lower max speed on home page
+        this.maxSpeedBoost = 10.0; // Same maximum speed boost for both pages
         this.speedBoostIncrement = 0.15; // Faster acceleration
         this.speedBoostDecrement = 0.08; // Slightly faster deceleration
         
-        // FOV adjustment parameters
+        // FOV adjustment parameters - same for both pages now
         this.baseFOV = 75; // Default FOV
-        this.maxFOV = this.isHomePage ? 85 : 95; // Lower max FOV on home page
+        this.maxFOV = 95; // Same maximum FOV for both pages
         this.currentFOV = this.baseFOV; // Current FOV value
         this.fovInterpolationSpeed = 0.05; // How quickly FOV changes
         
-        // Rotation parameters for spinning effect - increased for more noticeable effect
+        // Rotation parameters - same for both pages now
         this.rotation = 0; // Current rotation angle
         this.rotationSpeed = 0; // Current rotation speed
-        this.maxRotationSpeed = this.isHomePage ? 0.003 : 0.005; // Lower max rotation on home page
+        this.maxRotationSpeed = 0.005; // Same maximum rotation speed for both pages
         this.rotationAcceleration = 0.00005; // Increased acceleration
         this.rotationDeceleration = 0.00008; // Increased deceleration
-        this.rotationAmplitude = this.isHomePage ? 0.08 : 0.12; // Lower amplitude on home page
+        this.rotationAmplitude = 0.12; // Same rotation amplitude for both pages
         
-        // Glitch effect parameters - adjusted to be more subtle
+        // Glitch effect parameters - same for both pages now
         this.glitchIntensity = 0.0; // Current glitch intensity
-        this.maxGlitchIntensity = this.isHomePage ? 0.2 : 0.4; // Lower max glitch on home page
+        this.maxGlitchIntensity = 0.4; // Same maximum glitch intensity for both pages
         this.glitchIncrement = 0.03; // Slower glitch build-up
         this.glitchDecrement = 0.05; // Faster glitch fade-out
         this.lastGlitchTime = 0; // Last time a glitch was triggered
@@ -454,7 +454,7 @@ class EtherealAnimation {
     }
     
     createSpeedBoostIndicator() {
-        // Skip indicator on home page
+        // Only show indicator on the ethereal page, not on the homepage
         if (this.isHomePage) return;
         
         // Remove existing indicator if any
