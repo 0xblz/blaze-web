@@ -52,4 +52,15 @@ aside {
     padding-top: 2rem;
     padding-bottom: 2rem;
     animation: fade 0.4s ease-in-out;
+}
+
+// Background canvas for ethereal animation
+.background-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1; // Behind all content
+    pointer-events: none; // Allow clicks to pass through
 } 

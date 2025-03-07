@@ -42,13 +42,19 @@ const loadThreeJS = () => {
 };
 
 // Initialize the ethereal animation once Three.js is loaded
-loadThreeJS().then(() => {
-    // Initialize Three.js scene
-    const app = new EtherealAnimation();
-    app.init();
-    app.animate();
-}).catch(error => {
-    console.error('Error initializing animation:', error);
+document.addEventListener('DOMContentLoaded', () => {
+    // Only initialize if the canvas element exists
+    const canvas = document.getElementById('etherealCanvas');
+    if (canvas) {
+        loadThreeJS().then(() => {
+            // Initialize Three.js scene
+            const app = new EtherealAnimation();
+            app.init();
+            app.animate();
+        }).catch(error => {
+            console.error('Error initializing animation:', error);
+        });
+    }
 });
 
 class EtherealAnimation {
@@ -65,35 +71,38 @@ class EtherealAnimation {
         this.parallaxStrength = 0.08;
         this.mouseInterpolationSpeed = 0.15;
         
+        // Adjust parameters for background use
+        this.isHomePage = !window.location.pathname.includes('/experiments/');
+        
         // Speed boost parameters - adjusted for more noticeable acceleration
         this.isMouseDown = false;
         this.speedBoost = 1.0; // Normal speed multiplier
-        this.maxSpeedBoost = 10.0; // Increased maximum speed boost
+        this.maxSpeedBoost = this.isHomePage ? 5.0 : 10.0; // Lower max speed on home page
         this.speedBoostIncrement = 0.15; // Faster acceleration
         this.speedBoostDecrement = 0.08; // Slightly faster deceleration
         
         // FOV adjustment parameters
         this.baseFOV = 75; // Default FOV
-        this.maxFOV = 95; // Maximum FOV when boosting
+        this.maxFOV = this.isHomePage ? 85 : 95; // Lower max FOV on home page
         this.currentFOV = this.baseFOV; // Current FOV value
         this.fovInterpolationSpeed = 0.05; // How quickly FOV changes
         
         // Rotation parameters for spinning effect - increased for more noticeable effect
         this.rotation = 0; // Current rotation angle
         this.rotationSpeed = 0; // Current rotation speed
-        this.maxRotationSpeed = 0.005; // Increased maximum rotation speed (was 0.0015)
-        this.rotationAcceleration = 0.00005; // Increased acceleration (was 0.00001)
-        this.rotationDeceleration = 0.00008; // Increased deceleration (was 0.00002)
-        this.rotationAmplitude = 0.12; // Maximum rotation angle in radians (was 0.05)
+        this.maxRotationSpeed = this.isHomePage ? 0.003 : 0.005; // Lower max rotation on home page
+        this.rotationAcceleration = 0.00005; // Increased acceleration
+        this.rotationDeceleration = 0.00008; // Increased deceleration
+        this.rotationAmplitude = this.isHomePage ? 0.08 : 0.12; // Lower amplitude on home page
         
         // Glitch effect parameters - adjusted to be more subtle
         this.glitchIntensity = 0.0; // Current glitch intensity
-        this.maxGlitchIntensity = 0.4; // Reduced maximum glitch intensity (was 0.8)
-        this.glitchIncrement = 0.03; // Slower glitch build-up (was 0.05)
-        this.glitchDecrement = 0.05; // Faster glitch fade-out (was 0.03)
+        this.maxGlitchIntensity = this.isHomePage ? 0.2 : 0.4; // Lower max glitch on home page
+        this.glitchIncrement = 0.03; // Slower glitch build-up
+        this.glitchDecrement = 0.05; // Faster glitch fade-out
         this.lastGlitchTime = 0; // Last time a glitch was triggered
-        this.glitchInterval = 0.4; // Less frequent glitches (was 0.2)
-        this.glitchDuration = 0.07; // Shorter glitch duration (was 0.1)
+        this.glitchInterval = 0.4; // Less frequent glitches
+        this.glitchDuration = 0.07; // Shorter glitch duration
         this.isGlitching = false; // Whether a glitch is currently active
         
         // Normal colors (used at regular speed)
@@ -445,6 +454,9 @@ class EtherealAnimation {
     }
     
     createSpeedBoostIndicator() {
+        // Skip indicator on home page
+        if (this.isHomePage) return;
+        
         // Remove existing indicator if any
         this.removeSpeedBoostIndicator();
         
