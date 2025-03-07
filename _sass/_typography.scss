@@ -3,11 +3,7 @@ h1 {
     font-size: 2rem;
     line-height: 1.3em;
     font-weight: 800;
-    color: var(--primary-color);
-
-    @media (prefers-color-scheme: dark) {
-        color: var(--secondary-color);
-    }
+    color: var(--secondary-color);
 }
 
 h2 {
@@ -33,19 +29,12 @@ a {
     color: var(--tertiary-color);
     text-decoration: none;
     font-weight: 700;
-
-    @media (prefers-color-scheme: dark) {
-        color: white;
-    }
+    color: white;
     
     &:hover,
     &:focus,
     &:active {
-        color: var(--primary-color);
-
-        @media (prefers-color-scheme: dark) {
-            color: var(--secondary-color);
-        }
+        color: var(--secondary-color);
     }
 }
 
