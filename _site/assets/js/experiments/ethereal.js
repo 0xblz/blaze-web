@@ -737,8 +737,13 @@ class EtherealAnimation {
             // Increase speed boost when mouse is down
             this.speedBoost = Math.min(this.speedBoost + this.speedBoostIncrement, maxSpeed);
             
-            // Increase glitch intensity when boosting
-            this.glitchIntensity = Math.min(this.glitchIntensity + this.glitchIncrement, this.maxGlitchIntensity);
+            // Only increase glitch intensity when in ultra boost mode
+            if (this.isUltraBoost) {
+                this.glitchIntensity = Math.min(this.glitchIntensity + this.glitchIncrement, this.maxGlitchIntensity);
+            } else {
+                // Keep glitch intensity at 0 during regular boost
+                this.glitchIntensity = 0;
+            }
         } else {
             // Gradually decrease speed boost when mouse is up
             this.speedBoost = Math.max(this.speedBoost - this.speedBoostDecrement, 1.0);
@@ -1216,40 +1221,135 @@ class EtherealAnimation {
     }
 
     createUltraBoostEffect() {
-        // Create a flash effect to indicate ultra boost activation
-        const flash = document.createElement('div');
-        flash.className = 'ultra-boost-flash';
-        flash.style.position = 'fixed';
-        flash.style.top = '0';
-        flash.style.left = '0';
-        flash.style.width = '100vw';
-        flash.style.height = '100vh';
-        flash.style.backgroundColor = 'rgba(220, 80, 255, 0.3)'; // Secondary color
-        flash.style.pointerEvents = 'none';
-        flash.style.zIndex = '3'; // Above vignette
-        flash.style.opacity = '0';
-        flash.style.transition = 'opacity 0.1s ease-in, opacity 0.5s ease-out';
+        // Create a dramatic light flash effect to simulate passing the speed of light
+        
+        // 1. Create a blinding white flash that covers the entire screen
+        const whiteFlash = document.createElement('div');
+        whiteFlash.className = 'ultra-boost-white-flash';
+        whiteFlash.style.position = 'fixed';
+        whiteFlash.style.top = '0';
+        whiteFlash.style.left = '0';
+        whiteFlash.style.width = '100vw';
+        whiteFlash.style.height = '100vh';
+        whiteFlash.style.backgroundColor = 'rgba(255, 255, 255, 0)';
+        whiteFlash.style.pointerEvents = 'none';
+        whiteFlash.style.zIndex = '9999'; // Above everything
+        whiteFlash.style.transition = 'background-color 0.05s ease-in, background-color 0.3s ease-out';
+        
+        // 2. Create a chromatic aberration effect (color separation)
+        const chromaticAberration = document.createElement('div');
+        chromaticAberration.className = 'ultra-boost-chromatic';
+        chromaticAberration.style.position = 'fixed';
+        chromaticAberration.style.top = '0';
+        chromaticAberration.style.left = '0';
+        chromaticAberration.style.width = '100vw';
+        chromaticAberration.style.height = '100vh';
+        chromaticAberration.style.pointerEvents = 'none';
+        chromaticAberration.style.zIndex = '9998'; // Just below the white flash
+        chromaticAberration.style.opacity = '0';
+        chromaticAberration.style.transition = 'opacity 0.1s ease-in, opacity 0.5s ease-out';
+        chromaticAberration.style.background = 'linear-gradient(90deg, rgba(255,80,255,0.3) -10%, transparent 30%, transparent 70%, rgba(0,0,255,0.3) 110%)';
+        chromaticAberration.style.mixBlendMode = 'screen';
+        
+        // 3. Create a radial light burst from the center
+        const lightBurst = document.createElement('div');
+        lightBurst.className = 'ultra-boost-light-burst';
+        lightBurst.style.position = 'fixed';
+        lightBurst.style.top = '50%';
+        lightBurst.style.left = '50%';
+        lightBurst.style.transform = 'translate(-50%, -50%) scale(0)';
+        lightBurst.style.width = '10px';
+        lightBurst.style.height = '10px';
+        lightBurst.style.borderRadius = '50%';
+        lightBurst.style.boxShadow = '0 0 150px 150px rgba(220, 80, 255, 0.8)'; // Secondary color
+        lightBurst.style.pointerEvents = 'none';
+        lightBurst.style.zIndex = '9997'; // Below chromatic aberration
+        lightBurst.style.transition = 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease-out';
+        lightBurst.style.opacity = '0';
+        
+        // 4. Create a colored flash for the aftermath
+        const coloredFlash = document.createElement('div');
+        coloredFlash.className = 'ultra-boost-colored-flash';
+        coloredFlash.style.position = 'fixed';
+        coloredFlash.style.top = '0';
+        coloredFlash.style.left = '0';
+        coloredFlash.style.width = '100vw';
+        coloredFlash.style.height = '100vh';
+        coloredFlash.style.backgroundColor = 'rgba(220, 80, 255, 0)'; // Secondary color
+        coloredFlash.style.pointerEvents = 'none';
+        coloredFlash.style.zIndex = '9996'; // Below light burst
+        coloredFlash.style.transition = 'background-color 0.2s ease-in, background-color 0.5s ease-out';
         
         // Add to DOM
-        document.body.appendChild(flash);
+        document.body.appendChild(whiteFlash);
+        document.body.appendChild(chromaticAberration);
+        document.body.appendChild(lightBurst);
+        document.body.appendChild(coloredFlash);
         
-        // Trigger flash animation
+        // Add a strong light to the scene
+        const lightFlash = new THREE.PointLight(0xdc50ff, 0, 2000); // Secondary color light
+        lightFlash.position.set(0, 0, 500);
+        this.scene.add(lightFlash);
+        
+        // Sequence the animation for a dramatic effect
+        
+        // Step 1: Initial light burst from center
         setTimeout(() => {
-            flash.style.opacity = '1';
+            lightBurst.style.opacity = '1';
+            lightBurst.style.transform = 'translate(-50%, -50%) scale(1)';
+            lightFlash.intensity = 3;
             
             // Play a sound if available
             if (window.AudioContext || window.webkitAudioContext) {
                 this.playUltraBoostSound();
             }
             
-            // Remove flash after animation
-            setTimeout(() => {
-                flash.style.opacity = '0';
-                setTimeout(() => {
-                    document.body.removeChild(flash);
-                }, 500);
-            }, 100);
+            // Add haptic feedback for mobile devices if supported
+            if (navigator.vibrate) {
+                navigator.vibrate([100, 50, 150]); // Vibration pattern
+            }
         }, 0);
+        
+        // Step 2: Blinding white flash
+        setTimeout(() => {
+            whiteFlash.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+            chromaticAberration.style.opacity = '1';
+            lightFlash.intensity = 5;
+        }, 100);
+        
+        // Step 3: Transition to colored flash
+        setTimeout(() => {
+            whiteFlash.style.backgroundColor = 'rgba(255, 255, 255, 0)';
+            coloredFlash.style.backgroundColor = 'rgba(220, 80, 255, 0.3)';
+            lightBurst.style.opacity = '0';
+            lightBurst.style.transform = 'translate(-50%, -50%) scale(2)';
+            lightFlash.intensity = 2;
+        }, 250);
+        
+        // Step 4: Fade everything out
+        setTimeout(() => {
+            chromaticAberration.style.opacity = '0';
+            coloredFlash.style.backgroundColor = 'rgba(220, 80, 255, 0)';
+            
+            // Gradually reduce the light intensity
+            const fadeLight = () => {
+                lightFlash.intensity *= 0.9;
+                if (lightFlash.intensity > 0.1) {
+                    requestAnimationFrame(fadeLight);
+                } else {
+                    this.scene.remove(lightFlash);
+                }
+            };
+            fadeLight();
+            
+            // Remove elements after animation
+            setTimeout(() => {
+                document.body.removeChild(whiteFlash);
+                document.body.removeChild(chromaticAberration);
+                document.body.removeChild(lightBurst);
+                document.body.removeChild(coloredFlash);
+            }, 500);
+        }, 600);
         
         // Add more particles for ultra boost
         this.addUltraBoostParticles();
@@ -1441,6 +1541,9 @@ class EtherealAnimation {
     // Helper method to activate ultra boost
     activateUltraBoost() {
         this.isUltraBoost = true;
+        
+        // Immediately set glitch intensity to a noticeable level when ultra boost activates
+        this.glitchIntensity = this.maxGlitchIntensity * 0.5;
         
         // Create a visual effect for ultra boost activation
         this.createUltraBoostEffect();
