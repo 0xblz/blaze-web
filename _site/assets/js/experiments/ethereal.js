@@ -120,14 +120,29 @@ class EtherealAnimation {
             new THREE.Color('#ffff00'), // Yellow
             new THREE.Color('#ffffff')  // White
         ];
+        
+        // Wind streaks parameters
+        this.windStreaks = [];
+        this.maxWindStreaks = 20; // Maximum number of wind streaks
+        this.windStreakColors = [
+            new THREE.Color('#ffffff'), // White
+            new THREE.Color('#7350ff'), // Primary color
+            new THREE.Color('#dc50ff'), // Secondary color
+            new THREE.Color('#50fff9')  // Quaternary color
+        ];
+        
+        // Vignette effect parameters
+        this.vignetteElement = null;
+        this.vignetteIntensity = 0;
+        this.maxVignetteIntensity = 0.8;
     }
     
     init() {
         // Create scene
         this.scene = new THREE.Scene();
         
-        // Create camera
-        this.camera = new THREE.PerspectiveCamera(75, this.width / this.height, 0.1, 2000);
+        // Create camera with base FOV
+        this.camera = new THREE.PerspectiveCamera(this.baseFOV, this.width / this.height, 0.1, 2000);
         this.camera.position.z = 1000;
         
         // Create renderer
@@ -139,6 +154,9 @@ class EtherealAnimation {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.domElement.style.pointerEvents = 'none'; // Allow clicks to pass through
         this.container.appendChild(this.renderer.domElement);
+        
+        // Create vignette effect
+        this.createVignetteEffect();
         
         // Set up post-processing
         this.setupPostProcessing();
@@ -214,8 +232,11 @@ class EtherealAnimation {
     }
     
     createParticles() {
-        // Only create glowing particles, no shapes
+        // Create different types of particles
         this.createGlowingParticles();
+        
+        // Create wind streaks (initially hidden)
+        this.createWindStreaks();
     }
     
     createGlowingParticles() {
@@ -407,6 +428,61 @@ class EtherealAnimation {
         
         this.particleSystem = new THREE.Points(particleGeometry, particleMaterial);
         this.scene.add(this.particleSystem);
+    }
+    
+    createWindStreaks() {
+        // Create a group to hold all wind streaks
+        this.windStreakGroup = new THREE.Group();
+        this.scene.add(this.windStreakGroup);
+        
+        // Create wind streak geometries
+        for (let i = 0; i < this.maxWindStreaks; i++) {
+            // Create a streak geometry (elongated in Z direction)
+            const length = Math.random() * 300 + 200; // Random length between 200-500
+            const width = Math.random() * 2 + 1; // Random width between 1-3
+            
+            const geometry = new THREE.PlaneGeometry(width, length, 1, 1);
+            
+            // Rotate to face the camera and tilt slightly
+            geometry.rotateX(Math.PI / 2); // Face the camera
+            geometry.rotateY(Math.random() * 0.2 - 0.1); // Random slight Y rotation
+            geometry.rotateZ(Math.random() * 0.2 - 0.1); // Random slight Z rotation
+            
+            // Random color from wind streak colors
+            const colorIndex = Math.floor(Math.random() * this.windStreakColors.length);
+            const color = this.windStreakColors[colorIndex];
+            
+            // Create material with transparency and glow
+            const material = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0, // Start invisible
+                blending: THREE.AdditiveBlending,
+                side: THREE.DoubleSide,
+                depthWrite: false
+            });
+            
+            // Create mesh
+            const streak = new THREE.Mesh(geometry, material);
+            
+            // Random position (will be updated during animation)
+            streak.position.x = (Math.random() - 0.5) * this.width * 2;
+            streak.position.y = (Math.random() - 0.5) * this.height * 2;
+            streak.position.z = Math.random() * -1000 - 500;
+            
+            // Store additional properties
+            streak.userData = {
+                speed: Math.random() * 20 + 10,
+                opacity: 0,
+                targetOpacity: 0,
+                originalX: streak.position.x,
+                originalY: streak.position.y
+            };
+            
+            // Add to group and array
+            this.windStreakGroup.add(streak);
+            this.windStreaks.push(streak);
+        }
     }
     
     onWindowResize() {
@@ -704,6 +780,12 @@ class EtherealAnimation {
         // Update rotation based on speed boost
         this.updateRotation();
         
+        // Update wind streaks
+        this.updateWindStreaks();
+        
+        // Update vignette effect
+        this.updateVignetteEffect();
+        
         // Render scene with post-processing
         if (this.composer) {
             this.composer.render();
@@ -805,5 +887,76 @@ class EtherealAnimation {
             // Gradually reset Y rotation
             this.scene.rotation.y *= 0.98;
         }
+    }
+
+    updateWindStreaks() {
+        // Calculate wind streak visibility based on speed boost
+        const streakVisibility = Math.max(0, (this.speedBoost - 1.5) / (this.maxSpeedBoost - 1.5));
+        
+        // Update each wind streak
+        for (let i = 0; i < this.windStreaks.length; i++) {
+            const streak = this.windStreaks[i];
+            
+            // Move streak forward (towards camera)
+            streak.position.z += streak.userData.speed * (1 + streakVisibility * 2);
+            
+            // Apply parallax effect based on mouse position
+            const parallaxFactor = this.parallaxStrength * 2; // Stronger parallax for streaks
+            streak.position.x = streak.userData.originalX + (this.mouse.x * 800 * parallaxFactor);
+            streak.position.y = streak.userData.originalY + (this.mouse.y * 800 * parallaxFactor);
+            
+            // Set target opacity based on speed boost
+            streak.userData.targetOpacity = streakVisibility * (0.3 + Math.random() * 0.2);
+            
+            // Smoothly interpolate opacity
+            streak.userData.opacity += (streak.userData.targetOpacity - streak.userData.opacity) * 0.1;
+            streak.material.opacity = streak.userData.opacity;
+            
+            // Reset streak if it passes the camera
+            if (streak.position.z > 500) {
+                streak.position.z = Math.random() * -1000 - 500;
+                streak.userData.originalX = (Math.random() - 0.5) * this.width * 2;
+                streak.userData.originalY = (Math.random() - 0.5) * this.height * 2;
+                streak.position.x = streak.userData.originalX;
+                streak.position.y = streak.userData.originalY;
+                
+                // Randomize rotation slightly
+                streak.rotation.y = Math.random() * 0.2 - 0.1;
+                streak.rotation.z = Math.random() * 0.2 - 0.1;
+            }
+        }
+    }
+
+    createVignetteEffect() {
+        // Create a div for the vignette effect
+        const vignette = document.createElement('div');
+        vignette.className = 'vignette-effect';
+        vignette.style.position = 'fixed';
+        vignette.style.top = '0';
+        vignette.style.left = '0';
+        vignette.style.width = '100vw';
+        vignette.style.height = '100vh';
+        vignette.style.pointerEvents = 'none';
+        vignette.style.zIndex = '2'; // Above canvas but below UI
+        vignette.style.boxShadow = 'inset 0 0 150px rgba(0, 0, 0, 0)'; // Start transparent
+        vignette.style.transition = 'box-shadow 0.3s ease';
+        
+        // Add to DOM
+        document.body.appendChild(vignette);
+        this.vignetteElement = vignette;
+    }
+
+    updateVignetteEffect() {
+        if (!this.vignetteElement) return;
+        
+        // Calculate target vignette intensity based on speed boost
+        const targetIntensity = Math.max(0, (this.speedBoost - 1.0) / (this.maxSpeedBoost - 1.0)) * this.maxVignetteIntensity;
+        
+        // Smoothly interpolate current intensity
+        this.vignetteIntensity += (targetIntensity - this.vignetteIntensity) * 0.1;
+        
+        // Apply vignette effect
+        const alpha = this.vignetteIntensity.toFixed(2);
+        this.vignetteElement.style.boxShadow = `inset 0 0 150px rgba(0, 0, 0, ${alpha})`;
     }
 } 
