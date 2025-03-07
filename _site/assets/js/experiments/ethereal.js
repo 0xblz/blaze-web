@@ -72,6 +72,12 @@ class EtherealAnimation {
         this.speedBoostIncrement = 0.15; // Faster acceleration
         this.speedBoostDecrement = 0.08; // Slightly faster deceleration
         
+        // FOV adjustment parameters
+        this.baseFOV = 75; // Default FOV
+        this.maxFOV = 95; // Maximum FOV when boosting
+        this.currentFOV = this.baseFOV; // Current FOV value
+        this.fovInterpolationSpeed = 0.05; // How quickly FOV changes
+        
         // Glitch effect parameters - adjusted to be more subtle
         this.glitchIntensity = 0.0; // Current glitch intensity
         this.maxGlitchIntensity = 0.4; // Reduced maximum glitch intensity (was 0.8)
@@ -647,6 +653,9 @@ class EtherealAnimation {
         // Update particles
         this.updateParticles();
         
+        // Update FOV for zoom effect
+        this.updateFOV();
+        
         // Apply subtle camera movement based on mouse position for 3D effect
         // Reduced camera movement speed for gentler effect
         this.camera.position.x += (this.mouse.x * 30 - this.camera.position.x) * 0.02;
@@ -712,5 +721,18 @@ class EtherealAnimation {
             // Disable glitch pass when not boosting
             this.glitchPass.enabled = false;
         }
+    }
+
+    updateFOV() {
+        // Calculate target FOV based on speed boost
+        const speedFactor = (this.speedBoost - 1.0) / (this.maxSpeedBoost - 1.0);
+        const targetFOV = this.baseFOV + (this.maxFOV - this.baseFOV) * speedFactor;
+        
+        // Smoothly interpolate current FOV towards target
+        this.currentFOV += (targetFOV - this.currentFOV) * this.fovInterpolationSpeed;
+        
+        // Apply the new FOV to the camera
+        this.camera.fov = this.currentFOV;
+        this.camera.updateProjectionMatrix();
     }
 } 
