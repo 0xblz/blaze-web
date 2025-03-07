@@ -71,6 +71,11 @@ class EtherealAnimation {
         this.parallaxStrength = 0.08;
         this.mouseInterpolationSpeed = 0.15;
         
+        // Add scroll direction tracking
+        this.scrollDirection = 0; // 0 = no scroll, 1 = down, -1 = up
+        this.scrollMomentum = 0; // Momentum of scrolling
+        this.scrollMomentumDecay = 0.95; // How quickly scroll momentum decays
+        
         // Check if we're on the home page
         this.isHomePage = !window.location.pathname.includes('/experiments/');
         
@@ -193,6 +198,9 @@ class EtherealAnimation {
         document.addEventListener('mouseup', this.onMouseUp.bind(this), { passive: true });
         document.addEventListener('mouseleave', this.onMouseUp.bind(this), { passive: true });
         document.addEventListener('click', this.onMouseClick.bind(this), { passive: true });
+        
+        // Add wheel event listener for scroll direction
+        window.addEventListener('wheel', this.onScroll.bind(this), { passive: true });
         
         // Touch events for mobile
         document.addEventListener('touchstart', this.onMouseDown.bind(this), { passive: true });
@@ -514,9 +522,12 @@ class EtherealAnimation {
     }
     
     onMouseMove(event) {
-        // Update target mouse position for smooth movement
-        this.targetMouse.x = (event.clientX / this.width) * 2 - 1;
-        this.targetMouse.y = -(event.clientY / this.height) * 2 + 1;
+        // Only update target mouse position if not boosting
+        if (!this.isMouseDown) {
+            // Update target mouse position for smooth movement
+            this.targetMouse.x = (event.clientX / this.width) * 2 - 1;
+            this.targetMouse.y = -(event.clientY / this.height) * 2 + 1;
+        }
         
         // Check if mouse is over the canvas area
         const rect = this.container.getBoundingClientRect();
@@ -742,15 +753,36 @@ class EtherealAnimation {
         // Ensure minimum movement even at low frame rates
         const timeScale = Math.max(Math.min(deltaTime * 60, 2), 0.5);
         
+        // Gradually decay scroll momentum
+        this.scrollMomentum *= this.scrollMomentumDecay;
+        if (Math.abs(this.scrollMomentum) < 0.001) {
+            this.scrollMomentum = 0;
+            this.scrollDirection = 0;
+        }
+        
         // Update each particle
         for (let i = 0; i < this.particles.length; i++) {
             const particle = this.particles[i];
             const ix = particle.index * 3;
             
             // Move particle towards the viewer (positive Z) with time scaling and speed boost
-            // Ensure minimum movement speed
+            // Adjust direction based on scroll direction
             const boostedSpeed = particle.speed * this.speedBoost;
-            positions[ix + 2] += Math.max(boostedSpeed * timeScale, boostedSpeed * 0.5);
+            
+            // Apply scroll direction to particle movement
+            // When scrolling down, particles move away (negative Z)
+            // When scrolling up, particles move towards viewer (positive Z)
+            // When not scrolling, particles move towards viewer at normal speed
+            let movementDirection = 1; // Default direction (towards viewer)
+            
+            if (this.scrollDirection !== 0) {
+                // Apply scroll momentum to movement direction
+                // This creates a smooth transition between scroll directions
+                movementDirection = -this.scrollDirection;
+            }
+            
+            // Apply the movement with direction
+            positions[ix + 2] += Math.max(boostedSpeed * timeScale, boostedSpeed * 0.5) * movementDirection;
             
             // Calculate dynamic size based on Z position
             // Particles get larger as they get closer
@@ -777,14 +809,17 @@ class EtherealAnimation {
             }
             opacities[particle.index] = particle.originalOpacity * opacityScale;
             
-            // Reset particle if it passes too close to the camera
+            // Reset particle if it goes too far in either direction
             if (positions[ix + 2] > 600) {
-                // Reset to a new random position far away
-                // Keep the same X and Y coordinates but move it far back in Z
-                // This maintains the particle's path and prevents direction changes
+                // Reset to a new random position far away (behind camera)
                 positions[ix] = particle.originalX;
                 positions[ix + 1] = particle.originalY;
                 positions[ix + 2] = -spaceDepth; // Far behind the camera
+            } else if (positions[ix + 2] < -spaceDepth) {
+                // Reset to a position in front of the camera if it goes too far back
+                positions[ix] = particle.originalX;
+                positions[ix + 1] = particle.originalY;
+                positions[ix + 2] = 500; // In front of the camera
             }
             
             // Apply parallax effect based on mouse position
@@ -852,7 +887,7 @@ class EtherealAnimation {
             
             // Look at the center
             this.camera.lookAt(this.cameraTargetX, this.cameraTargetY, this.cameraTargetZ);
-        } else {
+        } else if (!this.isMouseDown) { // Only update camera position when not boosting
             // Apply subtle camera movement based on mouse position for 3D effect
             // Reduced camera movement speed for gentler effect
             this.camera.position.x += (this.mouse.x * 30 - this.camera.position.x) * 0.02;
@@ -873,6 +908,9 @@ class EtherealAnimation {
             this.camera.position.z += (1000 - this.camera.position.z) * 0.05;
             
             // Look at the center of the scene
+            this.camera.lookAt(this.scene.position);
+        } else {
+            // When boosting, only look at the center of the scene without changing camera position
             this.camera.lookAt(this.scene.position);
         }
         
@@ -987,10 +1025,25 @@ class EtherealAnimation {
         if (this.rotationSpeed > 0) {
             // Gradually increase Y rotation based on speed
             const yRotationTarget = this.rotationSpeed * 20; // Amplify the effect
-            this.scene.rotation.y += (yRotationTarget - this.scene.rotation.y) * 0.01;
+            
+            // Apply Y rotation more directly during boost for more consistent effect
+            if (this.isMouseDown) {
+                this.scene.rotation.y += yRotationTarget * 0.01;
+            } else {
+                this.scene.rotation.y += (yRotationTarget - this.scene.rotation.y) * 0.01;
+            }
         } else {
             // Gradually reset Y rotation
             this.scene.rotation.y *= 0.98;
+        }
+        
+        // Apply additional rotation based on scroll direction
+        if (this.scrollDirection !== 0) {
+            // Add a slight tilt in the direction of scrolling
+            // When scrolling down, tilt forward (negative X rotation)
+            // When scrolling up, tilt backward (positive X rotation)
+            const scrollTilt = this.scrollDirection * 0.002;
+            this.scene.rotation.x += scrollTilt;
         }
     }
 
@@ -1201,5 +1254,17 @@ class EtherealAnimation {
                 streak.userData.targetOpacity *= 1.5;
             }
         }
+    }
+
+    onScroll(event) {
+        // Implement scroll direction detection
+        if (event.deltaY > 0) {
+            this.scrollDirection = 1; // Scroll down
+        } else if (event.deltaY < 0) {
+            this.scrollDirection = -1; // Scroll up
+        }
+        
+        // Update scroll momentum
+        this.scrollMomentum = (this.scrollDirection * 0.1) + (this.scrollMomentum * this.scrollMomentumDecay);
     }
 } 
