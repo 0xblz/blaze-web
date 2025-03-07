@@ -891,71 +891,33 @@ class EtherealAnimation {
     }
     
     animate() {
-        requestAnimationFrame(this.animate.bind(this));
+        // Request next animation frame
+        this.animationFrameId = requestAnimationFrame(this.animate.bind(this));
         
         // Get current time
-        const currentTime = this.clock.getElapsedTime();
+        const currentTime = Date.now();
         
-        // Update time uniform for shaders
-        if (this.particleSystem.material.uniforms) {
-            this.particleSystem.material.uniforms.time.value = currentTime;
-            // Update speed boost uniform
-            this.particleSystem.material.uniforms.speedBoost.value = this.speedBoost;
-        }
+        // Calculate delta time
+        const deltaTime = currentTime - this.lastTime;
+        this.lastTime = currentTime;
+        
+        // Update camera FOV based on speed boost
+        this.updateFOV();
+        
+        // Update camera rotation
+        this.updateRotation();
         
         // Update particles
         this.updateParticles();
         
-        // Update FOV for zoom effect
-        this.updateFOV();
-        
-        // Apply camera position based on orbit or mouse movement
-        if (this.isOrbiting) {
-            // Calculate camera position based on orbit angles
-            const x = Math.sin(this.cameraOrbitX) * Math.cos(this.cameraOrbitY) * this.cameraDistance;
-            const y = Math.sin(this.cameraOrbitY) * this.cameraDistance;
-            const z = Math.cos(this.cameraOrbitX) * Math.cos(this.cameraOrbitY) * this.cameraDistance;
-            
-            // Apply camera position
-            this.camera.position.set(x, y, z);
-            
-            // Look at the center
-            this.camera.lookAt(this.cameraTargetX, this.cameraTargetY, this.cameraTargetZ);
-        } else if (!this.isMouseDown) { // Only update camera position when not boosting
-            // Apply subtle camera movement based on mouse position for 3D effect
-            // Reduced camera movement speed for gentler effect
-            this.camera.position.x += (this.mouse.x * 30 - this.camera.position.x) * 0.02;
-            this.camera.position.y += (-this.mouse.y * 30 - this.camera.position.y) * 0.02;
-            
-            // Add a slight camera movement during rotation for enhanced effect
-            if (this.rotationSpeed > 0) {
-                // Calculate a slight offset based on rotation
-                const offsetX = Math.sin(this.rotation * 2) * 5 * this.rotationSpeed / this.maxRotationSpeed;
-                const offsetY = Math.cos(this.rotation * 1.5) * 5 * this.rotationSpeed / this.maxRotationSpeed;
-                
-                // Apply the offset to camera position
-                this.camera.position.x += offsetX;
-                this.camera.position.y += offsetY;
-            }
-            
-            // Reset Z position when not orbiting
-            this.camera.position.z += (1000 - this.camera.position.z) * 0.05;
-            
-            // Look at the center of the scene
-            this.camera.lookAt(this.scene.position);
-        } else {
-            // When boosting, only look at the center of the scene without changing camera position
-            this.camera.lookAt(this.scene.position);
-        }
-        
-        // Handle glitch effect
-        this.updateGlitchEffect(currentTime);
-        
-        // Update rotation based on speed boost
-        this.updateRotation();
-        
         // Update wind streaks
         this.updateWindStreaks();
+        
+        // Update foggy clouds if they exist
+        this.updateFoggyClouds(currentTime);
+        
+        // Update glitch effect
+        this.updateGlitchEffect(currentTime);
         
         // Update vignette effect
         this.updateVignetteEffect();
@@ -963,13 +925,11 @@ class EtherealAnimation {
         // Update shake effect
         this.updateShakeEffect(currentTime);
         
-        // Render scene with post-processing
-        if (this.composer) {
-            this.composer.render();
-        } else {
-            // Fallback to regular rendering if composer isn't available
-            this.renderer.render(this.scene, this.camera);
-        }
+        // Apply shake to camera
+        this.applyShake();
+        
+        // Render the scene
+        this.composer.render();
     }
 
     updateGlitchEffect(currentTime) {
@@ -1373,6 +1333,9 @@ class EtherealAnimation {
         
         // Add more particles for ultra boost
         this.addUltraBoostParticles();
+        
+        // Add foggy clouds for ultra boost
+        this.createFoggyClouds();
     }
 
     playUltraBoostSound() {
@@ -1414,6 +1377,136 @@ class EtherealAnimation {
                 const streak = this.windStreaks[i];
                 streak.userData.targetOpacity *= 1.5;
             }
+        }
+    }
+    
+    // Create foggy clouds that fly by during ultra boost
+    createFoggyClouds() {
+        // Initialize foggy clouds array if it doesn't exist
+        if (!this.foggyClouds) {
+            this.foggyClouds = [];
+        }
+        
+        // Number of clouds to create
+        const numClouds = 8; // Reduced from 15 for a less dense effect
+        
+        // Use primary and secondary colors for the clouds
+        const cloudColors = [
+            new THREE.Color('#7350ff'), // Primary color (purple)
+            new THREE.Color('#dc50ff'), // Secondary color (pink)
+            new THREE.Color('#ffffff'), // White for contrast
+            new THREE.Color('#7350ff').lerp(new THREE.Color('#ffffff'), 0.5), // Light primary
+            new THREE.Color('#dc50ff').lerp(new THREE.Color('#ffffff'), 0.5)  // Light secondary
+        ];
+        
+        // Create cloud geometries
+        for (let i = 0; i < numClouds; i++) {
+            // Create a cloud geometry (sphere with noise)
+            // Increased size range for more dramatic effect
+            const size = Math.random() * 300 + 200; // Random size between 200-500 (larger than before)
+            
+            // Create a sphere as the base for our cloud
+            const geometry = new THREE.SphereGeometry(size, 8, 8);
+            
+            // Apply some random displacement to vertices to make it look more cloud-like
+            const vertices = geometry.attributes.position;
+            for (let j = 0; j < vertices.count; j++) {
+                const x = vertices.getX(j);
+                const y = vertices.getY(j);
+                const z = vertices.getZ(j);
+                
+                // Apply noise to the vertex - increased for more fluffy clouds
+                const noise = (Math.random() - 0.5) * size * 0.4;
+                vertices.setX(j, x + noise);
+                vertices.setY(j, y + noise);
+                vertices.setZ(j, z + noise);
+            }
+            
+            // Random color from cloud colors
+            const colorIndex = Math.floor(Math.random() * cloudColors.length);
+            const color = cloudColors[colorIndex];
+            
+            // Create material with transparency and glow
+            const material = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0, // Start invisible
+                blending: THREE.AdditiveBlending,
+                side: THREE.DoubleSide,
+                depthWrite: false
+            });
+            
+            // Create mesh
+            const cloud = new THREE.Mesh(geometry, material);
+            
+            // Random position (will be updated during animation)
+            // Position clouds around the camera view
+            const angle = Math.random() * Math.PI * 2;
+            const radius = Math.random() * 1200 + 600; // Increased radius for more spread
+            cloud.position.x = Math.cos(angle) * radius;
+            cloud.position.y = Math.sin(angle) * radius;
+            cloud.position.z = Math.random() * -2500 - 1500; // Start farther away
+            
+            // Store additional properties
+            cloud.userData = {
+                speed: Math.random() * 40 + 30, // Faster than before for more dramatic effect
+                opacity: 0,
+                targetOpacity: Math.random() * 0.4 + 0.15, // Slightly higher opacity
+                rotationSpeed: (Math.random() - 0.5) * 0.015, // Slightly faster rotation
+                creationTime: Date.now(),
+                lifespan: Math.random() * 5000 + 3000 // Random lifespan between 3-8 seconds
+            };
+            
+            // Add to scene and array
+            this.scene.add(cloud);
+            this.foggyClouds.push(cloud);
+        }
+    }
+    
+    // Update foggy clouds in the animation loop
+    updateFoggyClouds(currentTime) {
+        if (!this.foggyClouds || this.foggyClouds.length === 0) {
+            return;
+        }
+        
+        // Update each foggy cloud
+        for (let i = this.foggyClouds.length - 1; i >= 0; i--) {
+            const cloud = this.foggyClouds[i];
+            
+            // Move cloud forward (towards camera)
+            cloud.position.z += cloud.userData.speed;
+            
+            // Rotate cloud slightly for more dynamic effect
+            cloud.rotation.x += cloud.userData.rotationSpeed;
+            cloud.rotation.y += cloud.userData.rotationSpeed * 0.7;
+            
+            // Smoothly interpolate opacity
+            cloud.userData.opacity += (cloud.userData.targetOpacity - cloud.userData.opacity) * 0.05;
+            cloud.material.opacity = cloud.userData.opacity;
+            
+            // Check if cloud has exceeded its lifespan
+            const age = currentTime - cloud.userData.creationTime;
+            if (age > cloud.userData.lifespan) {
+                // Start fading out
+                cloud.userData.targetOpacity = 0;
+                
+                // Remove cloud if it's almost invisible
+                if (cloud.userData.opacity < 0.01) {
+                    this.scene.remove(cloud);
+                    this.foggyClouds.splice(i, 1);
+                }
+            }
+            
+            // Remove cloud if it passes the camera
+            if (cloud.position.z > 1000) {
+                this.scene.remove(cloud);
+                this.foggyClouds.splice(i, 1);
+            }
+        }
+        
+        // If in ultra boost mode and clouds are running low, add more
+        if (this.isUltraBoost && this.foggyClouds.length < 3) {
+            this.createFoggyClouds();
         }
     }
 
