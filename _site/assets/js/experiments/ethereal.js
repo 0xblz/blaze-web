@@ -3,7 +3,39 @@ const loadThreeJS = () => {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-        script.onload = () => resolve();
+        script.onload = () => {
+            // After Three.js is loaded, load the post-processing library
+            const ppScript = document.createElement('script');
+            ppScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js';
+            ppScript.onload = () => {
+                // Load additional post-processing modules
+                const renderPassScript = document.createElement('script');
+                renderPassScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js';
+                renderPassScript.onload = () => {
+                    const shaderPassScript = document.createElement('script');
+                    shaderPassScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js';
+                    shaderPassScript.onload = () => {
+                        const digitalGlitchScript = document.createElement('script');
+                        digitalGlitchScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/DigitalGlitch.js';
+                        digitalGlitchScript.onload = () => {
+                            const glitchPassScript = document.createElement('script');
+                            glitchPassScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/GlitchPass.js';
+                            glitchPassScript.onload = () => resolve();
+                            glitchPassScript.onerror = () => reject(new Error('Failed to load GlitchPass'));
+                            document.head.appendChild(glitchPassScript);
+                        };
+                        digitalGlitchScript.onerror = () => reject(new Error('Failed to load DigitalGlitch'));
+                        document.head.appendChild(digitalGlitchScript);
+                    };
+                    shaderPassScript.onerror = () => reject(new Error('Failed to load ShaderPass'));
+                    document.head.appendChild(shaderPassScript);
+                };
+                renderPassScript.onerror = () => reject(new Error('Failed to load RenderPass'));
+                document.head.appendChild(renderPassScript);
+            };
+            ppScript.onerror = () => reject(new Error('Failed to load EffectComposer'));
+            document.head.appendChild(ppScript);
+        };
         script.onerror = () => reject(new Error('Failed to load Three.js'));
         document.head.appendChild(script);
     });
@@ -36,9 +68,19 @@ class EtherealAnimation {
         // Speed boost parameters - adjusted for more noticeable acceleration
         this.isMouseDown = false;
         this.speedBoost = 1.0; // Normal speed multiplier
-        this.maxSpeedBoost = 8.0; // Increased maximum speed boost
+        this.maxSpeedBoost = 10.0; // Increased maximum speed boost
         this.speedBoostIncrement = 0.15; // Faster acceleration
         this.speedBoostDecrement = 0.08; // Slightly faster deceleration
+        
+        // Glitch effect parameters - adjusted to be more subtle
+        this.glitchIntensity = 0.0; // Current glitch intensity
+        this.maxGlitchIntensity = 0.4; // Reduced maximum glitch intensity (was 0.8)
+        this.glitchIncrement = 0.03; // Slower glitch build-up (was 0.05)
+        this.glitchDecrement = 0.05; // Faster glitch fade-out (was 0.03)
+        this.lastGlitchTime = 0; // Last time a glitch was triggered
+        this.glitchInterval = 0.4; // Less frequent glitches (was 0.2)
+        this.glitchDuration = 0.07; // Shorter glitch duration (was 0.1)
+        this.isGlitching = false; // Whether a glitch is currently active
         
         // Normal colors (used at regular speed)
         this.colors = [
@@ -75,6 +117,9 @@ class EtherealAnimation {
         this.renderer.domElement.style.pointerEvents = 'none'; // Allow clicks to pass through
         this.container.appendChild(this.renderer.domElement);
         
+        // Set up post-processing
+        this.setupPostProcessing();
+        
         // Add ambient light
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         this.scene.add(ambientLight);
@@ -99,6 +144,35 @@ class EtherealAnimation {
         document.addEventListener('touchstart', this.onMouseDown.bind(this), { passive: true });
         document.addEventListener('touchend', this.onMouseUp.bind(this), { passive: true });
         document.addEventListener('touchcancel', this.onMouseUp.bind(this), { passive: true });
+    }
+    
+    setupPostProcessing() {
+        // Create effect composer
+        this.composer = new THREE.EffectComposer(this.renderer);
+        
+        // Add render pass
+        const renderPass = new THREE.RenderPass(this.scene, this.camera);
+        this.composer.addPass(renderPass);
+        
+        // Add glitch pass with more subtle settings
+        this.glitchPass = new THREE.GlitchPass();
+        this.glitchPass.goWild = false; // More controlled glitches
+        this.glitchPass.enabled = false; // Start with glitch disabled
+        
+        // Customize glitch pass for more subtle effect
+        if (this.glitchPass.uniforms) {
+            // Reduce the amount of RGB shift
+            if (this.glitchPass.uniforms.amount) {
+                this.glitchPass.uniforms.amount.value = 0.2; // Default is higher
+            }
+            
+            // Reduce the column shift intensity
+            if (this.glitchPass.uniforms.col_s) {
+                this.glitchPass.uniforms.col_s.value = 0.05; // Default is higher
+            }
+        }
+        
+        this.composer.addPass(this.glitchPass);
     }
     
     addLights() {
@@ -320,6 +394,11 @@ class EtherealAnimation {
         this.camera.updateProjectionMatrix();
         
         this.renderer.setSize(this.width, this.height);
+        
+        // Update composer size
+        if (this.composer) {
+            this.composer.setSize(this.width, this.height);
+        }
     }
     
     onMouseMove(event) {
@@ -434,9 +513,15 @@ class EtherealAnimation {
         if (this.isMouseDown) {
             // Increase speed boost when mouse is down
             this.speedBoost = Math.min(this.speedBoost + this.speedBoostIncrement, this.maxSpeedBoost);
+            
+            // Increase glitch intensity when boosting
+            this.glitchIntensity = Math.min(this.glitchIntensity + this.glitchIncrement, this.maxGlitchIntensity);
         } else {
             // Gradually decrease speed boost when mouse is up
             this.speedBoost = Math.max(this.speedBoost - this.speedBoostDecrement, 1.0);
+            
+            // Decrease glitch intensity when not boosting
+            this.glitchIntensity = Math.max(this.glitchIntensity - this.glitchDecrement, 0.0);
         }
         
         // Update the speed boost indicator
@@ -549,9 +634,12 @@ class EtherealAnimation {
     animate() {
         requestAnimationFrame(this.animate.bind(this));
         
+        // Get current time
+        const currentTime = this.clock.getElapsedTime();
+        
         // Update time uniform for shaders
         if (this.particleSystem.material.uniforms) {
-            this.particleSystem.material.uniforms.time.value = this.clock.getElapsedTime();
+            this.particleSystem.material.uniforms.time.value = currentTime;
             // Update speed boost uniform
             this.particleSystem.material.uniforms.speedBoost.value = this.speedBoost;
         }
@@ -570,7 +658,59 @@ class EtherealAnimation {
         
         this.camera.lookAt(this.scene.position);
         
-        // Render scene
-        this.renderer.render(this.scene, this.camera);
+        // Handle glitch effect
+        this.updateGlitchEffect(currentTime);
+        
+        // Render scene with post-processing
+        if (this.composer) {
+            this.composer.render();
+        } else {
+            // Fallback to regular rendering if composer isn't available
+            this.renderer.render(this.scene, this.camera);
+        }
+    }
+
+    updateGlitchEffect(currentTime) {
+        // Only process glitch if we have the glitch pass
+        if (!this.glitchPass) return;
+        
+        // If we're boosting (glitch intensity > 0)
+        if (this.glitchIntensity > 0.01) {
+            // Enable the glitch pass
+            this.glitchPass.enabled = true;
+            
+            // Check if it's time for a new glitch
+            if (currentTime - this.lastGlitchTime > this.glitchInterval) {
+                // Trigger a glitch
+                this.isGlitching = true;
+                this.lastGlitchTime = currentTime;
+                
+                // Set glitch intensity based on speed boost, but with a more subtle approach
+                // Use a lower base factor and add randomness
+                const randomFactor = Math.random() * 0.3 + 0.2; // Random factor between 0.2 and 0.5
+                
+                // Apply a curve to make the effect more gradual at lower speeds
+                // and only get more intense at very high speeds
+                const speedFactor = Math.pow(this.glitchIntensity / this.maxGlitchIntensity, 2);
+                
+                // Combine factors for final intensity
+                this.glitchPass.factor = speedFactor * randomFactor;
+                
+                // Schedule the end of this glitch
+                setTimeout(() => {
+                    this.isGlitching = false;
+                    this.glitchPass.factor = 0;
+                }, this.glitchDuration * 1000);
+                
+                // Add a small chance to skip the next glitch opportunity
+                // This creates more natural, less predictable glitching
+                if (Math.random() < 0.3) {
+                    this.lastGlitchTime += this.glitchInterval * 0.5;
+                }
+            }
+        } else {
+            // Disable glitch pass when not boosting
+            this.glitchPass.enabled = false;
+        }
     }
 } 
