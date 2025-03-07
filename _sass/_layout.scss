@@ -4,6 +4,10 @@ body {
     font-size: 16px;
     color: var(--tertiary-color);
     background-color: var(--primary-color);
+    @media (prefers-color-scheme: dark) {
+        color: white;
+        background-color: var(--secondary-color);
+    }
 }
 
 main {
@@ -12,6 +16,9 @@ main {
     align-items: center;
     background-color: var(--quaternary-color);
     min-height: 100vh;
+    @media (prefers-color-scheme: dark) {
+        background-color: var(--tertiary-color);
+    }
 }
 
 header,

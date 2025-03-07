@@ -1,9 +1,4 @@
 // Animations
-@keyframes rainbow {
-    0% { color: var(--primary-color); }
-    50% { color: var(--secondary-color); }
-    100% { color: var(--primary-color); }
-}
 
 @keyframes fade {
     0% { 

@@ -3,8 +3,11 @@ h1 {
     font-size: 2rem;
     line-height: 1.2em;
     font-weight: 800;
-    animation: rainbow 10s ease-in-out infinite;
     color: var(--primary-color);
+
+    @media (prefers-color-scheme: dark) {
+        color: var(--secondary-color);
+    }
 }
 
 h2 {
@@ -23,11 +26,19 @@ a {
     transition: all 0.2s ease-in-out;
     color: var(--tertiary-color);
     text-decoration: none;
+
+    @media (prefers-color-scheme: dark) {
+        color: white;
+    }
     
     &:hover,
     &:focus,
     &:active {
         color: var(--primary-color);
+
+        @media (prefers-color-scheme: dark) {
+            color: var(--secondary-color);
+        }
     }
 }
 
