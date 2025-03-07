@@ -1245,7 +1245,7 @@ class EtherealAnimation {
         lightBurst.style.zIndex = '9997'; // Below chromatic aberration
         lightBurst.style.transition = 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease-out';
         lightBurst.style.opacity = '0';
-        lightBurst.style.filter = 'blur(4px)';
+        lightBurst.style.filter = 'blur(8px)';
         
         // 4. Create a colored flash for the aftermath
         const coloredFlash = document.createElement('div');
