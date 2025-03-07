@@ -71,6 +71,9 @@ class EtherealAnimation {
         this.parallaxStrength = 0.08;
         this.mouseInterpolationSpeed = 0.15;
         
+        // Add mode property
+        this.mode = 'NORMAL'; // Possible values: 'NORMAL', 'BOOST', 'ULTRA BOOST'
+        
         // Add scroll direction tracking
         this.scrollDirection = 0; // 0 = no scroll, 1 = down, -1 = up
         this.scrollMomentum = 0; // Momentum of scrolling
@@ -217,6 +220,9 @@ class EtherealAnimation {
         
         // Create particles
         this.createParticles();
+        
+        // Create mode indicator
+        this.createSpeedBoostIndicator();
         
         // Add event listeners
         window.addEventListener('resize', this.onWindowResize.bind(this));
@@ -624,27 +630,33 @@ class EtherealAnimation {
     }
     
     createSpeedBoostIndicator() {
-        // Only show indicator on the ethereal page, not on the homepage
-        if (this.isHomePage) return;
+        // Show indicator on both homepage and ethereal page
         
         // Remove existing indicator if any
         this.removeSpeedBoostIndicator();
         
-        // Create a DOM element to show the speed boost
+        // Create a DOM element to show the mode
         const indicator = document.createElement('div');
         indicator.className = 'speed-boost-indicator';
         indicator.style.position = 'fixed';
-        indicator.style.bottom = '20px';
-        indicator.style.right = '20px';
-        indicator.style.padding = '10px 15px';
+        
+        // Always position at the bottom right
+        indicator.style.bottom = '24px';
+        indicator.style.right = '24px';
+        
+        indicator.style.padding = '8px 12px';
         indicator.style.background = 'rgba(0, 0, 0, 0.5)';
         indicator.style.color = '#fff';
-        indicator.style.borderRadius = '5px';
+        indicator.style.borderRadius = '999px';
         indicator.style.fontFamily = 'sans-serif';
-        indicator.style.fontSize = '14px';
+        indicator.style.fontSize = '12px';
+        indicator.style.fontWeight = 'bold';
         indicator.style.zIndex = '1000';
         indicator.style.transition = 'opacity 0.3s ease';
-        indicator.textContent = 'SPEED: 1.0x';
+        
+        // Initialize with empty text and hidden (will be updated by updateSpeedBoostIndicator)
+        indicator.textContent = '';
+        indicator.style.opacity = '0';
         
         document.body.appendChild(indicator);
         this.speedBoostIndicator = indicator;
@@ -664,24 +676,35 @@ class EtherealAnimation {
     
     updateSpeedBoostIndicator() {
         if (this.speedBoostIndicator) {
-            // Update text with current speed
-            const speedText = this.isUltraBoost ? 
-                `ULTRA BOOST: ${this.speedBoost.toFixed(1)}x` : 
-                `SPEED: ${this.speedBoost.toFixed(1)}x`;
-            
-            this.speedBoostIndicator.textContent = speedText;
-            
-            // Change color based on speed
-            let hue;
+            // Update mode based on current state
             if (this.isUltraBoost) {
-                // Purple to red for ultra boost
-                hue = 280 - ((this.speedBoost - this.maxSpeedBoost) / (this.ultraBoostMaxSpeed - this.maxSpeedBoost)) * 280;
+                this.mode = '🔥 ULTRA BOOST';
+            } else if (this.speedBoost > 1.0) {
+                this.mode = '🚀 BOOST';
             } else {
-                // Blue to purple for normal boost
-                hue = 240 - (this.speedBoost / this.maxSpeedBoost) * 60;
+                this.mode = 'NORMAL';
             }
             
-            this.speedBoostIndicator.style.color = `hsl(${hue}, 100%, 70%)`;
+            // Hide indicator in normal mode, show in other modes
+            if (this.mode === 'NORMAL') {
+                this.speedBoostIndicator.style.opacity = '0';
+            } else {
+                // Update text with current mode (without "MODE:" label)
+                this.speedBoostIndicator.textContent = this.mode;
+                this.speedBoostIndicator.style.opacity = '1';
+                
+                // Change color based on mode
+                let hue;
+                if (this.mode === 'ULTRA BOOST') {
+                    // Purple to red for ultra boost
+                    hue = 280 - ((this.speedBoost - this.maxSpeedBoost) / (this.ultraBoostMaxSpeed - this.maxSpeedBoost)) * 280;
+                } else if (this.mode === 'BOOST') {
+                    // Blue to purple for normal boost
+                    hue = 240 - (this.speedBoost / this.maxSpeedBoost) * 60;
+                }
+                
+                this.speedBoostIndicator.style.color = `hsl(${hue}, 100%, 70%)`;
+            }
         }
     }
     
@@ -927,6 +950,9 @@ class EtherealAnimation {
         
         // Apply shake to camera
         this.applyShake();
+        
+        // Update mode indicator
+        this.updateSpeedBoostIndicator();
         
         // Render the scene
         this.composer.render();
