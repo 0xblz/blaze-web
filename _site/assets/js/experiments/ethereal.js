@@ -250,32 +250,38 @@ class EtherealAnimation {
     }
     
     setupPostProcessing() {
-        // Create effect composer
-        this.composer = new THREE.EffectComposer(this.renderer);
-        
-        // Add render pass
-        const renderPass = new THREE.RenderPass(this.scene, this.camera);
-        this.composer.addPass(renderPass);
-        
-        // Add glitch pass with more subtle settings
-        this.glitchPass = new THREE.GlitchPass();
-        this.glitchPass.goWild = false; // More controlled glitches
-        this.glitchPass.enabled = false; // Start with glitch disabled
-        
-        // Customize glitch pass for more subtle effect
-        if (this.glitchPass.uniforms) {
-            // Reduce the amount of RGB shift
-            if (this.glitchPass.uniforms.amount) {
-                this.glitchPass.uniforms.amount.value = 0.2; // Default is higher
+        try {
+            // Create effect composer
+            this.composer = new THREE.EffectComposer(this.renderer);
+            
+            // Add render pass
+            const renderPass = new THREE.RenderPass(this.scene, this.camera);
+            this.composer.addPass(renderPass);
+            
+            // Add glitch pass with more subtle settings
+            this.glitchPass = new THREE.GlitchPass();
+            this.glitchPass.goWild = false; // More controlled glitches
+            this.glitchPass.enabled = false; // Start with glitch disabled
+            
+            // Customize glitch pass for more subtle effect
+            if (this.glitchPass.uniforms) {
+                // Reduce the amount of RGB shift
+                if (this.glitchPass.uniforms.amount) {
+                    this.glitchPass.uniforms.amount.value = 0.2; // Default is higher
+                }
+                
+                // Reduce the column shift intensity
+                if (this.glitchPass.uniforms.col_s) {
+                    this.glitchPass.uniforms.col_s.value = 0.05; // Default is higher
+                }
             }
             
-            // Reduce the column shift intensity
-            if (this.glitchPass.uniforms.col_s) {
-                this.glitchPass.uniforms.col_s.value = 0.05; // Default is higher
-            }
+            this.composer.addPass(this.glitchPass);
+        } catch (error) {
+            console.warn('Post-processing setup failed, falling back to standard renderer:', error);
+            this.composer = null;
+            this.glitchPass = null;
         }
-        
-        this.composer.addPass(this.glitchPass);
     }
     
     addLights() {
@@ -1648,5 +1654,44 @@ class EtherealAnimation {
                 document.body.style.webkitOverflowScrolling = 'touch';
             }, 1000);
         }
+    }
+
+    // Add the missing startOrbiting method
+    startOrbiting(event) {
+        // Set orbiting flag
+        this.isOrbiting = true;
+        
+        // Store initial mouse position for orbit calculations
+        this.orbitStartX = event.clientX;
+        this.orbitStartY = event.clientY;
+        
+        // Store current camera orbit angles
+        this.cameraOrbitX = Math.atan2(
+            this.camera.position.x,
+            this.camera.position.z
+        );
+        
+        this.cameraOrbitY = Math.atan2(
+            this.camera.position.y,
+            Math.sqrt(this.camera.position.x * this.camera.position.x + this.camera.position.z * this.camera.position.z)
+        );
+        
+        // Store current camera distance
+        this.cameraDistance = this.camera.position.length();
+        
+        // Store camera target (what we're orbiting around)
+        this.cameraTargetX = this.scene.position.x;
+        this.cameraTargetY = this.scene.position.y;
+        this.cameraTargetZ = this.scene.position.z;
+        
+        // Prevent context menu from appearing on right click
+        document.addEventListener('contextmenu', this.preventContextMenu);
+    }
+    
+    // Helper method to prevent context menu
+    preventContextMenu(event) {
+        event.preventDefault();
+        document.removeEventListener('contextmenu', this.preventContextMenu);
+        return false;
     }
 } 
