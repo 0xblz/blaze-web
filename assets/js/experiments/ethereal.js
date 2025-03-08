@@ -68,7 +68,7 @@ class EtherealAnimation {
         this.mouseRadius = 150;
         this.clock = new THREE.Clock();
         this.isMouseOverCanvas = false;
-        this.parallaxStrength = 0.08;
+        this.parallaxStrength = 0.15; // Increased from 0.08 to 0.15 for more pronounced movement
         this.mouseInterpolationSpeed = 0.15;
         
         // Add mode property
@@ -169,6 +169,30 @@ class EtherealAnimation {
         this.touchBoostTimer = null;
         this.touchScrollThreshold = 20; // pixels of movement to consider a scroll
         this.isBoostActivated = false; // Flag to track if boost is activated
+        
+        // Add keyboard control properties
+        this.keys = {
+            up: false,
+            down: false,
+            left: false,
+            right: false
+        };
+        this.isKeyboardBoosting = false;
+        
+        // Camera rotation properties
+        this.cameraRotation = {
+            x: 0, // Pitch (up/down)
+            y: 0  // Yaw (left/right)
+        };
+        this.targetCameraRotation = {
+            x: 0,
+            y: 0
+        };
+        this.maxCameraRotation = {
+            x: Math.PI / 4, // 45 degrees up/down (increased from 30 degrees)
+            y: Math.PI / 3  // 60 degrees left/right (increased from 45 degrees)
+        };
+        this.cameraRotationSpeed = 0.15; // How quickly camera rotates (increased from 0.1)
     }
     
     init() {
@@ -236,6 +260,10 @@ class EtherealAnimation {
         
         // Add wheel event listener for scroll direction
         window.addEventListener('wheel', this.onScroll.bind(this), { passive: true });
+        
+        // Add keyboard event listeners - use passive: false to allow preventDefault()
+        document.addEventListener('keydown', this.onKeyDown.bind(this), { passive: false });
+        document.addEventListener('keyup', this.onKeyUp.bind(this), { passive: false });
         
         // Set up touch events - ALWAYS use passive listeners for document-level events
         document.addEventListener('touchstart', this.onTouchStart.bind(this), { passive: true });
@@ -602,8 +630,8 @@ class EtherealAnimation {
     }
     
     onMouseMove(event) {
-        // Only update target mouse position if not boosting
-        if (!this.isMouseDown) {
+        // Only update target mouse position if not boosting and no keyboard direction keys are pressed
+        if (!this.isMouseDown && !this.keys.left && !this.keys.right && !this.keys.down) {
             // Update target mouse position for smooth movement
             this.targetMouse.x = (event.clientX / this.width) * 2 - 1;
             this.targetMouse.y = -(event.clientY / this.height) * 2 + 1;
@@ -775,8 +803,8 @@ class EtherealAnimation {
         // Get current time
         const currentTime = this.clock.getElapsedTime();
         
-        // Check for ultra boost activation
-        if (this.isMouseDown && !this.isUltraBoost) {
+        // Check for ultra boost activation from mouse
+        if ((this.isMouseDown || this.isKeyboardBoosting) && !this.isUltraBoost) {
             const boostDuration = currentTime - this.boostStartTime;
             
             // If boosting for more than the threshold, activate ultra boost
@@ -785,12 +813,12 @@ class EtherealAnimation {
             }
         }
         
-        // Update speed boost based on mouse down state
-        if (this.isMouseDown) {
+        // Update speed boost based on mouse down or keyboard up key state
+        if (this.isMouseDown || this.isKeyboardBoosting) {
             // Determine max speed based on ultra boost state
             const maxSpeed = this.isUltraBoost ? this.ultraBoostMaxSpeed : this.maxSpeedBoost;
             
-            // Increase speed boost when mouse is down
+            // Increase speed boost when boosting
             this.speedBoost = Math.min(this.speedBoost + this.speedBoostIncrement, maxSpeed);
             
             // Only increase glitch intensity when in ultra boost mode
@@ -801,7 +829,7 @@ class EtherealAnimation {
                 this.glitchIntensity = 0;
             }
         } else {
-            // Gradually decrease speed boost when mouse is up
+            // Gradually decrease speed boost when not boosting
             this.speedBoost = Math.max(this.speedBoost - this.speedBoostDecrement, 1.0);
             
             // Decrease glitch intensity when not boosting
@@ -956,6 +984,9 @@ class EtherealAnimation {
         // Update camera rotation
         this.updateRotation();
         
+        // Update camera rotation from keyboard controls
+        this.updateCameraRotation();
+        
         // Update particles
         this.updateParticles();
         
@@ -968,13 +999,28 @@ class EtherealAnimation {
         this.updateWindStreaks();
         
         // Update foggy clouds if they exist
-        this.updateFoggyClouds(currentTime);
+        if (this.foggyClouds) {
+            this.updateFoggyClouds(currentTime);
+        }
         
-        // Update glitch effect
-        this.updateGlitchEffect(currentTime);
+        // Smoothly interpolate mouse position for camera movement
+        this.mouse.x += (this.targetMouse.x - this.mouse.x) * this.mouseInterpolationSpeed;
+        this.mouse.y += (this.targetMouse.y - this.mouse.y) * this.mouseInterpolationSpeed;
+        
+        // Apply mouse position to camera for parallax effect only if not using keyboard controls
+        const keyboardActive = this.keys.left || this.keys.right || this.keys.down;
+        if (!keyboardActive) {
+            // Scale effect based on speed boost for more dramatic movement at high speeds
+            const parallaxMultiplier = 1.0 + (this.speedBoost - 1.0) * 0.5;
+            this.camera.position.x = -this.mouse.x * this.parallaxStrength * parallaxMultiplier;
+            this.camera.position.y = -this.mouse.y * this.parallaxStrength * parallaxMultiplier;
+        }
         
         // Update vignette effect
         this.updateVignetteEffect();
+        
+        // Update glitch effect
+        this.updateGlitchEffect(currentTime);
         
         // Update shake effect
         this.updateShakeEffect(currentTime);
@@ -1005,21 +1051,20 @@ class EtherealAnimation {
                 this.lastGlitchTime = currentTime;
                 
                 // Set glitch intensity based on speed boost, but with a more subtle approach
-                // Use a lower base factor and add randomness
-                const randomFactor = Math.random() * 0.3 + 0.2; // Random factor between 0.2 and 0.5
+                // This makes the glitch effect less jarring but still noticeable
+                const normalizedIntensity = this.glitchIntensity / this.maxGlitchIntensity;
                 
-                // Apply a curve to make the effect more gradual at lower speeds
-                // and only get more intense at very high speeds
-                const speedFactor = Math.pow(this.glitchIntensity / this.maxGlitchIntensity, 2);
-                
-                // Combine factors for final intensity
-                this.glitchPass.factor = speedFactor * randomFactor;
-                
-                // Schedule the end of this glitch
-                setTimeout(() => {
-                    this.isGlitching = false;
-                    this.glitchPass.factor = 0;
-                }, this.glitchDuration * 1000);
+                // Apply glitch parameters
+                if (this.glitchPass.uniforms) {
+                    // Scale the amount of RGB shift based on intensity
+                    this.glitchPass.uniforms.amount.value = 0.005 + normalizedIntensity * 0.02;
+                    
+                    // Adjust other glitch parameters for a more controlled effect
+                    this.glitchPass.uniforms.seed.value = Math.random() * normalizedIntensity;
+                    this.glitchPass.uniforms.distortion_x.value = 0.1 + normalizedIntensity * 0.4;
+                    this.glitchPass.uniforms.distortion_y.value = 0.1 + normalizedIntensity * 0.4;
+                    this.glitchPass.uniforms.col_s.value = 0.1 + normalizedIntensity * 0.2;
+                }
                 
                 // Add a small chance to skip the next glitch opportunity
                 // This creates more natural, less predictable glitching
@@ -1857,5 +1902,118 @@ class EtherealAnimation {
         event.preventDefault();
         document.removeEventListener('contextmenu', this.preventContextMenu);
         return false;
+    }
+
+    // Handle keyboard key press
+    onKeyDown(event) {
+        // Prevent default behavior for arrow keys to avoid page scrolling
+        if (event.key === 'ArrowUp' || event.key === 'ArrowDown' || 
+            event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+            event.preventDefault();
+        }
+        
+        switch(event.key) {
+            case 'ArrowUp':
+            case 'w':
+                this.keys.up = true;
+                // Start boosting if not already
+                if (!this.isKeyboardBoosting) {
+                    this.isKeyboardBoosting = true;
+                    this.boostStartTime = this.clock.getElapsedTime();
+                    this.isUltraBoost = false;
+                    this.createSpeedBoostIndicator();
+                }
+                break;
+            case 'ArrowDown':
+            case 's':
+                this.keys.down = true;
+                // Set target rotation for looking down (negative X rotation)
+                this.targetCameraRotation.x = -this.maxCameraRotation.x;
+                break;
+            case 'ArrowLeft':
+            case 'a':
+                this.keys.left = true;
+                // Set target rotation for looking left (positive Y rotation)
+                this.targetCameraRotation.y = this.maxCameraRotation.y;
+                break;
+            case 'ArrowRight':
+            case 'd':
+                this.keys.right = true;
+                // Set target rotation for looking right (negative Y rotation)
+                this.targetCameraRotation.y = -this.maxCameraRotation.y;
+                break;
+        }
+    }
+    
+    // Handle keyboard key release
+    onKeyUp(event) {
+        // Prevent default behavior for arrow keys to avoid page scrolling
+        if (event.key === 'ArrowUp' || event.key === 'ArrowDown' || 
+            event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+            event.preventDefault();
+        }
+        
+        switch(event.key) {
+            case 'ArrowUp':
+            case 'w':
+                this.keys.up = false;
+                // Stop boosting if this was the key causing the boost
+                if (this.isKeyboardBoosting) {
+                    this.isKeyboardBoosting = false;
+                    this.isUltraBoost = false;
+                    this.removeSpeedBoostIndicator();
+                }
+                break;
+            case 'ArrowDown':
+            case 's':
+                this.keys.down = false;
+                if (!this.keys.up && !this.keys.left && !this.keys.right) {
+                    // Reset vertical rotation when no direction keys are pressed
+                    this.targetCameraRotation.x = 0;
+                }
+                break;
+            case 'ArrowLeft':
+            case 'a':
+                this.keys.left = false;
+                if (!this.keys.up && !this.keys.down && !this.keys.right) {
+                    // Reset horizontal rotation when no direction keys are pressed
+                    this.targetCameraRotation.y = 0;
+                }
+                break;
+            case 'ArrowRight':
+            case 'd':
+                this.keys.right = false;
+                if (!this.keys.up && !this.keys.down && !this.keys.left) {
+                    // Reset horizontal rotation when no direction keys are pressed
+                    this.targetCameraRotation.y = 0;
+                }
+                break;
+        }
+        
+        // Adjust rotation if multiple keys are pressed
+        if (this.keys.left && !this.keys.right) {
+            this.targetCameraRotation.y = this.maxCameraRotation.y;
+        } else if (this.keys.right && !this.keys.left) {
+            this.targetCameraRotation.y = -this.maxCameraRotation.y;
+        }
+        
+        if (this.keys.down && !this.keys.up) {
+            this.targetCameraRotation.x = -this.maxCameraRotation.x;
+        }
+    }
+
+    // Add a new method to update camera rotation
+    updateCameraRotation() {
+        // Smoothly interpolate current rotation towards target rotation
+        this.cameraRotation.x += (this.targetCameraRotation.x - this.cameraRotation.x) * this.cameraRotationSpeed;
+        this.cameraRotation.y += (this.targetCameraRotation.y - this.cameraRotation.y) * this.cameraRotationSpeed;
+        
+        // Apply rotation to camera
+        // Reset camera rotation first
+        this.camera.rotation.set(0, 0, 0);
+        
+        // Apply rotations in the correct order
+        this.camera.rotateX(this.cameraRotation.x);
+        this.camera.rotateY(this.cameraRotation.y);
     }
 } 
