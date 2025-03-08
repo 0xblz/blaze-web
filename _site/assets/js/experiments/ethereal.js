@@ -732,9 +732,9 @@ class EtherealAnimation {
         if (this.speedBoostIndicator) {
             // Update mode based on current state
             if (this.isUltraBoost) {
-                this.mode = '🔥 ULTRA BOOST';
+                this.mode = '⚡️ HYPERDIMENSIONAL';
             } else if (this.speedBoost > 1.0) {
-                this.mode = '🚀 BOOST';
+                this.mode = '🚀 BOOST...';
             } else {
                 this.mode = 'NORMAL';
             }
