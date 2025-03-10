@@ -13,7 +13,7 @@ is_home: true
     <h1>digital designer / creative dev</h1>
 </aside>
 <aside>
-    <h2>projects</h2>
+    <h2><i class="fa-solid fa-globe"></i> projects</h2>
     {% for project in site.data.projects %}
     <a href="{{ project.link }}" target="_blank" class="row-link">
         <div class="row-link-content">
@@ -28,7 +28,18 @@ is_home: true
 </aside>
 
 <aside>
-    <h2>experience</h2>
+    <h2><i class="fa-solid fa-flask"></i> experiments</h2>
+    {% assign experiment_files = site.pages | where_exp: "item", "item.path contains 'experiments/'" | where_exp: "item", "item.path contains '.html'" %}
+    {% for experiment in experiment_files %}
+    <a href="{{ site.baseurl }}{{ experiment.url }}" class="row-link">
+        <h3>{{ experiment.title }}</h3>
+        <small>{{ experiment.date | date: "%D" | default: "Experiment" }}</small>
+    </a>
+    {% endfor %}
+</aside>
+
+<aside>
+    <h2><i class="fa-solid fa-briefcase"></i> experience</h2>
     {% for experience in site.data.experiences %}
     <a href="{{ experience.link }}" {% if experience.link != "#" %}target="_blank"{% endif %} class="row-link">
         <div class="row-link-content">
