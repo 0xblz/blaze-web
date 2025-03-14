@@ -623,6 +623,21 @@ class ExplorationAnimation {
             + Math.sin(this.time * SCENE_CONFIG.camera.waveSpeed.y) 
             * SCENE_CONFIG.camera.waveMagnitude.y;
         
+        // Update grid position to follow camera
+        const gridSegmentSize = SCENE_CONFIG.grid.size / 2;
+        const cameraZGrid = Math.floor(this.camera.position.z / gridSegmentSize) * gridSegmentSize;
+        
+        // Find all grid-related meshes and update their positions
+        this.scene.children.forEach(child => {
+            if (child instanceof THREE.GridHelper) {
+                child.position.z = cameraZGrid;
+            }
+            if (child instanceof THREE.Mesh && child.geometry instanceof THREE.PlaneGeometry) {
+                // This is our shader-based grid plane
+                child.position.z = cameraZGrid;
+            }
+        });
+        
         // Update building materials
         this.buildings.forEach(building => {
             building.material.uniforms.time.value = this.time;
