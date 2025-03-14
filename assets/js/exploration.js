@@ -27,9 +27,9 @@ const loadScript = (src) => {
 const SCENE_CONFIG = {
     // Camera settings
     camera: {
-        fov: 145,
+        fov: 75, // Reduced FOV for better perspective
         near: 0.1,
-        far: 1000,
+        far: 10000, // Much larger far plane to see distant stars
         position: { x: 0, y: 1, z: 5 },
         movementSpeed: 0.2,
         waveMagnitude: { x: 1, y: 0 }, // Sine wave movement magnitude
@@ -38,16 +38,16 @@ const SCENE_CONFIG = {
     
     // Scene colors and fog
     colors: {
-        background: 0x1a1a3a,
-        fog: 0x2a2a4a,
-        fogDensity: 0.008,
+        background: 0x000000, // Pure black background
+        fog: 0x000000,       // Match fog to background
+        fogDensity: 0.0,     // No fog
         ambient: {
-            color: 0x404060,
-            intensity: 2.0
+            color: 0x101020, // Very dark ambient light
+            intensity: 0.2   // Even lower intensity
         },
         directional: {
-            color: 0xffaa66,
-            intensity: 1.0
+            color: 0x3366aa, // Keep cool light color
+            intensity: 0.1   // Lower intensity
         }
     },
     
@@ -81,14 +81,30 @@ const SCENE_CONFIG = {
     // Post-processing
     postProcessing: {
         bloom: {
-            strength: 1.2,
-            radius: 0.5,
-            threshold: 0.7
+            strength: 0.7,    // Lower overall bloom
+            radius: 0.3,      // Tighter bloom radius
+            threshold: 0.4    // Higher threshold to only catch bright points
         },
         glitch: {
             amount: 0.05,
             distortion: 0.08
         }
+    },
+    
+    // Starfield configuration
+    starfield: {
+        stars: 5000,         // Number of stars
+        size: 10000,         // Size of the star field
+        starSize: 5.0,       // Much larger stars
+        speed: 0.01,         // Slower movement
+        colors: [
+            0xFFFFFF,        // Pure white
+            0xFFFFFF,        // More white
+            0xFFFFFF,        // Even more white
+            0x00FFFF,        // Pure cyan
+            0xFF00FF,        // Pure magenta
+            0xFFFF00         // Pure yellow
+        ]
     }
 };
 
@@ -104,6 +120,8 @@ class ExplorationAnimation {
         this.neonLights = [];
         this.cameraSpeed = SCENE_CONFIG.camera.movementSpeed;
         this.time = 0;
+        this.stars = null;
+        this.skyGlow = null;
     }
 
     init() {
@@ -112,10 +130,7 @@ class ExplorationAnimation {
         
         // Create scene
         this.scene = new THREE.Scene();
-        this.scene.fog = new THREE.FogExp2(
-            SCENE_CONFIG.colors.fog, 
-            SCENE_CONFIG.colors.fogDensity
-        );
+        // No fog
         
         // Create camera
         this.camera = new THREE.PerspectiveCamera(
@@ -156,6 +171,9 @@ class ExplorationAnimation {
         sunLight.position.set(-10, 20, 10);
         this.scene.add(sunLight);
         
+        // Create starfield before the grid
+        this.createStarfield();
+        
         // Create grid
         this.createGrid();
         
@@ -167,6 +185,63 @@ class ExplorationAnimation {
         
         // Handle window resize
         window.addEventListener('resize', this.onWindowResize.bind(this));
+    }
+
+    createStarfield() {
+        // Create a simple star field with bright points
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
+        const colors = [];
+        const sizes = [];
+        
+        for (let i = 0; i < SCENE_CONFIG.starfield.stars; i++) {
+            // Position stars in a large sphere around the camera
+            const phi = Math.random() * Math.PI * 2;
+            const theta = Math.random() * Math.PI;
+            const radius = SCENE_CONFIG.starfield.size * (0.2 + Math.random() * 0.8);
+            
+            const x = radius * Math.sin(theta) * Math.cos(phi);
+            const y = radius * Math.sin(theta) * Math.sin(phi);
+            const z = -radius * Math.cos(theta);
+            
+            vertices.push(x, y, z);
+            
+            // Random color from config
+            const color = new THREE.Color(
+                SCENE_CONFIG.starfield.colors[
+                    Math.floor(Math.random() * SCENE_CONFIG.starfield.colors.length)
+                ]
+            );
+            
+            colors.push(color.r, color.g, color.b);
+            
+            // Random size - some stars much larger than others
+            const size = Math.random() < 0.05 ? 
+                SCENE_CONFIG.starfield.starSize * (3 + Math.random() * 5) : 
+                SCENE_CONFIG.starfield.starSize * (0.5 + Math.random() * 1.5);
+            
+            sizes.push(size);
+        }
+        
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+        
+        // Create a simple point material for stars
+        const material = new THREE.PointsMaterial({
+            size: SCENE_CONFIG.starfield.starSize,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            transparent: true,
+            sizeAttenuation: true,
+            depthWrite: false,
+            depthTest: false
+        });
+        
+        // Create the star field
+        this.stars = new THREE.Points(geometry, material);
+        this.stars.renderOrder = -1000; // Ensure it renders first
+        this.scene.add(this.stars);
     }
 
     createGrid() {
@@ -524,12 +599,12 @@ class ExplorationAnimation {
         const renderPass = new THREE.RenderPass(this.scene, this.camera);
         this.composer.addPass(renderPass);
         
-        // Add bloom pass - increase bloom for evening glow
+        // Add bloom pass with settings to enhance stars
         const bloomPass = new THREE.UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
-            SCENE_CONFIG.postProcessing.bloom.strength,
-            SCENE_CONFIG.postProcessing.bloom.radius,
-            SCENE_CONFIG.postProcessing.bloom.threshold
+            1.5,    // Higher strength for stars
+            0.8,    // Larger radius for bigger glow
+            0.2     // Lower threshold to catch more stars
         );
         this.composer.addPass(bloomPass);
         
@@ -622,6 +697,11 @@ class ExplorationAnimation {
         this.camera.position.y = SCENE_CONFIG.camera.position.y 
             + Math.sin(this.time * SCENE_CONFIG.camera.waveSpeed.y) 
             * SCENE_CONFIG.camera.waveMagnitude.y;
+        
+        // Update stars - make them follow the camera
+        if (this.stars) {
+            this.stars.position.copy(this.camera.position);
+        }
         
         // Update grid position to follow camera
         const gridSegmentSize = SCENE_CONFIG.grid.size / 2;
