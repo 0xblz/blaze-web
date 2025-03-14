@@ -82,9 +82,6 @@ class EtherealAnimation {
         // Mobile detection
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // Check if we're on the home page
-        this.isHomePage = !window.location.pathname.includes('/experiments/');
-        
         // Speed boost parameters - adjusted for more noticeable acceleration
         this.isMouseDown = false;
         this.speedBoost = 1.0; // Normal speed multiplier
@@ -684,7 +681,7 @@ class EtherealAnimation {
     }
     
     createSpeedBoostIndicator() {
-        // Show indicator on both homepage and ethereal page
+        // Show indicator on all pages (removed homepage check)
         
         // Remove existing indicator if any
         this.removeSpeedBoostIndicator();

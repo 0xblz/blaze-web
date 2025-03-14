@@ -1,9 +1,17 @@
+- title: "Ethereal Sky"
+  link: "experiments/ethereal"
+  image: /assets/images/ethereal.png
+  platform: "three.js"
+  role: "Creator"
+  year: "2025"
+
 - title: "How's the roads?"
   link: "https://howstheroads.com"
   image: "https://howstheroads.com/appicon.png"
   platform: "Web & iOS"
   role: "Creator"
   year: "2025"
+  external_link: true
 
 - title: "UNO"
   link: "https://worldcoin.org/ecosystem/app_a4f7f3e62c1de0b9490a5260cb390b56"
@@ -11,6 +19,7 @@
   platform: "World App"
   role: "Team Designer"
   year: "2025"
+  external_link: true
 
 - title: "ORO"
   link: "https://worldcoin.org/ecosystem/app_f1e44837a5e3c2af4da8925b46027645"
@@ -18,6 +27,7 @@
   platform: "World App"
   role: "Team Designer"
   year: "2025"
+  external_link: true
 
 - title: "Holy Hues"
   link: "https://apps.apple.com/us/app/holy-hues/id6740889386"
@@ -25,6 +35,7 @@
   platform: "iOS"
   role: "Creator"
   year: "2025"
+  external_link: true
 
 - title: "Party"
   link: "https://party.app"
@@ -32,3 +43,4 @@
   platform: "Web & Mobile"
   role: "Team Designer"
   year: "2024"
+  external_link: true

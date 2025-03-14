@@ -1,2 +1,32 @@
-// Import all experiment styles
-@import "experiments/ethereal";
+.background-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+    pointer-events: none;
+}
+
+body.experiment {
+    cursor: auto;
+    
+    &::after {
+        content: '';
+        position: fixed;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.3);
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        transition: width 0.3s, height 0.3s, opacity 0.3s;
+        opacity: 0;
+    }
+    
+    &.cursor-active::after {
+        opacity: 0;
+    }
+} 

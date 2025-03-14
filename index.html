@@ -1,8 +1,9 @@
 ---
 layout: default
-title: blaze - digital designer
+title: digital designer / creative dev
 description: building fun and intuitive experiences
 is_home: true
+js_file: ethereal
 ---
 
 <!-- Add the ethereal canvas as a background element -->
@@ -10,12 +11,12 @@ is_home: true
 <img src="{{ site.baseurl }}/keyboard.svg" alt="keyboard" class="keyboard-icon" />
 
 <aside>
-    <h1>digital designer / creative dev</h1>
+    <h1>{{ page.title }}</h1>
 </aside>
 <aside>
     <h2><i class="fa-solid fa-globe"></i> projects</h2>
     {% for project in site.data.projects %}
-    <a href="{{ project.link }}" target="_blank" class="row-link">
+    <a href="{{ project.link }}" {% if project.external_link %}target="_blank"{% endif %} class="row-link">
         <div class="row-link-content">
             <figure>
                 <img src="{{ project.image }}" alt="{{ project.title }}" />
@@ -23,17 +24,6 @@ is_home: true
             <h3>{{ project.title }}<br><small>{{ project.platform }}</small></h3>
         </div>
         <small>{{ project.role }}, {{ project.year }}</small>
-    </a>
-    {% endfor %}
-</aside>
-
-<aside>
-    <h2><i class="fa-solid fa-flask"></i> experiments</h2>
-    {% assign experiment_files = site.pages | where_exp: "item", "item.path contains 'experiments/'" | where_exp: "item", "item.path contains '.html'" %}
-    {% for experiment in experiment_files %}
-    <a href="{{ site.baseurl }}{{ experiment.url }}" class="row-link">
-        <h3>{{ experiment.title }}</h3>
-        <small>{{ experiment.date | date: "%D" | default: "Experiment" }}</small>
     </a>
     {% endfor %}
 </aside>
