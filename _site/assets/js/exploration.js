@@ -33,7 +33,22 @@ const SCENE_CONFIG = {
         position: { x: 0, y: 1, z: 5 },
         movementSpeed: 0.3,
         waveMagnitude: { x: 0.5, y: 0 }, // Sine wave movement magnitude
-        waveSpeed: { x: 0.5, y: 0 }  // Sine wave movement speed
+        waveSpeed: { x: 0.5, y: 0 },  // Sine wave movement speed
+        controls: {
+            enabled: true,
+            moveSpeed: 0.5,      // Base movement speed
+            boostSpeed: 1.5,     // Speed when holding shift
+            turnSpeed: 0.02,     // How fast to turn left/right
+            autoMove: true,      // Whether to automatically move forward
+            keyMapping: {
+                forward: 'ArrowUp',
+                backward: 'ArrowDown',
+                left: 'ArrowLeft',
+                right: 'ArrowRight',
+                boost: 'ShiftLeft',
+                brake: 'Space'
+            }
+        }
     },
     
     // Scene colors and fog
@@ -129,6 +144,18 @@ class ExplorationAnimation {
         this.stars = null;
         this.skyGlow = null;
         this.starSpeeds = [];
+        
+        // Controls state
+        this.controls = {
+            moveForward: false,
+            moveBackward: false,
+            moveLeft: false,
+            moveRight: false,
+            boost: false,
+            brake: false,
+            direction: new THREE.Vector3(0, 0, -1), // Forward direction vector
+            velocity: new THREE.Vector3()
+        };
     }
 
     init() {
@@ -189,6 +216,11 @@ class ExplorationAnimation {
         
         // Add post-processing
         this.setupPostProcessing();
+        
+        // Setup keyboard controls
+        if (SCENE_CONFIG.camera.controls.enabled) {
+            this.setupControls();
+        }
         
         // Handle window resize
         window.addEventListener('resize', this.onWindowResize.bind(this));
@@ -772,21 +804,170 @@ class ExplorationAnimation {
         this.glitchPass = glitchPass;
     }
 
+    setupControls() {
+        // Setup keyboard event listeners
+        document.addEventListener('keydown', this.onKeyDown.bind(this));
+        document.addEventListener('keyup', this.onKeyUp.bind(this));
+        
+        // Add instructions overlay
+        this.createControlsOverlay();
+    }
+    
+    createControlsOverlay() {
+        // Create an overlay with instructions
+        const overlay = document.createElement('div');
+        overlay.style.position = 'absolute';
+        overlay.style.bottom = '20px';
+        overlay.style.left = '20px';
+        overlay.style.color = 'white';
+        overlay.style.fontFamily = 'Arial, sans-serif';
+        overlay.style.fontSize = '14px';
+        overlay.style.padding = '10px';
+        overlay.style.background = 'rgba(0, 0, 0, 0.5)';
+        overlay.style.borderRadius = '5px';
+        overlay.style.pointerEvents = 'none'; // Don't block clicks
+        overlay.style.zIndex = '1000';
+        overlay.style.textShadow = '0 0 3px #ff00ff';
+        
+        overlay.innerHTML = `
+            <div style="margin-bottom: 5px; font-weight: bold;">Controls:</div>
+            <div>↑ / ↓ : Move forward / backward</div>
+            <div>← / → : Turn left / right</div>
+            <div>Shift : Boost speed</div>
+            <div>Space : Brake</div>
+        `;
+        
+        document.body.appendChild(overlay);
+    }
+    
+    onKeyDown(event) {
+        const keyMapping = SCENE_CONFIG.camera.controls.keyMapping;
+        
+        switch (event.code) {
+            case keyMapping.forward:
+                this.controls.moveForward = true;
+                break;
+            case keyMapping.backward:
+                this.controls.moveBackward = true;
+                break;
+            case keyMapping.left:
+                this.controls.moveLeft = true;
+                break;
+            case keyMapping.right:
+                this.controls.moveRight = true;
+                break;
+            case keyMapping.boost:
+                this.controls.boost = true;
+                break;
+            case keyMapping.brake:
+                this.controls.brake = true;
+                break;
+        }
+    }
+    
+    onKeyUp(event) {
+        const keyMapping = SCENE_CONFIG.camera.controls.keyMapping;
+        
+        switch (event.code) {
+            case keyMapping.forward:
+                this.controls.moveForward = false;
+                break;
+            case keyMapping.backward:
+                this.controls.moveBackward = false;
+                break;
+            case keyMapping.left:
+                this.controls.moveLeft = false;
+                break;
+            case keyMapping.right:
+                this.controls.moveRight = false;
+                break;
+            case keyMapping.boost:
+                this.controls.boost = false;
+                break;
+            case keyMapping.brake:
+                this.controls.brake = false;
+                break;
+        }
+    }
+    
+    updateControls(delta) {
+        // Get current speed based on boost/brake state
+        let currentSpeed = SCENE_CONFIG.camera.controls.moveSpeed;
+        
+        if (this.controls.boost) {
+            currentSpeed = SCENE_CONFIG.camera.controls.boostSpeed;
+        }
+        if (this.controls.brake) {
+            currentSpeed *= 0.3; // Reduce speed when braking
+        }
+        
+        // Calculate movement based on current direction
+        const moveSpeed = currentSpeed * delta * 60; // Normalize by framerate
+        
+        // Update direction vector based on turning
+        if (this.controls.moveLeft) {
+            // Rotate direction vector around Y axis (left)
+            this.controls.direction.applyAxisAngle(
+                new THREE.Vector3(0, 1, 0), 
+                SCENE_CONFIG.camera.controls.turnSpeed
+            );
+        }
+        if (this.controls.moveRight) {
+            // Rotate direction vector around Y axis (right)
+            this.controls.direction.applyAxisAngle(
+                new THREE.Vector3(0, 1, 0), 
+                -SCENE_CONFIG.camera.controls.turnSpeed
+            );
+        }
+        
+        // Normalize direction vector
+        this.controls.direction.normalize();
+        
+        // Calculate velocity based on forward/backward movement
+        this.controls.velocity.set(0, 0, 0);
+        
+        if (this.controls.moveForward || SCENE_CONFIG.camera.controls.autoMove) {
+            // Move in the direction we're facing
+            this.controls.velocity.add(
+                this.controls.direction.clone().multiplyScalar(moveSpeed)
+            );
+        }
+        if (this.controls.moveBackward) {
+            // Move opposite to the direction we're facing
+            this.controls.velocity.add(
+                this.controls.direction.clone().multiplyScalar(-moveSpeed)
+            );
+        }
+        
+        // Apply velocity to camera position
+        this.camera.position.add(this.controls.velocity);
+        
+        // Update camera look direction
+        const lookAtPosition = this.camera.position.clone().add(this.controls.direction);
+        this.camera.lookAt(lookAtPosition);
+    }
+
     animate() {
         requestAnimationFrame(this.animate.bind(this));
         
         const delta = this.clock.getDelta();
         this.time += delta;
         
-        // Update camera position - move forward
-        this.camera.position.z -= this.cameraSpeed;
-        
-        // Slightly move camera in a sine wave pattern
-        this.camera.position.x = Math.sin(this.time * SCENE_CONFIG.camera.waveSpeed.x) 
-            * SCENE_CONFIG.camera.waveMagnitude.x;
-        this.camera.position.y = SCENE_CONFIG.camera.position.y 
-            + Math.sin(this.time * SCENE_CONFIG.camera.waveSpeed.y) 
-            * SCENE_CONFIG.camera.waveMagnitude.y;
+        // Update controls if enabled
+        if (SCENE_CONFIG.camera.controls.enabled) {
+            this.updateControls(delta);
+        } else {
+            // Original camera movement
+            // Update camera position - move forward
+            this.camera.position.z -= this.cameraSpeed;
+            
+            // Slightly move camera in a sine wave pattern
+            this.camera.position.x = Math.sin(this.time * SCENE_CONFIG.camera.waveSpeed.x) 
+                * SCENE_CONFIG.camera.waveMagnitude.x;
+            this.camera.position.y = SCENE_CONFIG.camera.position.y 
+                + Math.sin(this.time * SCENE_CONFIG.camera.waveSpeed.y) 
+                * SCENE_CONFIG.camera.waveMagnitude.y;
+        }
         
         // Update stars - make them move towards the camera
         if (this.stars) {
