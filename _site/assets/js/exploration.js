@@ -27,13 +27,13 @@ const loadScript = (src) => {
 const SCENE_CONFIG = {
     // Camera settings
     camera: {
-        fov: 75, // Reduced FOV for better perspective
+        fov: 125, // Reduced FOV for better perspective
         near: 0.1,
         far: 10000, // Much larger far plane to see distant stars
         position: { x: 0, y: 1, z: 5 },
-        movementSpeed: 0.2,
-        waveMagnitude: { x: 1, y: 0 }, // Sine wave movement magnitude
-        waveSpeed: { x: 1, y: 0 }  // Sine wave movement speed
+        movementSpeed: 0.3,
+        waveMagnitude: { x: 0.5, y: 0 }, // Sine wave movement magnitude
+        waveSpeed: { x: 0.5, y: 0 }  // Sine wave movement speed
     },
     
     // Scene colors and fog
@@ -55,13 +55,18 @@ const SCENE_CONFIG = {
     grid: {
         size: 400,
         divisions: 500,
-        mainColor: 0x00aaff,
-        secondaryColor: 0x6644aa,
+        mainColor: 0xff00ff,    // Changed to pink
+        secondaryColor: 0x00ffff, // Cyan as secondary
         shader: {
-            color1: [0.2, 0.6, 1.0], // Cyan/blue
-            color2: [1.0, 0.4, 0.8], // Magenta/pink
-            gridLines: 20,
-            pulseSpeed: 2.0
+            color1: [1.0, 0.2, 0.8], // Pink/magenta
+            color2: [0.2, 0.8, 1.0], // Cyan/blue
+            gridLines: 40,          // More grid lines
+            pulseSpeed: 3.0,        // Faster pulse
+            pathWidth: 20,          // Width of the glowing path
+            pathIntensity: 2.0,     // Intensity of the path glow
+            raceSpeed: 5.0,         // Speed of racing lines
+            raceLength: 0.7,        // Length of racing effect
+            raceDensity: 3.0        // Density of racing lines
         }
     },
     
@@ -71,9 +76,9 @@ const SCENE_CONFIG = {
         buildingCount: 1500,
         neonStructureCount: 500,
         building: {
-            maxHeight: 105,
-            minHeight: 1,
-            maxWidth: 2.5,
+            maxHeight: 200,
+            minHeight: 4,
+            maxWidth: 1,
             minWidth: 0.5
         }
     },
@@ -86,17 +91,18 @@ const SCENE_CONFIG = {
             threshold: 0.4    // Higher threshold to only catch bright points
         },
         glitch: {
-            amount: 0.05,
-            distortion: 0.08
+            amount: 0.01,
+            distortion: 1
         }
     },
     
     // Starfield configuration
     starfield: {
         stars: 5000,         // Number of stars
-        size: 10000,         // Size of the star field
+        size: 2000,         // Size of the star field
         starSize: 5.0,       // Much larger stars
-        speed: 0.01,         // Slower movement
+        speed: 1.5,          // Faster movement speed for stars
+        maxSpeed: 4.0,       // Maximum speed for closest stars
         colors: [
             0xFFFFFF,        // Pure white
             0xFFFFFF,        // More white
@@ -122,6 +128,7 @@ class ExplorationAnimation {
         this.time = 0;
         this.stars = null;
         this.skyGlow = null;
+        this.starSpeeds = [];
     }
 
     init() {
@@ -193,6 +200,7 @@ class ExplorationAnimation {
         const vertices = [];
         const colors = [];
         const sizes = [];
+        const speeds = []; // Add speeds for individual stars
         
         for (let i = 0; i < SCENE_CONFIG.starfield.stars; i++) {
             // Position stars in a large sphere around the camera
@@ -221,11 +229,20 @@ class ExplorationAnimation {
                 SCENE_CONFIG.starfield.starSize * (0.5 + Math.random() * 1.5);
             
             sizes.push(size);
+            
+            // Random speed - closer stars move faster
+            const distanceFactor = 1.0 - (Math.abs(z) / SCENE_CONFIG.starfield.size);
+            const speed = SCENE_CONFIG.starfield.speed + 
+                         (distanceFactor * SCENE_CONFIG.starfield.maxSpeed * Math.random());
+            speeds.push(speed);
         }
         
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
         geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
         geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+        
+        // Store speeds for animation
+        this.starSpeeds = speeds;
         
         // Create a simple point material for stars
         const material = new THREE.PointsMaterial({
@@ -255,19 +272,26 @@ class ExplorationAnimation {
         const gridMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 0 },
-                resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+                resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+                cameraPosition: { value: new THREE.Vector3() }
             },
             vertexShader: `
                 varying vec2 vUv;
+                varying vec3 vPosition;
+                
                 void main() {
                     vUv = uv;
+                    vPosition = position;
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                 }
             `,
             fragmentShader: `
                 uniform float time;
                 uniform vec2 resolution;
+                uniform vec3 cameraPosition;
+                
                 varying vec2 vUv;
+                varying vec3 vPosition;
                 
                 // Simplex noise function
                 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -297,41 +321,107 @@ class ExplorationAnimation {
                     return 130.0 * dot(m, g);
                 }
                 
+                // Hash function for racing line pattern
+                float hash(float n) {
+                    return fract(sin(n) * 43758.5453);
+                }
+                
                 void main() {
                     vec2 uv = vUv * 2.0 - 1.0;
                     
-                    // Grid effect
-                    float gridX = abs(fract(uv.x * 20.0 - time * 0.1) - 0.5);
-                    float gridY = abs(fract(uv.y * 20.0 - time * 0.05) - 0.5);
+                    // Calculate distance from camera path (center line)
+                    float pathDistance = abs(vPosition.x - cameraPosition.x);
+                    
+                    // Basic grid effect
+                    float gridX = abs(fract(vPosition.x * ${SCENE_CONFIG.grid.shader.gridLines} - time * 0.1) - 0.5);
+                    float gridZ = abs(fract(vPosition.z * ${SCENE_CONFIG.grid.shader.gridLines} - time * 0.5) - 0.5);
                     
                     // Noise distortion
-                    float noise = snoise(uv * 5.0 + time * 0.2) * 0.1;
+                    float noise = snoise(vec2(vPosition.x * 0.05, vPosition.z * 0.05) + time * 0.2) * 0.1;
                     gridX += noise;
-                    gridY += noise;
+                    gridZ += noise;
                     
-                    // Grid lines
-                    float grid = min(gridX, gridY);
+                    // Grid lines with z-lines more prominent (direction of travel)
+                    float grid = min(gridX, gridZ * 0.5);
                     
                     // Pulse effect
-                    float pulse = sin(time * SCENE_CONFIG.grid.pulseSpeed) * 0.5 + 0.5;
+                    float pulse = sin(time * ${SCENE_CONFIG.grid.shader.pulseSpeed}) * 0.5 + 0.5;
                     
-                    // Evening colors - brighter and more vibrant
-                    vec3 color1 = SCENE_CONFIG.grid.shader.color1;
-                    vec3 color2 = SCENE_CONFIG.grid.shader.color2;
+                    // Path effect - glowing path that follows camera x position
+                    float pathWidth = ${SCENE_CONFIG.grid.shader.pathWidth};
+                    float pathGlow = smoothstep(pathWidth, 0.0, pathDistance);
+                    pathGlow *= ${SCENE_CONFIG.grid.shader.pathIntensity}; // Increase intensity
+                    
+                    // Racing lines effect - lines that appear to be generated as you move
+                    float raceSpeed = ${SCENE_CONFIG.grid.shader.raceSpeed};
+                    float raceLength = ${SCENE_CONFIG.grid.shader.raceLength};
+                    float raceDensity = ${SCENE_CONFIG.grid.shader.raceDensity};
+                    
+                    // Create racing lines along z-axis
+                    float racingEffect = 0.0;
+                    
+                    // Create multiple racing lines
+                    for (int i = 0; i < 5; i++) {
+                        float lineOffset = float(i) / 5.0;
+                        
+                        // Create a unique seed for each line
+                        float seed = hash(float(i) * 123.456 + vPosition.x * 0.1);
+                        
+                        // Calculate line position with some randomness
+                        float lineX = mix(-pathWidth, pathWidth, seed);
+                        
+                        // Distance from this racing line
+                        float lineDist = abs(vPosition.x - cameraPosition.x - lineX);
+                        
+                        // Racing effect - lines that move forward and fade
+                        float z = vPosition.z;
+                        float raceZ = mod(z + time * raceSpeed * (0.5 + seed * 0.5), raceDensity);
+                        
+                        // Create a line segment that fades at the end
+                        float raceSegment = smoothstep(0.0, 0.1, raceZ) * smoothstep(raceDensity, raceDensity - raceLength, raceZ);
+                        
+                        // Only show racing effect if close to the line
+                        float lineWidth = mix(0.5, 2.0, seed); // Vary line width
+                        float lineStrength = smoothstep(lineWidth, 0.0, lineDist) * raceSegment;
+                        
+                        // Accumulate racing effect
+                        racingEffect = max(racingEffect, lineStrength);
+                    }
+                    
+                    // Flow effect - lines moving in z direction
+                    float flowEffect = fract(vPosition.z * 0.05 - time * 2.0);
+                    flowEffect = smoothstep(0.0, 0.2, flowEffect) * smoothstep(1.0, 0.8, flowEffect);
+                    
+                    // Colors
+                    vec3 color1 = vec3(${SCENE_CONFIG.grid.shader.color1[0]}, ${SCENE_CONFIG.grid.shader.color1[1]}, ${SCENE_CONFIG.grid.shader.color1[2]});
+                    vec3 color2 = vec3(${SCENE_CONFIG.grid.shader.color2[0]}, ${SCENE_CONFIG.grid.shader.color2[1]}, ${SCENE_CONFIG.grid.shader.color2[2]});
                     
                     // Mix colors based on position and time
-                    vec3 color = mix(color1, color2, sin(uv.x * 3.0 + time) * 0.5 + 0.5);
+                    vec3 color = mix(color1, color2, sin(vPosition.z * 0.01 + time) * 0.5 + 0.5);
                     
-                    // Apply grid effect - increase brightness
+                    // Apply path effect - make path more pink/magenta
+                    color = mix(color, vec3(1.0, 0.2, 0.8), pathGlow * pulse);
+                    
+                    // Apply racing effect - bright glowing lines
+                    color = mix(color, vec3(1.0, 0.0, 1.0), racingEffect * 0.8);
+                    
+                    // Apply flow effect
+                    color += vec3(1.0, 0.3, 0.8) * flowEffect * 0.3;
+                    
+                    // Apply grid effect
                     float gridIntensity = smoothstep(0.05, 0.0, grid);
-                    color = mix(vec3(0.1, 0.1, 0.3), color, gridIntensity * (pulse * 0.5 + 0.7));
+                    color = mix(vec3(0.0, 0.0, 0.1), color, gridIntensity * (pulse * 0.3 + 0.7));
                     
-                    // Add scanlines - reduce effect for cleaner look
-                    float scanline = sin(uv.y * 100.0 + time * 10.0) * 0.3 + 0.7;
-                    color *= mix(0.95, 1.0, scanline);
+                    // Add scanlines
+                    float scanline = sin(vPosition.z * 100.0 + time * 10.0) * 0.05 + 0.95;
+                    color *= scanline;
                     
-                    // Output final color - increase overall brightness
-                    gl_FragColor = vec4(color * 1.2, gridIntensity * 0.8);
+                    // Add glow to racing lines
+                    color += vec3(1.0, 0.0, 1.0) * racingEffect * 0.5;
+                    
+                    // Output final color with alpha based on grid and path
+                    float alpha = gridIntensity * 0.7 + pathGlow * 0.3 + racingEffect * 0.5;
+                    gl_FragColor = vec4(color, alpha);
                 }
             `,
             transparent: true,
@@ -602,9 +692,9 @@ class ExplorationAnimation {
         // Add bloom pass with settings to enhance stars
         const bloomPass = new THREE.UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
-            1.5,    // Higher strength for stars
-            0.8,    // Larger radius for bigger glow
-            0.2     // Lower threshold to catch more stars
+            1,    // Higher strength for stars
+            1,    // Larger radius for bigger glow
+            0.1     // Lower threshold to catch more stars
         );
         this.composer.addPass(bloomPass);
         
@@ -698,9 +788,53 @@ class ExplorationAnimation {
             + Math.sin(this.time * SCENE_CONFIG.camera.waveSpeed.y) 
             * SCENE_CONFIG.camera.waveMagnitude.y;
         
-        // Update stars - make them follow the camera
+        // Update stars - make them move towards the camera
         if (this.stars) {
-            this.stars.position.copy(this.camera.position);
+            const positions = this.stars.geometry.attributes.position.array;
+            
+            for (let i = 0, j = 0; i < positions.length; i += 3, j++) {
+                // Get the star's current position
+                const x = positions[i];
+                const y = positions[i + 1];
+                const z = positions[i + 2];
+                
+                // Calculate direction vector from star to camera
+                const dx = this.camera.position.x - x;
+                const dy = this.camera.position.y - y;
+                const dz = this.camera.position.z - z;
+                
+                // Normalize the direction vector
+                const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                
+                // Move star towards camera based on its speed
+                const speed = this.starSpeeds[j] * delta;
+                
+                // Move star along z-axis primarily (towards camera)
+                positions[i + 2] += speed * 10;
+                
+                // Add slight movement towards camera's x and y for perspective
+                positions[i] += (dx / distance) * speed;
+                positions[i + 1] += (dy / distance) * speed;
+                
+                // If star passes the camera, reset it far away
+                if (positions[i + 2] > this.camera.position.z) {
+                    // Reset to a random position far away
+                    const phi = Math.random() * Math.PI * 2;
+                    const theta = Math.random() * Math.PI;
+                    const radius = SCENE_CONFIG.starfield.size * (0.8 + Math.random() * 0.2);
+                    
+                    positions[i] = radius * Math.sin(theta) * Math.cos(phi) + this.camera.position.x;
+                    positions[i + 1] = radius * Math.sin(theta) * Math.sin(phi) + this.camera.position.y;
+                    positions[i + 2] = -radius * Math.cos(theta) + this.camera.position.z;
+                    
+                    // Update speed for the recycled star
+                    const distanceFactor = 1.0 - (Math.abs(positions[i + 2] - this.camera.position.z) / SCENE_CONFIG.starfield.size);
+                    this.starSpeeds[j] = SCENE_CONFIG.starfield.speed + 
+                                       (distanceFactor * SCENE_CONFIG.starfield.maxSpeed * Math.random());
+                }
+            }
+            
+            this.stars.geometry.attributes.position.needsUpdate = true;
         }
         
         // Update grid position to follow camera
@@ -753,6 +887,7 @@ class ExplorationAnimation {
         // Update grid material
         if (this.gridMaterial) {
             this.gridMaterial.uniforms.time.value = this.time;
+            this.gridMaterial.uniforms.cameraPosition.value.copy(this.camera.position);
         }
         
         // Update post-processing effects
