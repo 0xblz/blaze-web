@@ -1,5 +1,12 @@
+- title: "Glitch Haven"
+  link: "projects/glitch-haven"
+  image: /assets/images/glitch-haven.jpg
+  platform: "three.js"
+  role: "Creator"
+  year: "2025"
+
 - title: "Ethereal Sky"
-  link: "experiments/ethereal"
+  link: "projects/ethereal"
   image: /assets/images/ethereal.png
   platform: "three.js"
   role: "Creator"

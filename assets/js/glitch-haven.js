@@ -27,7 +27,9 @@ const loadScript = (src) => {
 const SCENE_CONFIG = {
     // Camera settings
     camera: {
-        fov: 125, // Reduced FOV for better perspective
+        fov: 125, // Default FOV
+        boostFov: 160, // FOV when boosting
+        fovChangeSpeed: 5, // How quickly FOV changes when boosting/stopping
         near: 0.1,
         far: 10000, // Much larger far plane to see distant stars
         position: { x: 0, y: 1, z: 5 },
@@ -44,8 +46,7 @@ const SCENE_CONFIG = {
                 forward: 'ArrowUp',
                 backward: 'ArrowDown',
                 left: 'ArrowLeft',
-                right: 'ArrowRight',
-                boost: 'Space'
+                right: 'ArrowRight'
             }
         }
     },
@@ -175,7 +176,7 @@ class ExplorationAnimation {
 
     init() {
         // Get the canvas element
-        const canvas = document.getElementById('explorationCanvas');
+        const canvas = document.getElementById('glitchHavenCanvas');
         
         // Create scene
         this.scene = new THREE.Scene();
@@ -971,35 +972,6 @@ class ExplorationAnimation {
         // Setup keyboard event listeners
         document.addEventListener('keydown', this.onKeyDown.bind(this));
         document.addEventListener('keyup', this.onKeyUp.bind(this));
-        
-        // Add instructions overlay
-        this.createControlsOverlay();
-    }
-    
-    createControlsOverlay() {
-        // Create an overlay with instructions
-        const overlay = document.createElement('div');
-        overlay.style.position = 'absolute';
-        overlay.style.bottom = '20px';
-        overlay.style.left = '20px';
-        overlay.style.color = 'white';
-        overlay.style.fontFamily = 'Arial, sans-serif';
-        overlay.style.fontSize = '14px';
-        overlay.style.padding = '10px';
-        overlay.style.background = 'rgba(0, 0, 0, 0.5)';
-        overlay.style.borderRadius = '5px';
-        overlay.style.pointerEvents = 'none'; // Don't block clicks
-        overlay.style.zIndex = '1000';
-        overlay.style.textShadow = '0 0 3px #ff00ff';
-        
-        overlay.innerHTML = `
-            <div style="margin-bottom: 5px; font-weight: bold;">Controls:</div>
-            <div>↑ / ↓ : Move forward / backward</div>
-            <div>← / → : Turn left / right</div>
-            <div>Space : Boost speed</div>
-        `;
-        
-        document.body.appendChild(overlay);
     }
     
     onKeyDown(event) {
@@ -1008,6 +980,7 @@ class ExplorationAnimation {
         switch (event.code) {
             case keyMapping.forward:
                 this.controls.moveForward = true;
+                this.controls.boost = true; // Activate boost when moving forward
                 break;
             case keyMapping.backward:
                 this.controls.moveBackward = true;
@@ -1018,9 +991,6 @@ class ExplorationAnimation {
             case keyMapping.right:
                 this.controls.moveRight = true;
                 break;
-            case keyMapping.boost:
-                this.controls.boost = true;
-                break;
         }
     }
     
@@ -1030,6 +1000,7 @@ class ExplorationAnimation {
         switch (event.code) {
             case keyMapping.forward:
                 this.controls.moveForward = false;
+                this.controls.boost = false; // Deactivate boost when forward key is released
                 break;
             case keyMapping.backward:
                 this.controls.moveBackward = false;
@@ -1040,9 +1011,6 @@ class ExplorationAnimation {
             case keyMapping.right:
                 this.controls.moveRight = false;
                 break;
-            case keyMapping.boost:
-                this.controls.boost = false;
-                break;
         }
     }
     
@@ -1052,6 +1020,22 @@ class ExplorationAnimation {
         
         if (this.controls.boost) {
             currentSpeed = SCENE_CONFIG.camera.controls.boostSpeed;
+            
+            // Gradually increase FOV when boosting
+            this.camera.fov = THREE.MathUtils.lerp(
+                this.camera.fov,
+                SCENE_CONFIG.camera.boostFov,
+                delta * SCENE_CONFIG.camera.fovChangeSpeed
+            );
+            this.camera.updateProjectionMatrix();
+        } else {
+            // Gradually return to normal FOV when not boosting
+            this.camera.fov = THREE.MathUtils.lerp(
+                this.camera.fov,
+                SCENE_CONFIG.camera.fov,
+                delta * SCENE_CONFIG.camera.fovChangeSpeed
+            );
+            this.camera.updateProjectionMatrix();
         }
         
         // Calculate movement based on current direction
@@ -1280,7 +1264,7 @@ class ExplorationAnimation {
 // Initialize the exploration animation once dependencies are loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Only initialize if the canvas element exists
-    const canvas = document.getElementById('explorationCanvas');
+    const canvas = document.getElementById('glitchHavenCanvas');
     if (canvas) {
         loadDependencies().then(() => {
             // Initialize Three.js scene
