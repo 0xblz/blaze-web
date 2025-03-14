@@ -43,7 +43,7 @@ class ExplorationAnimation {
         
         // Create scene
         this.scene = new THREE.Scene();
-        this.scene.fog = new THREE.FogExp2(0x0a0a1a, 0.015);
+        this.scene.fog = new THREE.FogExp2(0x2a2a4a, 0.008);
         
         // Create camera
         this.camera = new THREE.PerspectiveCamera(
@@ -62,14 +62,19 @@ class ExplorationAnimation {
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.setClearColor(0x000000);
+        this.renderer.setClearColor(0x1a1a3a);
         
         // Append the renderer's canvas to our container
         canvas.appendChild(this.renderer.domElement);
         
-        // Add lights
-        const ambientLight = new THREE.AmbientLight(0x101010);
+        // Add lights - increase ambient light for evening feel
+        const ambientLight = new THREE.AmbientLight(0x404060, 2.0);
         this.scene.add(ambientLight);
+        
+        // Add directional light to simulate evening sun
+        const sunLight = new THREE.DirectionalLight(0xffaa66, 1.0);
+        sunLight.position.set(-10, 20, 10);
+        this.scene.add(sunLight);
         
         // Create grid
         this.createGrid();
@@ -88,7 +93,7 @@ class ExplorationAnimation {
         // Create a grid helper for the ground plane
         const gridSize = 200;
         const gridDivisions = 100;
-        const gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0x0088ff, 0x220066);
+        const gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0x00aaff, 0x6644aa);
         this.scene.add(gridHelper);
         
         // Create a custom shader material for the grid
@@ -155,23 +160,23 @@ class ExplorationAnimation {
                     // Pulse effect
                     float pulse = sin(time * 2.0) * 0.5 + 0.5;
                     
-                    // Colors
-                    vec3 color1 = vec3(0.0, 0.5, 1.0); // Cyan
-                    vec3 color2 = vec3(1.0, 0.0, 0.5); // Magenta
+                    // Evening colors - brighter and more vibrant
+                    vec3 color1 = vec3(0.2, 0.6, 1.0); // Brighter cyan/blue
+                    vec3 color2 = vec3(1.0, 0.4, 0.8); // Brighter magenta/pink
                     
                     // Mix colors based on position and time
                     vec3 color = mix(color1, color2, sin(uv.x * 3.0 + time) * 0.5 + 0.5);
                     
-                    // Apply grid effect
+                    // Apply grid effect - increase brightness
                     float gridIntensity = smoothstep(0.05, 0.0, grid);
-                    color = mix(vec3(0.0), color, gridIntensity * (pulse * 0.5 + 0.5));
+                    color = mix(vec3(0.1, 0.1, 0.3), color, gridIntensity * (pulse * 0.5 + 0.7));
                     
-                    // Add scanlines
-                    float scanline = sin(uv.y * 100.0 + time * 10.0) * 0.5 + 0.5;
-                    color *= mix(0.9, 1.0, scanline);
+                    // Add scanlines - reduce effect for cleaner look
+                    float scanline = sin(uv.y * 100.0 + time * 10.0) * 0.3 + 0.7;
+                    color *= mix(0.95, 1.0, scanline);
                     
-                    // Output final color
-                    gl_FragColor = vec4(color, gridIntensity * 0.8);
+                    // Output final color - increase overall brightness
+                    gl_FragColor = vec4(color * 1.2, gridIntensity * 0.8);
                 }
             `,
             transparent: true,
@@ -222,11 +227,11 @@ class ExplorationAnimation {
             uniforms: {
                 time: { value: 0 },
                 emissiveColor: { value: new THREE.Color(
-                    Math.random() * 0.1, 
-                    0.05 + Math.random() * 0.2, 
-                    0.1 + Math.random() * 0.5
+                    0.1 + Math.random() * 0.2, 
+                    0.1 + Math.random() * 0.3, 
+                    0.2 + Math.random() * 0.6
                 ) },
-                baseColor: { value: new THREE.Color(0x020210) },
+                baseColor: { value: new THREE.Color(0x223366) }, // Lighter base color for buildings
                 glitchIntensity: { value: 0.1 + Math.random() * 0.3 }
             },
             vertexShader: `
@@ -280,26 +285,26 @@ class ExplorationAnimation {
                     // Base color
                     vec3 color = baseColor;
                     
-                    // Window pattern
-                    float windowX = step(0.9, fract(uv.x * 10.0));
-                    float windowY = step(0.9, fract(uv.y * 20.0));
+                    // Window pattern - more windows for evening
+                    float windowX = step(0.85, fract(uv.x * 12.0));
+                    float windowY = step(0.85, fract(uv.y * 24.0));
                     float window = windowX * windowY;
                     
-                    // Random window lights
-                    float windowRandom = random(vec2(floor(uv.x * 10.0), floor(uv.y * 20.0)));
-                    float windowLight = step(0.6, windowRandom);
+                    // Random window lights - more lights on in evening
+                    float windowRandom = random(vec2(floor(uv.x * 12.0), floor(uv.y * 24.0)));
+                    float windowLight = step(0.4, windowRandom); // Lower threshold = more lights
                     
                     // Flickering effect
-                    float flicker = sin(time * 10.0 * windowRandom) * 0.5 + 0.5;
+                    float flicker = sin(time * 10.0 * windowRandom) * 0.3 + 0.7; // Less flickering
                     
                     // Edge glow
                     float edgeX = smoothstep(0.0, 0.05, uv.x) * smoothstep(1.0, 0.95, uv.x);
                     float edgeY = smoothstep(0.0, 0.05, uv.y) * smoothstep(1.0, 0.95, uv.y);
                     float edge = edgeX * edgeY;
                     
-                    // Combine effects
-                    color = mix(color, emissiveColor, window * windowLight * flicker);
-                    color = mix(color, emissiveColor, edge * 0.5);
+                    // Combine effects - brighter windows
+                    color = mix(color, emissiveColor * 1.5, window * windowLight * flicker);
+                    color = mix(color, emissiveColor * 1.2, edge * 0.7);
                     
                     // Glitch effect
                     float glitchLine = step(0.98, random(vec2(floor(time * 10.0), floor(uv.y * 50.0))));
@@ -310,9 +315,9 @@ class ExplorationAnimation {
                         uv.x += (random(vec2(time, uv.y)) - 0.5) * 0.1;
                     }
                     
-                    // Scanlines
-                    float scanline = sin(uv.y * 100.0 + time * 5.0) * 0.5 + 0.5;
-                    color *= mix(0.9, 1.0, scanline);
+                    // Scanlines - reduced for cleaner look
+                    float scanline = sin(uv.y * 100.0 + time * 5.0) * 0.3 + 0.7;
+                    color *= mix(0.95, 1.0, scanline);
                     
                     gl_FragColor = vec4(color, 1.0);
                 }
@@ -349,14 +354,14 @@ class ExplorationAnimation {
         
         const geometry = geometryTypes[Math.floor(Math.random() * geometryTypes.length)];
         
-        // Create neon material with custom shader
+        // Create neon material with custom shader - brighter colors for evening
         const material = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 0 },
                 color: { value: new THREE.Color(
-                    Math.random() > 0.5 ? 1.0 : 0.0,
-                    Math.random() > 0.5 ? 1.0 : 0.0,
-                    Math.random() > 0.5 ? 1.0 : 0.0
+                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0, // More red
+                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0, // More green
+                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0  // More blue
                 ) }
             },
             vertexShader: `
@@ -393,11 +398,11 @@ class ExplorationAnimation {
                     float fresnel = dot(viewDirection, vNormal);
                     fresnel = pow(1.0 - fresnel, 3.0);
                     
-                    // Pulse effect
-                    float pulse = sin(time * 2.0) * 0.5 + 0.5;
+                    // Pulse effect - more subtle for evening
+                    float pulse = sin(time * 2.0) * 0.3 + 0.7;
                     
-                    // Final color with edge glow
-                    vec3 finalColor = color * (0.5 + pulse * 0.5);
+                    // Final color with edge glow - brighter
+                    vec3 finalColor = color * (0.7 + pulse * 0.3);
                     finalColor += vec3(1.0) * fresnel * pulse;
                     
                     gl_FragColor = vec4(finalColor, 0.7 + fresnel * 0.3);
@@ -439,12 +444,12 @@ class ExplorationAnimation {
         const renderPass = new THREE.RenderPass(this.scene, this.camera);
         this.composer.addPass(renderPass);
         
-        // Add bloom pass
+        // Add bloom pass - increase bloom for evening glow
         const bloomPass = new THREE.UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
-            1.5,    // strength
-            0.4,    // radius
-            0.85    // threshold
+            1.2,    // strength - slightly reduced
+            0.5,    // radius - increased
+            0.7     // threshold - reduced to catch more highlights
         );
         this.composer.addPass(bloomPass);
         
@@ -453,9 +458,9 @@ class ExplorationAnimation {
             uniforms: {
                 tDiffuse: { value: null },
                 time: { value: 0 },
-                amount: { value: 0.08 },
+                amount: { value: 0.05 }, // Reduced glitch for cleaner evening look
                 seed: { value: 0 },
-                distortion: { value: 0.1 }
+                distortion: { value: 0.08 } // Reduced distortion
             },
             vertexShader: `
                 varying vec2 vUv;
@@ -491,22 +496,25 @@ class ExplorationAnimation {
                     color.g = texture2D(tDiffuse, uv).g;
                     color.b = texture2D(tDiffuse, uv + dir * aberration * dist).b;
                     
-                    // Random glitch
+                    // Random glitch - reduced for evening
                     float glitchSeed = floor(time * 10.0) + seed;
                     float glitchAmount = amount * random(vec2(glitchSeed, 234.0));
                     
-                    if (random(vec2(glitchSeed, uv.y * 100.0)) > 0.96) {
+                    if (random(vec2(glitchSeed, uv.y * 100.0)) > 0.97) { // Less frequent glitches
                         uv.x += glitchAmount * (random(vec2(glitchSeed, uv.y)) * 2.0 - 1.0);
                         color = texture2D(tDiffuse, uv).rgb;
                     }
                     
-                    // Scanlines
-                    float scanline = sin(uv.y * 800.0 + time * 10.0) * 0.02 + 1.0;
+                    // Scanlines - reduced for cleaner look
+                    float scanline = sin(uv.y * 800.0 + time * 10.0) * 0.01 + 0.99;
                     color *= scanline;
                     
-                    // Vignette
-                    float vignette = smoothstep(1.0, 0.5, length(uv - 0.5) * 1.5);
+                    // Vignette - lighter for evening
+                    float vignette = smoothstep(1.0, 0.6, length(uv - 0.5) * 1.3);
                     color *= vignette;
+                    
+                    // Overall brightness boost for evening
+                    color *= 1.1;
                     
                     gl_FragColor = vec4(color, 1.0);
                 }
@@ -578,7 +586,7 @@ class ExplorationAnimation {
             if (Math.sin(this.time * 0.1) > 0.8) {
                 this.glitchPass.uniforms.amount.value = 0.2;
             } else {
-                this.glitchPass.uniforms.amount.value = 0.08;
+                this.glitchPass.uniforms.amount.value = 0.05;
             }
         }
         
