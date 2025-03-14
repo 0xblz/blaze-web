@@ -23,6 +23,75 @@ const loadScript = (src) => {
     });
 };
 
+// Scene configuration options
+const SCENE_CONFIG = {
+    // Camera settings
+    camera: {
+        fov: 145,
+        near: 0.1,
+        far: 1000,
+        position: { x: 0, y: 1, z: 5 },
+        movementSpeed: 0.2,
+        waveMagnitude: { x: 1, y: 0 }, // Sine wave movement magnitude
+        waveSpeed: { x: 1, y: 0 }  // Sine wave movement speed
+    },
+    
+    // Scene colors and fog
+    colors: {
+        background: 0x1a1a3a,
+        fog: 0x2a2a4a,
+        fogDensity: 0.008,
+        ambient: {
+            color: 0x404060,
+            intensity: 2.0
+        },
+        directional: {
+            color: 0xffaa66,
+            intensity: 1.0
+        }
+    },
+    
+    // Grid settings
+    grid: {
+        size: 400,
+        divisions: 500,
+        mainColor: 0x00aaff,
+        secondaryColor: 0x6644aa,
+        shader: {
+            color1: [0.2, 0.6, 1.0], // Cyan/blue
+            color2: [1.0, 0.4, 0.8], // Magenta/pink
+            gridLines: 20,
+            pulseSpeed: 2.0
+        }
+    },
+    
+    // City generation
+    city: {
+        size: 400,
+        buildingCount: 1500,
+        neonStructureCount: 500,
+        building: {
+            maxHeight: 105,
+            minHeight: 1,
+            maxWidth: 2.5,
+            minWidth: 0.5
+        }
+    },
+    
+    // Post-processing
+    postProcessing: {
+        bloom: {
+            strength: 1.2,
+            radius: 0.5,
+            threshold: 0.7
+        },
+        glitch: {
+            amount: 0.05,
+            distortion: 0.08
+        }
+    }
+};
+
 class ExplorationAnimation {
     constructor() {
         this.scene = null;
@@ -30,10 +99,10 @@ class ExplorationAnimation {
         this.renderer = null;
         this.composer = null;
         this.clock = new THREE.Clock();
-        this.citySize = 100;
+        this.citySize = SCENE_CONFIG.city.size;
         this.buildings = [];
         this.neonLights = [];
-        this.cameraSpeed = 0.1;
+        this.cameraSpeed = SCENE_CONFIG.camera.movementSpeed;
         this.time = 0;
     }
 
@@ -43,36 +112,47 @@ class ExplorationAnimation {
         
         // Create scene
         this.scene = new THREE.Scene();
-        this.scene.fog = new THREE.FogExp2(0x2a2a4a, 0.008);
+        this.scene.fog = new THREE.FogExp2(
+            SCENE_CONFIG.colors.fog, 
+            SCENE_CONFIG.colors.fogDensity
+        );
         
         // Create camera
         this.camera = new THREE.PerspectiveCamera(
-            75, 
+            SCENE_CONFIG.camera.fov, 
             window.innerWidth / window.innerHeight, 
-            0.1, 
-            1000
+            SCENE_CONFIG.camera.near, 
+            SCENE_CONFIG.camera.far
         );
-        this.camera.position.set(0, 5, 15);
+        this.camera.position.set(
+            SCENE_CONFIG.camera.position.x,
+            SCENE_CONFIG.camera.position.y,
+            SCENE_CONFIG.camera.position.z
+        );
         this.camera.lookAt(0, 0, -100);
         
-        // Create renderer - don't pass canvas directly
+        // Create renderer
         this.renderer = new THREE.WebGLRenderer({
             antialias: false,
             alpha: true
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.setClearColor(0x1a1a3a);
+        this.renderer.setClearColor(SCENE_CONFIG.colors.background);
         
-        // Append the renderer's canvas to our container
         canvas.appendChild(this.renderer.domElement);
         
-        // Add lights - increase ambient light for evening feel
-        const ambientLight = new THREE.AmbientLight(0x404060, 2.0);
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(
+            SCENE_CONFIG.colors.ambient.color, 
+            SCENE_CONFIG.colors.ambient.intensity
+        );
         this.scene.add(ambientLight);
         
-        // Add directional light to simulate evening sun
-        const sunLight = new THREE.DirectionalLight(0xffaa66, 1.0);
+        const sunLight = new THREE.DirectionalLight(
+            SCENE_CONFIG.colors.directional.color, 
+            SCENE_CONFIG.colors.directional.intensity
+        );
         sunLight.position.set(-10, 20, 10);
         this.scene.add(sunLight);
         
@@ -91,9 +171,9 @@ class ExplorationAnimation {
 
     createGrid() {
         // Create a grid helper for the ground plane
-        const gridSize = 200;
-        const gridDivisions = 100;
-        const gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0x00aaff, 0x6644aa);
+        const gridSize = SCENE_CONFIG.grid.size;
+        const gridDivisions = SCENE_CONFIG.grid.divisions;
+        const gridHelper = new THREE.GridHelper(gridSize, gridDivisions, SCENE_CONFIG.grid.mainColor, SCENE_CONFIG.grid.secondaryColor);
         this.scene.add(gridHelper);
         
         // Create a custom shader material for the grid
@@ -158,11 +238,11 @@ class ExplorationAnimation {
                     float grid = min(gridX, gridY);
                     
                     // Pulse effect
-                    float pulse = sin(time * 2.0) * 0.5 + 0.5;
+                    float pulse = sin(time * SCENE_CONFIG.grid.pulseSpeed) * 0.5 + 0.5;
                     
                     // Evening colors - brighter and more vibrant
-                    vec3 color1 = vec3(0.2, 0.6, 1.0); // Brighter cyan/blue
-                    vec3 color2 = vec3(1.0, 0.4, 0.8); // Brighter magenta/pink
+                    vec3 color1 = SCENE_CONFIG.grid.shader.color1;
+                    vec3 color2 = SCENE_CONFIG.grid.shader.color2;
                     
                     // Mix colors based on position and time
                     vec3 color = mix(color1, color2, sin(uv.x * 3.0 + time) * 0.5 + 0.5);
@@ -198,12 +278,12 @@ class ExplorationAnimation {
 
     createProceduralCity() {
         // Create building instances
-        for (let i = 0; i < 500; i++) {
+        for (let i = 0; i < SCENE_CONFIG.city.buildingCount; i++) {
             this.createBuilding();
         }
         
         // Create floating neon structures
-        for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < SCENE_CONFIG.city.neonStructureCount; i++) {
             this.createNeonStructure();
         }
     }
@@ -215,9 +295,9 @@ class ExplorationAnimation {
         
         // Use simplex-like noise for height (we'll fake it with Math.random for simplicity)
         const seed = Math.sin(x * 0.1) * Math.cos(z * 0.1);
-        const height = 1 + Math.pow(Math.random(), 2) * 15;
-        const width = 0.5 + Math.random() * 2;
-        const depth = 0.5 + Math.random() * 2;
+        const height = 1 + Math.pow(Math.random(), 2) * SCENE_CONFIG.city.building.maxHeight;
+        const width = 0.5 + Math.random() * SCENE_CONFIG.city.building.maxWidth;
+        const depth = 0.5 + Math.random() * SCENE_CONFIG.city.building.maxWidth;
         
         // Create geometry
         const geometry = new THREE.BoxGeometry(width, height, depth);
@@ -447,9 +527,9 @@ class ExplorationAnimation {
         // Add bloom pass - increase bloom for evening glow
         const bloomPass = new THREE.UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
-            1.2,    // strength - slightly reduced
-            0.5,    // radius - increased
-            0.7     // threshold - reduced to catch more highlights
+            SCENE_CONFIG.postProcessing.bloom.strength,
+            SCENE_CONFIG.postProcessing.bloom.radius,
+            SCENE_CONFIG.postProcessing.bloom.threshold
         );
         this.composer.addPass(bloomPass);
         
@@ -458,9 +538,9 @@ class ExplorationAnimation {
             uniforms: {
                 tDiffuse: { value: null },
                 time: { value: 0 },
-                amount: { value: 0.05 }, // Reduced glitch for cleaner evening look
+                amount: { value: SCENE_CONFIG.postProcessing.glitch.amount },
                 seed: { value: 0 },
-                distortion: { value: 0.08 } // Reduced distortion
+                distortion: { value: SCENE_CONFIG.postProcessing.glitch.distortion }
             },
             vertexShader: `
                 varying vec2 vUv;
@@ -537,8 +617,11 @@ class ExplorationAnimation {
         this.camera.position.z -= this.cameraSpeed;
         
         // Slightly move camera in a sine wave pattern
-        this.camera.position.x = Math.sin(this.time * 0.5) * 3;
-        this.camera.position.y = 5 + Math.sin(this.time * 0.3) * 1;
+        this.camera.position.x = Math.sin(this.time * SCENE_CONFIG.camera.waveSpeed.x) 
+            * SCENE_CONFIG.camera.waveMagnitude.x;
+        this.camera.position.y = SCENE_CONFIG.camera.position.y 
+            + Math.sin(this.time * SCENE_CONFIG.camera.waveSpeed.y) 
+            * SCENE_CONFIG.camera.waveMagnitude.y;
         
         // Update building materials
         this.buildings.forEach(building => {
@@ -586,7 +669,7 @@ class ExplorationAnimation {
             if (Math.sin(this.time * 0.1) > 0.8) {
                 this.glitchPass.uniforms.amount.value = 0.2;
             } else {
-                this.glitchPass.uniforms.amount.value = 0.05;
+                this.glitchPass.uniforms.amount.value = SCENE_CONFIG.postProcessing.glitch.amount;
             }
         }
         
