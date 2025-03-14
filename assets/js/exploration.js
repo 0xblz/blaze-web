@@ -36,7 +36,7 @@ const SCENE_CONFIG = {
         waveSpeed: { x: 0.5, y: 0 },  // Sine wave movement speed
         controls: {
             enabled: true,
-            moveSpeed: 0.5,      // Base movement speed
+            moveSpeed: 0.2,      // Base movement speed
             boostSpeed: 1.5,     // Speed when holding shift
             turnSpeed: 0.02,     // How fast to turn left/right
             autoMove: true,      // Whether to automatically move forward
@@ -45,8 +45,7 @@ const SCENE_CONFIG = {
                 backward: 'ArrowDown',
                 left: 'ArrowLeft',
                 right: 'ArrowRight',
-                boost: 'ShiftLeft',
-                brake: 'Space'
+                boost: 'Space'
             }
         }
     },
@@ -68,7 +67,7 @@ const SCENE_CONFIG = {
     
     // Grid settings
     grid: {
-        size: 400,
+        size: 1200,
         divisions: 500,
         mainColor: 0xff00ff,    // Changed to pink
         secondaryColor: 0x00ffff, // Cyan as secondary
@@ -126,6 +125,22 @@ const SCENE_CONFIG = {
             0xFF00FF,        // Pure magenta
             0xFFFF00         // Pure yellow
         ]
+    },
+    
+    // Cloud configuration
+    clouds: {
+        count: 200,          // Number of cloud particles
+        height: 600,          // Average height of clouds
+        heightVariation: 400, // Variation in cloud height
+        size: 1200,            // Size of cloud particles
+        sizeVariation: 900,   // Variation in cloud size
+        color: 0x8822aa,     // Base color (purple/pink)
+        opacity: 0.1,        // Base opacity
+        speed: 0.2,          // Movement speed
+        area: {              // Area where clouds can appear
+            width: 1200,
+            depth: 1200
+        }
     }
 };
 
@@ -144,6 +159,7 @@ class ExplorationAnimation {
         this.stars = null;
         this.skyGlow = null;
         this.starSpeeds = [];
+        this.clouds = null;
         
         // Controls state
         this.controls = {
@@ -152,7 +168,6 @@ class ExplorationAnimation {
             moveLeft: false,
             moveRight: false,
             boost: false,
-            brake: false,
             direction: new THREE.Vector3(0, 0, -1), // Forward direction vector
             velocity: new THREE.Vector3()
         };
@@ -213,6 +228,9 @@ class ExplorationAnimation {
         
         // Create procedural city
         this.createProceduralCity();
+        
+        // Create atmospheric clouds
+        this.createClouds();
         
         // Add post-processing
         this.setupPostProcessing();
@@ -713,6 +731,151 @@ class ExplorationAnimation {
         this.scene.add(neon);
     }
 
+    createClouds() {
+        // Create a particle system for clouds
+        const cloudGeometry = new THREE.BufferGeometry();
+        const cloudCount = SCENE_CONFIG.clouds.count;
+        
+        // Arrays to store cloud particle data
+        const positions = new Float32Array(cloudCount * 3);
+        const sizes = new Float32Array(cloudCount);
+        const colors = new Float32Array(cloudCount * 3);
+        const opacities = new Float32Array(cloudCount);
+        const speeds = new Float32Array(cloudCount);
+        
+        // Base cloud color
+        const baseColor = new THREE.Color(SCENE_CONFIG.clouds.color);
+        
+        // Generate random cloud particles
+        for (let i = 0; i < cloudCount; i++) {
+            // Random position within the city area
+            const x = (Math.random() - 0.5) * SCENE_CONFIG.clouds.area.width;
+            const z = (Math.random() - 0.5) * SCENE_CONFIG.clouds.area.depth;
+            
+            // Height around building tops with variation
+            const y = SCENE_CONFIG.clouds.height + (Math.random() - 0.5) * SCENE_CONFIG.clouds.heightVariation;
+            
+            // Store position
+            positions[i * 3] = x;
+            positions[i * 3 + 1] = y;
+            positions[i * 3 + 2] = z;
+            
+            // Random size with variation
+            sizes[i] = SCENE_CONFIG.clouds.size + (Math.random() - 0.5) * SCENE_CONFIG.clouds.sizeVariation;
+            
+            // Color with slight variation
+            const colorVariation = 0.2;
+            const color = new THREE.Color(
+                baseColor.r + (Math.random() - 0.5) * colorVariation,
+                baseColor.g + (Math.random() - 0.5) * colorVariation,
+                baseColor.b + (Math.random() - 0.5) * colorVariation
+            );
+            
+            colors[i * 3] = color.r;
+            colors[i * 3 + 1] = color.g;
+            colors[i * 3 + 2] = color.b;
+            
+            // Random opacity
+            opacities[i] = SCENE_CONFIG.clouds.opacity * (0.5 + Math.random() * 0.5);
+            
+            // Random speed
+            speeds[i] = SCENE_CONFIG.clouds.speed * (0.5 + Math.random());
+        }
+        
+        // Set attributes
+        cloudGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        cloudGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+        cloudGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        cloudGeometry.setAttribute('opacity', new THREE.BufferAttribute(opacities, 1));
+        
+        // Create shader material for clouds
+        const cloudMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                time: { value: 0 },
+                cloudTexture: { value: this.createCloudTexture() }
+            },
+            vertexShader: `
+                attribute float size;
+                attribute vec3 color;
+                attribute float opacity;
+                
+                varying vec3 vColor;
+                varying float vOpacity;
+                
+                void main() {
+                    vColor = color;
+                    vOpacity = opacity;
+                    
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    gl_PointSize = size * (300.0 / -mvPosition.z);
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D cloudTexture;
+                uniform float time;
+                
+                varying vec3 vColor;
+                varying float vOpacity;
+                
+                void main() {
+                    // Sample cloud texture
+                    vec2 uv = gl_PointCoord;
+                    vec4 texColor = texture2D(cloudTexture, uv);
+                    
+                    // Pulse effect
+                    float pulse = sin(time * 0.5) * 0.1 + 0.9;
+                    
+                    // Final color
+                    vec3 finalColor = vColor * pulse;
+                    float finalOpacity = texColor.a * vOpacity;
+                    
+                    gl_FragColor = vec4(finalColor, finalOpacity);
+                }
+            `,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+        });
+        
+        // Create the cloud particle system
+        this.clouds = new THREE.Points(cloudGeometry, cloudMaterial);
+        this.scene.add(this.clouds);
+        
+        // Store speeds for animation
+        this.cloudSpeeds = speeds;
+    }
+    
+    createCloudTexture() {
+        // Create a canvas for the cloud texture
+        const canvas = document.createElement('canvas');
+        canvas.width = 128;
+        canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        
+        // Create a radial gradient for soft cloud appearance
+        const gradient = ctx.createRadialGradient(
+            canvas.width / 2, canvas.height / 2, 0,
+            canvas.width / 2, canvas.height / 2, canvas.width / 2
+        );
+        
+        // Add color stops for soft edges
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+        gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.8)');
+        gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+        
+        // Fill the canvas with the gradient
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Create texture from canvas
+        const texture = new THREE.Texture(canvas);
+        texture.needsUpdate = true;
+        
+        return texture;
+    }
+
     setupPostProcessing() {
         // Create composer
         this.composer = new THREE.EffectComposer(this.renderer);
@@ -833,8 +996,7 @@ class ExplorationAnimation {
             <div style="margin-bottom: 5px; font-weight: bold;">Controls:</div>
             <div>↑ / ↓ : Move forward / backward</div>
             <div>← / → : Turn left / right</div>
-            <div>Shift : Boost speed</div>
-            <div>Space : Brake</div>
+            <div>Space : Boost speed</div>
         `;
         
         document.body.appendChild(overlay);
@@ -859,9 +1021,6 @@ class ExplorationAnimation {
             case keyMapping.boost:
                 this.controls.boost = true;
                 break;
-            case keyMapping.brake:
-                this.controls.brake = true;
-                break;
         }
     }
     
@@ -884,21 +1043,15 @@ class ExplorationAnimation {
             case keyMapping.boost:
                 this.controls.boost = false;
                 break;
-            case keyMapping.brake:
-                this.controls.brake = false;
-                break;
         }
     }
     
     updateControls(delta) {
-        // Get current speed based on boost/brake state
+        // Get current speed based on boost state
         let currentSpeed = SCENE_CONFIG.camera.controls.moveSpeed;
         
         if (this.controls.boost) {
             currentSpeed = SCENE_CONFIG.camera.controls.boostSpeed;
-        }
-        if (this.controls.brake) {
-            currentSpeed *= 0.3; // Reduce speed when braking
         }
         
         // Calculate movement based on current direction
@@ -1082,6 +1235,34 @@ class ExplorationAnimation {
             } else {
                 this.glitchPass.uniforms.amount.value = SCENE_CONFIG.postProcessing.glitch.amount;
             }
+        }
+        
+        // Update clouds
+        if (this.clouds) {
+            // Update cloud material time uniform
+            this.clouds.material.uniforms.time.value = this.time;
+            
+            // Get cloud positions
+            const positions = this.clouds.geometry.attributes.position.array;
+            
+            // Update each cloud particle
+            for (let i = 0, j = 0; i < positions.length; i += 3, j++) {
+                // Move cloud along z-axis
+                positions[i + 2] += this.cloudSpeeds[j] * delta * 10;
+                
+                // Add slight x movement for swirling effect
+                positions[i] += Math.sin(this.time * 0.2 + j * 0.1) * 0.05;
+                
+                // If cloud moves too far, reset it
+                if (positions[i + 2] > this.camera.position.z + SCENE_CONFIG.clouds.area.depth / 2) {
+                    positions[i + 2] = this.camera.position.z - SCENE_CONFIG.clouds.area.depth / 2;
+                    positions[i] = (Math.random() - 0.5) * SCENE_CONFIG.clouds.area.width;
+                    positions[i + 1] = SCENE_CONFIG.clouds.height + (Math.random() - 0.5) * SCENE_CONFIG.clouds.heightVariation;
+                }
+            }
+            
+            // Update the geometry
+            this.clouds.geometry.attributes.position.needsUpdate = true;
         }
         
         // Render scene with post-processing
