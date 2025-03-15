@@ -176,7 +176,7 @@ class ExplorationAnimation {
 
     init() {
         // Get the canvas element
-        const canvas = document.getElementById('glitchHavenCanvas');
+        const canvas = document.getElementById('novaGridCanvas');
         
         // Create scene
         this.scene = new THREE.Scene();
@@ -1264,7 +1264,7 @@ class ExplorationAnimation {
 // Initialize the exploration animation once dependencies are loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Only initialize if the canvas element exists
-    const canvas = document.getElementById('glitchHavenCanvas');
+    const canvas = document.getElementById('novaGridCanvas');
     if (canvas) {
         loadDependencies().then(() => {
             // Initialize Three.js scene

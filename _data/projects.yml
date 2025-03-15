@@ -1,6 +1,6 @@
-- title: "Glitch Haven"
-  link: "projects/glitch-haven"
-  image: /assets/images/glitch-haven.jpg
+- title: "Nova Grid"
+  link: "projects/nova-grid"
+  image: /assets/images/nova-grid.jpg
   platform: "three.js"
   role: "Creator"
   year: "2025"
