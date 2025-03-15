@@ -32,7 +32,7 @@ const SCENE_CONFIG = {
         fovChangeSpeed: 2, // How quickly FOV changes when boosting/stopping
         near: 0.1,
         far: 10000, // Much larger far plane to see distant stars
-        position: { x: 0, y: 4, z: 0 },
+        position: { x: 0, y: 24, z: 0 },
         movementSpeed: 0.3,
         waveMagnitude: { x: 0.5, y: 0 }, // Sine wave movement magnitude
         waveSpeed: { x: 0.5, y: 0 },  // Sine wave movement speed
@@ -68,8 +68,8 @@ const SCENE_CONFIG = {
     
     // Grid settings
     grid: {
-        size: 1200,
-        divisions: 500,
+        size: 800,
+        divisions: 400,
         mainColor: 0xff00ff,    // Changed to pink
         secondaryColor: 0x00ffff, // Cyan as secondary
         shader: {
@@ -87,13 +87,13 @@ const SCENE_CONFIG = {
     
     // City generation
     city: {
-        size: 400,
-        buildingCount: 1500,
-        neonStructureCount: 500,
+        size: 600,
+        buildingCount: 500,
+        neonStructureCount: 100,
         building: {
             maxHeight: 200,
-            minHeight: 4,
-            maxWidth: 1,
+            minHeight: 50,
+            maxWidth: 5,
             minWidth: 0.5
         }
     },
@@ -169,17 +169,6 @@ const SCENE_CONFIG = {
                 strength: 1.2,  // Increased normal bloom
                 radius: 0.5,    // Increased normal radius
                 threshold: 0.2  // Lower threshold for more bloom
-            },
-            city: {
-                size: 400,
-                buildingCount: 1500,
-                neonStructureCount: 500,
-                building: {
-                    maxHeight: 200,
-                    minHeight: 4,
-                    maxWidth: 1,
-                    minWidth: 0.5
-                }
             }
         },
         warpDimension: {
@@ -201,17 +190,6 @@ const SCENE_CONFIG = {
                 strength: 1.5,    // Even stronger bloom in warp
                 radius: 0.8,      // Wider bloom radius
                 threshold: 0.2     // Even lower threshold
-            },
-            city: {
-                size: 600, // Larger city
-                buildingCount: 2000, // More buildings
-                neonStructureCount: 800, // More neon structures
-                building: {
-                    maxHeight: 400, // Taller buildings
-                    minHeight: 100, // No small buildings
-                    maxWidth: 2, // Wider buildings
-                    minWidth: 1
-                }
             }
         }
     }
@@ -606,11 +584,14 @@ class ExplorationAnimation {
         const x = (Math.random() - 0.5) * this.citySize * 2;
         const z = (Math.random() - 0.5) * this.citySize * 2 - 50; // Bias towards negative z for camera path
         
-        // Use simplex-like noise for height (we'll fake it with Math.random for simplicity)
+        // Use simplex-like noise for height
         const seed = Math.sin(x * 0.1) * Math.cos(z * 0.1);
-        const height = 1 + Math.pow(Math.random(), 2) * SCENE_CONFIG.city.building.maxHeight;
-        const width = 0.5 + Math.random() * SCENE_CONFIG.city.building.maxWidth;
-        const depth = 0.5 + Math.random() * SCENE_CONFIG.city.building.maxWidth;
+        const height = SCENE_CONFIG.city.building.minHeight + 
+            Math.pow(Math.random(), 2) * (SCENE_CONFIG.city.building.maxHeight - SCENE_CONFIG.city.building.minHeight);
+        const width = SCENE_CONFIG.city.building.minWidth + 
+            Math.random() * (SCENE_CONFIG.city.building.maxWidth - SCENE_CONFIG.city.building.minWidth);
+        const depth = SCENE_CONFIG.city.building.minWidth + 
+            Math.random() * (SCENE_CONFIG.city.building.maxWidth - SCENE_CONFIG.city.building.minWidth);
         
         // Create geometry
         const geometry = new THREE.BoxGeometry(width, height, depth);
@@ -863,9 +844,9 @@ class ExplorationAnimation {
         const neon = new THREE.Mesh(geometry, material);
         
         // Position randomly in the scene
-        const x = (Math.random() - 0.5) * this.citySize * 2;
+        const x = (Math.random() - 0.5) * SCENE_CONFIG.city.size * 2;
         const y = 5 + Math.random() * 20;
-        const z = (Math.random() - 0.5) * this.citySize * 2 - 50; // Bias towards negative z
+        const z = (Math.random() - 0.5) * SCENE_CONFIG.city.size * 2 - 50; // Bias towards negative z
         
         neon.position.set(x, y, z);
         
@@ -1086,7 +1067,7 @@ class ExplorationAnimation {
                     vec2 uv = vUv;
                     
                     // Chromatic aberration
-                    float aberration = distortion * (0.5 + 0.5 * sin(time * 0.5));
+                    float aberration = distortion * (0.5 + 0.5 * sin(time * 0.1));
                     vec2 dir = uv - vec2(0.5);
                     float dist = length(dir);
                     
@@ -1257,332 +1238,11 @@ class ExplorationAnimation {
     startWarp() {
         this.isWarping = true;
         this.currentDimension = 'warp';
-        // Remove city regeneration
-        // this.regenerateCity(SCENE_CONFIG.warp.warpDimension.city);
     }
 
     endWarp() {
         this.isWarping = false;
         this.currentDimension = 'normal';
-        // Remove city regeneration
-        // this.regenerateCity(SCENE_CONFIG.warp.normalDimension.city);
-    }
-
-    // Keep the regenerateCity method for reference but we won't call it during boost
-    regenerateCity(cityConfig) {
-        // Remove existing buildings and neon structures
-        this.buildings.forEach(building => {
-            this.scene.remove(building.mesh);
-        });
-        this.neonLights.forEach(neon => {
-            this.scene.remove(neon.mesh);
-        });
-
-        // Clear arrays
-        this.buildings = [];
-        this.neonLights = [];
-
-        // Store current city config
-        this.citySize = cityConfig.size;
-
-        // Create new buildings with the new configuration
-        for (let i = 0; i < cityConfig.buildingCount; i++) {
-            this.createBuilding(cityConfig);
-        }
-
-        // Create new neon structures
-        for (let i = 0; i < cityConfig.neonStructureCount; i++) {
-            this.createNeonStructure(cityConfig);
-        }
-    }
-
-    createBuilding(cityConfig = SCENE_CONFIG.warp.normalDimension.city) {
-        // Use procedural noise to determine building properties
-        const x = (Math.random() - 0.5) * this.citySize * 2;
-        const z = (Math.random() - 0.5) * this.citySize * 2 - 50; // Bias towards negative z for camera path
-        
-        // Use simplex-like noise for height
-        const seed = Math.sin(x * 0.1) * Math.cos(z * 0.1);
-        const height = cityConfig.building.minHeight + 
-            Math.pow(Math.random(), 2) * (cityConfig.building.maxHeight - cityConfig.building.minHeight);
-        const width = cityConfig.building.minWidth + 
-            Math.random() * (cityConfig.building.maxWidth - cityConfig.building.minWidth);
-        const depth = cityConfig.building.minWidth + 
-            Math.random() * (cityConfig.building.maxWidth - cityConfig.building.minWidth);
-        
-        // Create geometry
-        const geometry = new THREE.BoxGeometry(width, height, depth);
-        
-        // Create custom shader material for the building with enhanced electric effects
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                time: { value: 0 },
-                emissiveColor: { value: new THREE.Color(
-                    0.1 + Math.random() * 0.2, 
-                    0.1 + Math.random() * 0.3, 
-                    0.2 + Math.random() * 0.6
-                ) },
-                baseColor: { value: new THREE.Color(0x223366) }, // Lighter base color for buildings
-                glitchIntensity: { value: 0.1 + Math.random() * 0.3 },
-                warpFactor: { value: 0.0 } // New uniform for warp transition
-            },
-            vertexShader: `
-                uniform float time;
-                uniform float glitchIntensity;
-                uniform float warpFactor;
-                
-                varying vec2 vUv;
-                varying vec3 vPosition;
-                varying vec3 vNormal;
-                
-                // Pseudo-random function
-                float random(vec2 st) {
-                    return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
-                }
-                
-                void main() {
-                    vUv = uv;
-                    vPosition = position;
-                    vNormal = normal;
-                    
-                    // Apply glitch effect to vertex position
-                    vec3 pos = position;
-                    
-                    // Glitch effect based on time and position
-                    float glitch = random(vec2(floor(time * 2.0), floor(position.y * 10.0)));
-                    if (glitch > 0.95) {
-                        pos.x += sin(time * 20.0) * glitchIntensity;
-                    }
-                    
-                    // Subtle wave motion
-                    pos.x += sin(pos.y * 0.2 + time) * 0.05;
-                    
-                    // Add more distortion during warp
-                    if (warpFactor > 0.0) {
-                        float warpGlitch = random(vec2(floor(time * 5.0), floor(position.y * 20.0)));
-                        if (warpGlitch > 0.8) {
-                            pos += normal * sin(time * 30.0) * warpFactor * 0.2;
-                        }
-                    }
-                    
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-                }
-            `,
-            fragmentShader: `
-                uniform float time;
-                uniform vec3 emissiveColor;
-                uniform vec3 baseColor;
-                uniform float glitchIntensity;
-                uniform float warpFactor;
-                
-                varying vec2 vUv;
-                varying vec3 vPosition;
-                varying vec3 vNormal;
-                
-                // Pseudo-random function
-                float random(vec2 st) {
-                    return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
-                }
-                
-                void main() {
-                    vec2 uv = vUv;
-                    
-                    // Calculate fresnel effect for edge glow
-                    vec3 viewDirection = normalize(cameraPosition - vPosition);
-                    float fresnel = pow(1.0 - max(0.0, dot(viewDirection, normalize(vNormal))), 3.0);
-                    
-                    // Base color
-                    vec3 color = baseColor;
-                    
-                    // Window pattern - more windows for evening
-                    float windowX = step(0.85, fract(uv.x * 12.0));
-                    float windowY = step(0.85, fract(uv.y * 24.0));
-                    float window = windowX * windowY;
-                    
-                    // Random window lights - more lights on in evening
-                    float windowRandom = random(vec2(floor(uv.x * 12.0), floor(uv.y * 24.0)));
-                    float windowLight = step(0.4, windowRandom); // Lower threshold = more lights
-                    
-                    // Flickering effect
-                    float flicker = sin(time * 10.0 * windowRandom) * 0.3 + 0.7; // Less flickering
-                    
-                    // Enhanced edge glow - stronger and more electric
-                    float edgeX = smoothstep(0.0, 0.1, uv.x) * smoothstep(1.0, 0.9, uv.x);
-                    float edgeY = smoothstep(0.0, 0.1, uv.y) * smoothstep(1.0, 0.9, uv.y);
-                    float edge = max(edgeX, edgeY); // Use max instead of multiplication for stronger edges
-                    
-                    // Electric pulse on edges
-                    float electricPulse = sin(time * 5.0 + vPosition.y * 0.2) * 0.5 + 0.5;
-                    
-                    // Combine effects - brighter windows
-                    color = mix(color, emissiveColor * 2.0, window * windowLight * flicker);
-                    
-                    // Add stronger edge glow with electric effect
-                    vec3 edgeColor = mix(emissiveColor * 1.5, vec3(1.0, 1.0, 1.0), electricPulse * 0.5);
-                    color = mix(color, edgeColor, edge * (0.7 + electricPulse * 0.3));
-                    
-                    // Add fresnel edge glow
-                    color = mix(color, edgeColor * 1.5, fresnel * 0.7);
-                    
-                    // Glitch effect
-                    float glitchLine = step(0.98, random(vec2(floor(time * 10.0), floor(uv.y * 50.0))));
-                    if (glitchLine > 0.0) {
-                        color = mix(color, vec3(1.0), 0.8 * glitchIntensity);
-                        
-                        // Horizontal displacement
-                        uv.x += (random(vec2(time, uv.y)) - 0.5) * 0.1;
-                    }
-                    
-                    // Add electric circuit pattern
-                    float circuit = 0.0;
-                    // Horizontal lines
-                    circuit += step(0.98, sin(uv.y * 50.0 + sin(uv.x * 20.0) * 2.0));
-                    // Vertical lines
-                    circuit += step(0.98, sin(uv.x * 50.0 + sin(uv.y * 20.0) * 2.0));
-                    // Add circuit pattern with electric color
-                    color = mix(color, vec3(0.5, 0.8, 1.0), circuit * 0.7 * (0.5 + electricPulse * 0.5));
-                    
-                    // Enhance during warp
-                    if (warpFactor > 0.0) {
-                        // More intense colors during warp
-                        color = mix(color, vec3(1.0, 0.2, 0.2), warpFactor * 0.5);
-                        
-                        // Add electric arcs during warp
-                        float warpArc = step(0.97, sin(uv.y * 100.0 + time * 10.0) * sin(uv.x * 100.0 + time * 5.0));
-                        color = mix(color, vec3(1.0, 0.5, 0.0), warpArc * warpFactor);
-                        
-                        // Increase overall brightness
-                        color *= (1.0 + warpFactor * 0.5);
-                    }
-                    
-                    // Scanlines - reduced for cleaner look
-                    float scanline = sin(vPosition.y * 100.0 + time * 5.0) * 0.05 + 0.95;
-                    color *= scanline;
-                    
-                    // Final alpha - make buildings more solid
-                    float alpha = 0.95 + edge * 0.05;
-                    
-                    gl_FragColor = vec4(color, alpha);
-                }
-            `,
-            transparent: true,
-            side: THREE.DoubleSide
-        });
-        
-        // Create mesh
-        const building = new THREE.Mesh(geometry, material);
-        building.position.set(x, height / 2, z);
-        
-        // Add some rotation for variety
-        building.rotation.y = Math.random() * Math.PI * 2;
-        
-        // Store reference for animation
-        this.buildings.push({
-            mesh: building,
-            material: material,
-            initialX: x,
-            initialZ: z,
-            speed: 0.01 + Math.random() * 0.05
-        });
-        
-        this.scene.add(building);
-    }
-
-    createNeonStructure(cityConfig = SCENE_CONFIG.warp.normalDimension.city) {
-        // Create a floating neon structure
-        const geometryTypes = [
-            new THREE.TorusGeometry(1 + Math.random() * 2, 0.2, 16, 100),
-            new THREE.TetrahedronGeometry(1 + Math.random()),
-            new THREE.OctahedronGeometry(1 + Math.random()),
-            new THREE.IcosahedronGeometry(0.5 + Math.random())
-        ];
-        
-        const geometry = geometryTypes[Math.floor(Math.random() * geometryTypes.length)];
-        
-        // Create neon material with custom shader
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                time: { value: 0 },
-                color: { value: new THREE.Color(
-                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0,
-                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0,
-                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0
-                ) }
-            },
-            vertexShader: `
-                uniform float time;
-                
-                varying vec2 vUv;
-                varying vec3 vNormal;
-                varying vec3 vPosition;
-                
-                void main() {
-                    vUv = uv;
-                    vNormal = normal;
-                    vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
-                    
-                    // Apply wave distortion
-                    vec3 pos = position;
-                    pos += normal * sin(pos.x * 5.0 + time) * 0.1;
-                    pos += normal * cos(pos.y * 5.0 + time * 0.7) * 0.1;
-                    
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-                }
-            `,
-            fragmentShader: `
-                uniform float time;
-                uniform vec3 color;
-                
-                varying vec2 vUv;
-                varying vec3 vNormal;
-                varying vec3 vPosition;
-                
-                void main() {
-                    // Calculate fresnel effect for edge glow
-                    vec3 viewDirection = normalize(cameraPosition - vPosition);
-                    float fresnel = dot(viewDirection, vNormal);
-                    fresnel = pow(1.0 - fresnel, 3.0);
-                    
-                    // Pulse effect - more subtle for evening
-                    float pulse = sin(time * 2.0) * 0.3 + 0.7;
-                    
-                    // Final color with edge glow - brighter
-                    vec3 finalColor = color * (0.7 + pulse * 0.3);
-                    finalColor += vec3(1.0) * fresnel * pulse;
-                    
-                    gl_FragColor = vec4(finalColor, 0.7 + fresnel * 0.3);
-                }
-            `,
-            transparent: true,
-            side: THREE.DoubleSide
-        });
-        
-        // Create mesh
-        const neon = new THREE.Mesh(geometry, material);
-        
-        // Position randomly in the scene
-        const x = (Math.random() - 0.5) * cityConfig.size * 2;
-        const y = 5 + Math.random() * 20;
-        const z = (Math.random() - 0.5) * cityConfig.size * 2 - 50; // Bias towards negative z
-        
-        neon.position.set(x, y, z);
-        
-        // Store rotation speed for reference during warp transitions
-        const rotationSpeed = (Math.random() - 0.5) * 0.02;
-        
-        // Store for animation
-        this.neonLights.push({
-            mesh: neon,
-            material: material,
-            initialY: y,
-            initialX: x,
-            initialZ: z,
-            rotationSpeed: rotationSpeed,
-            originalRotationSpeed: rotationSpeed, // Store original for reference
-            floatSpeed: 0.2 + Math.random() * 0.5
-        });
-        
-        this.scene.add(neon);
     }
 
     updateWarpEffect(delta) {
