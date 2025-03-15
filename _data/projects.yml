@@ -1,5 +1,12 @@
+- title: "Nova Grid"
+  link: "projects/nova-grid"
+  image: /assets/images/nova-grid.jpg
+  platform: "three.js"
+  role: "Creator"
+  year: "2025"
+
 - title: "Ethereal Sky"
-  link: "experiments/ethereal"
+  link: "projects/ethereal"
   image: /assets/images/ethereal.png
   platform: "three.js"
   role: "Creator"
