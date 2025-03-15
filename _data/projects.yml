@@ -1,17 +1,3 @@
-- title: "Nova Grid"
-  link: "projects/nova-grid"
-  image: /assets/images/nova-grid.jpg
-  platform: "three.js"
-  role: "Creator"
-  year: "2025"
-
-- title: "Ethereal Sky"
-  link: "projects/ethereal"
-  image: /assets/images/ethereal.png
-  platform: "three.js"
-  role: "Creator"
-  year: "2025"
-
 - title: "How's the roads?"
   link: "https://howstheroads.com"
   image: "https://howstheroads.com/appicon.png"

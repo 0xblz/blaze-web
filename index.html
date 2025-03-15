@@ -13,8 +13,22 @@ js_file: ethereal
 <aside>
     <h1>{{ page.title }}</h1>
 </aside>
+
 <aside>
-    <h2><i class="fa-solid fa-globe"></i> projects</h2>
+    <h2>experiments</h2>
+    {% for experiment in site.data.experiments %}
+    <a href="{{ experiment.link }}" {% if experiment.external_link %}target="_blank"{% endif %} class="row-link">
+        <div class="row-link-content">
+            <h3><i class="fa-solid fa-code"></i></h3>
+            <h3>{{ experiment.title }}<br><small>{{ experiment.platform }}</small></h3>
+        </div>
+        <small>{{ experiment.role }}, {{ experiment.year }}</small>
+    </a>
+    {% endfor %}
+</aside>
+
+<aside>
+    <h2>projects</h2>
     {% for project in site.data.projects %}
     <a href="{{ project.link }}" {% if project.external_link %}target="_blank"{% endif %} class="row-link">
         <div class="row-link-content">
@@ -29,7 +43,7 @@ js_file: ethereal
 </aside>
 
 <aside>
-    <h2><i class="fa-solid fa-briefcase"></i> experience</h2>
+    <h2>experience</h2>
     {% for experience in site.data.experiences %}
     <a href="{{ experience.link }}" {% if experience.link != "#" %}target="_blank"{% endif %} class="row-link">
         <div class="row-link-content">
