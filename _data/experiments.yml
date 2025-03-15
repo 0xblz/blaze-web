@@ -1,11 +1,9 @@
 - title: "Nova Grid"
   link: "experiments/nova-grid"
-  platform: "three.js / webgl"
-  role: "Creator"
+  platform: "three.js, webgl"
   year: "2025"
 
 - title: "Ethereal Sky"
   link: "experiments/ethereal"
   platform: "three.js"
-  role: "Creator"
   year: "2025"
