@@ -254,14 +254,15 @@ class ExplorationAnimation {
         const speeds = []; // Add speeds for individual stars
         
         for (let i = 0; i < SCENE_CONFIG.starfield.stars; i++) {
-            // Position stars in a large sphere around the camera
-            const phi = Math.random() * Math.PI * 2;
-            const theta = Math.random() * Math.PI;
+            // Position stars in a sphere around the camera
+            // Use spherical coordinates for better distribution
             const radius = SCENE_CONFIG.starfield.size * (0.2 + Math.random() * 0.8);
+            const theta = Math.random() * Math.PI * 2; // Horizontal angle
+            const phi = Math.acos((Math.random() * 2) - 1); // Vertical angle for uniform distribution
             
-            const x = radius * Math.sin(theta) * Math.cos(phi);
-            const y = radius * Math.sin(theta) * Math.sin(phi);
-            const z = -radius * Math.cos(theta);
+            const x = radius * Math.sin(phi) * Math.cos(theta);
+            const y = radius * Math.sin(phi) * Math.sin(theta);
+            const z = radius * Math.cos(phi);
             
             vertices.push(x, y, z);
             
@@ -303,7 +304,7 @@ class ExplorationAnimation {
             transparent: true,
             sizeAttenuation: true,
             depthWrite: false,
-            depthTest: false
+            depthTest: true
         });
         
         // Create the star field
@@ -1106,49 +1107,37 @@ class ExplorationAnimation {
                 * SCENE_CONFIG.camera.waveMagnitude.y;
         }
         
-        // Update stars - make them move towards the camera
+        // Update stars - create a spherical star field effect
         if (this.stars) {
             const positions = this.stars.geometry.attributes.position.array;
             
             for (let i = 0, j = 0; i < positions.length; i += 3, j++) {
-                // Get the star's current position
                 const x = positions[i];
                 const y = positions[i + 1];
                 const z = positions[i + 2];
                 
-                // Calculate direction vector from star to camera
-                const dx = this.camera.position.x - x;
-                const dy = this.camera.position.y - y;
-                const dz = this.camera.position.z - z;
-                
-                // Normalize the direction vector
+                // Calculate distance from camera
+                const dx = x - this.camera.position.x;
+                const dy = y - this.camera.position.y;
+                const dz = z - this.camera.position.z;
                 const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
                 
-                // Move star towards camera based on its speed
-                const speed = this.starSpeeds[j] * delta;
-                
-                // Move star along z-axis primarily (towards camera)
-                positions[i + 2] += speed * 10;
-                
-                // Add slight movement towards camera's x and y for perspective
-                positions[i] += (dx / distance) * speed;
-                positions[i + 1] += (dy / distance) * speed;
-                
-                // If star passes the camera, reset it far away
-                if (positions[i + 2] > this.camera.position.z) {
-                    // Reset to a random position far away
-                    const phi = Math.random() * Math.PI * 2;
-                    const theta = Math.random() * Math.PI;
-                    const radius = SCENE_CONFIG.starfield.size * (0.8 + Math.random() * 0.2);
+                // If star is too close to camera, reset it at a random position on a sphere
+                if (distance < 10) {
+                    const radius = SCENE_CONFIG.starfield.size;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos((Math.random() * 2) - 1);
                     
-                    positions[i] = radius * Math.sin(theta) * Math.cos(phi) + this.camera.position.x;
-                    positions[i + 1] = radius * Math.sin(theta) * Math.sin(phi) + this.camera.position.y;
-                    positions[i + 2] = -radius * Math.cos(theta) + this.camera.position.z;
-                    
-                    // Update speed for the recycled star
-                    const distanceFactor = 1.0 - (Math.abs(positions[i + 2] - this.camera.position.z) / SCENE_CONFIG.starfield.size);
-                    this.starSpeeds[j] = SCENE_CONFIG.starfield.speed + 
-                                       (distanceFactor * SCENE_CONFIG.starfield.maxSpeed * Math.random());
+                    // Position on sphere relative to camera
+                    positions[i] = this.camera.position.x + radius * Math.sin(phi) * Math.cos(theta);
+                    positions[i + 1] = this.camera.position.y + radius * Math.sin(phi) * Math.sin(theta);
+                    positions[i + 2] = this.camera.position.z + radius * Math.cos(phi);
+                } else {
+                    // Move stars slightly towards camera
+                    const speed = this.starSpeeds[j] * delta;
+                    positions[i] += (dx / distance) * speed;
+                    positions[i + 1] += (dy / distance) * speed;
+                    positions[i + 2] += (dz / distance) * speed;
                 }
             }
             
