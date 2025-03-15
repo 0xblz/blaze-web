@@ -39,7 +39,7 @@ const SCENE_CONFIG = {
         controls: {
             enabled: true,
             moveSpeed: 0.2,      // Base movement speed
-            boostSpeed: 1.5,     // Speed when holding shift
+            boostSpeed: 2.5,     // Speed when holding shift
             turnSpeed: 0.02,     // How fast to turn left/right
             autoMove: true,      // Whether to automatically move forward
             keyMapping: {
@@ -115,7 +115,7 @@ const SCENE_CONFIG = {
     starfield: {
         stars: 5000,         // Number of stars
         size: 2000,         // Size of the star field
-        starSize: 5.0,       // Much larger stars
+        starSize: 3.0,       // Much larger stars
         speed: 1.5,          // Faster movement speed for stars
         maxSpeed: 4.0,       // Maximum speed for closest stars
         colors: [
@@ -251,10 +251,10 @@ class ExplorationAnimation {
         const vertices = [];
         const colors = [];
         const sizes = [];
-        const speeds = []; // Add speeds for individual stars
         
+        // Create stars in a sphere around origin (will be attached to camera)
         for (let i = 0; i < SCENE_CONFIG.starfield.stars; i++) {
-            // Position stars in a sphere around the camera
+            // Position stars in a sphere around the origin
             // Use spherical coordinates for better distribution
             const radius = SCENE_CONFIG.starfield.size * (0.2 + Math.random() * 0.8);
             const theta = Math.random() * Math.PI * 2; // Horizontal angle
@@ -281,20 +281,11 @@ class ExplorationAnimation {
                 SCENE_CONFIG.starfield.starSize * (0.5 + Math.random() * 1.5);
             
             sizes.push(size);
-            
-            // Random speed - closer stars move faster
-            const distanceFactor = 1.0 - (Math.abs(z) / SCENE_CONFIG.starfield.size);
-            const speed = SCENE_CONFIG.starfield.speed + 
-                         (distanceFactor * SCENE_CONFIG.starfield.maxSpeed * Math.random());
-            speeds.push(speed);
         }
         
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
         geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
         geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-        
-        // Store speeds for animation
-        this.starSpeeds = speeds;
         
         // Create a simple point material for stars
         const material = new THREE.PointsMaterial({
@@ -310,7 +301,13 @@ class ExplorationAnimation {
         // Create the star field
         this.stars = new THREE.Points(geometry, material);
         this.stars.renderOrder = -1000; // Ensure it renders first
-        this.scene.add(this.stars);
+        
+        // Create a container for the stars that will follow the camera
+        this.starContainer = new THREE.Object3D();
+        this.starContainer.add(this.stars);
+        
+        // Add the container to the scene
+        this.scene.add(this.starContainer);
     }
 
     createGrid() {
@@ -1107,50 +1104,14 @@ class ExplorationAnimation {
                 * SCENE_CONFIG.camera.waveMagnitude.y;
         }
         
-        // Update stars - create a spherical star field effect
-        if (this.stars) {
-            const positions = this.stars.geometry.attributes.position.array;
+        // Update star container to follow camera
+        if (this.starContainer) {
+            // Position the star container at the camera position
+            this.starContainer.position.copy(this.camera.position);
             
-            for (let i = 0, j = 0; i < positions.length; i += 3, j++) {
-                const x = positions[i];
-                const y = positions[i + 1];
-                const z = positions[i + 2];
-                
-                // Calculate distance from camera
-                const dx = x - this.camera.position.x;
-                const dy = y - this.camera.position.y;
-                const dz = z - this.camera.position.z;
-                const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                
-                // Reset stars if they're too close or too far from camera
-                const minDistance = 10;
-                const maxDistance = SCENE_CONFIG.starfield.size * 0.8;
-                
-                if (distance < minDistance || distance > maxDistance) {
-                    // Generate new position on sphere around camera
-                    const radius = SCENE_CONFIG.starfield.size * (0.4 + Math.random() * 0.3); // Keep radius more consistent
-                    const theta = Math.random() * Math.PI * 2;
-                    const phi = Math.acos((Math.random() * 2) - 1);
-                    
-                    // Position on sphere relative to camera
-                    positions[i] = this.camera.position.x + radius * Math.sin(phi) * Math.cos(theta);
-                    positions[i + 1] = this.camera.position.y + radius * Math.sin(phi) * Math.sin(theta);
-                    positions[i + 2] = this.camera.position.z + radius * Math.cos(phi);
-                    
-                    // Update speed for the reset star
-                    const newDistanceFactor = 1.0 - (Math.abs(positions[i + 2] - this.camera.position.z) / SCENE_CONFIG.starfield.size);
-                    this.starSpeeds[j] = SCENE_CONFIG.starfield.speed + 
-                                       (newDistanceFactor * SCENE_CONFIG.starfield.maxSpeed * Math.random());
-                } else {
-                    // Move stars slightly towards camera
-                    const speed = this.starSpeeds[j] * delta;
-                    positions[i] += (dx / distance) * speed;
-                    positions[i + 1] += (dy / distance) * speed;
-                    positions[i + 2] += (dz / distance) * speed;
-                }
-            }
-            
-            this.stars.geometry.attributes.position.needsUpdate = true;
+            // Add a subtle rotation to the star field for visual interest
+            this.starContainer.rotation.y += 0.0001;
+            this.starContainer.rotation.x += 0.00005;
         }
         
         // Update grid position to follow camera
