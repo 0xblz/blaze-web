@@ -329,6 +329,27 @@ class ExplorationAnimation {
         const colors = [];
         const sizes = [];
         
+        // Create a circular texture for stars
+        const starTexture = (() => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            
+            // Create a radial gradient for soft circular stars
+            const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.5)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 32, 32);
+            
+            const texture = new THREE.Texture(canvas);
+            texture.needsUpdate = true;
+            return texture;
+        })();
+        
         // Create stars in a sphere around origin (will be attached to camera)
         for (let i = 0; i < SCENE_CONFIG.starfield.stars; i++) {
             // Position stars in a sphere around the origin
@@ -364,10 +385,11 @@ class ExplorationAnimation {
         geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
         geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
         
-        // Create a simple point material for stars
+        // Create a point material for stars with circular texture
         const material = new THREE.PointsMaterial({
             size: SCENE_CONFIG.starfield.starSize,
             vertexColors: true,
+            map: starTexture,
             blending: THREE.AdditiveBlending,
             transparent: true,
             sizeAttenuation: true,
