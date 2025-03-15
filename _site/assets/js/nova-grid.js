@@ -75,7 +75,7 @@ const SCENE_CONFIG = {
         shader: {
             color1: [1.0, 0.2, 0.8], // Pink/magenta
             color2: [0.2, 0.8, 1.0], // Cyan/blue
-            gridLines: 40,          // More grid lines
+            gridLines: 2,          // More grid lines
             pulseSpeed: 3.0,        // Faster pulse
             pathWidth: 20,          // Width of the glowing path
             pathIntensity: 2.0,     // Intensity of the path glow
@@ -399,7 +399,7 @@ class ExplorationAnimation {
             uniforms: {
                 time: { value: 0 },
                 resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-                cameraPosition: { value: new THREE.Vector3() }
+                cameraPosCustom: { value: new THREE.Vector3() }
             },
             vertexShader: `
                 varying vec2 vUv;
@@ -414,7 +414,7 @@ class ExplorationAnimation {
             fragmentShader: `
                 uniform float time;
                 uniform vec2 resolution;
-                uniform vec3 cameraPosition;
+                uniform vec3 cameraPosCustom;
                 
                 varying vec2 vUv;
                 varying vec3 vPosition;
@@ -456,11 +456,11 @@ class ExplorationAnimation {
                     vec2 uv = vUv * 2.0 - 1.0;
                     
                     // Calculate distance from camera path (center line)
-                    float pathDistance = abs(vPosition.x - cameraPosition.x);
+                    float pathDistance = abs(vPosition.x - cameraPosCustom.x);
                     
                     // Basic grid effect
-                    float gridX = abs(fract(vPosition.x * ${SCENE_CONFIG.grid.shader.gridLines} - time * 0.1) - 0.5);
-                    float gridZ = abs(fract(vPosition.z * ${SCENE_CONFIG.grid.shader.gridLines} - time * 0.5) - 0.5);
+                    float gridX = abs(fract(vPosition.x * float(${SCENE_CONFIG.grid.shader.gridLines}) - time * 0.1) - 0.5);
+                    float gridZ = abs(fract(vPosition.z * float(${SCENE_CONFIG.grid.shader.gridLines}) - time * 0.5) - 0.5);
                     
                     // Noise distortion
                     float noise = snoise(vec2(vPosition.x * 0.05, vPosition.z * 0.05) + time * 0.2) * 0.1;
@@ -471,17 +471,17 @@ class ExplorationAnimation {
                     float grid = min(gridX, gridZ * 0.5);
                     
                     // Pulse effect
-                    float pulse = sin(time * ${SCENE_CONFIG.grid.shader.pulseSpeed}) * 0.5 + 0.5;
+                    float pulse = sin(time * float(${SCENE_CONFIG.grid.shader.pulseSpeed})) * 0.5 + 0.5;
                     
                     // Path effect - glowing path that follows camera x position
-                    float pathWidth = ${SCENE_CONFIG.grid.shader.pathWidth};
+                    float pathWidth = float(${SCENE_CONFIG.grid.shader.pathWidth});
                     float pathGlow = smoothstep(pathWidth, 0.0, pathDistance);
-                    pathGlow *= ${SCENE_CONFIG.grid.shader.pathIntensity}; // Increase intensity
+                    pathGlow *= float(${SCENE_CONFIG.grid.shader.pathIntensity}); // Increase intensity
                     
                     // Racing lines effect - lines that appear to be generated as you move
-                    float raceSpeed = ${SCENE_CONFIG.grid.shader.raceSpeed};
-                    float raceLength = ${SCENE_CONFIG.grid.shader.raceLength};
-                    float raceDensity = ${SCENE_CONFIG.grid.shader.raceDensity};
+                    float raceSpeed = float(${SCENE_CONFIG.grid.shader.raceSpeed});
+                    float raceLength = float(${SCENE_CONFIG.grid.shader.raceLength});
+                    float raceDensity = float(${SCENE_CONFIG.grid.shader.raceDensity});
                     
                     // Create racing lines along z-axis
                     float racingEffect = 0.0;
@@ -497,7 +497,7 @@ class ExplorationAnimation {
                         float lineX = mix(-pathWidth, pathWidth, seed);
                         
                         // Distance from this racing line
-                        float lineDist = abs(vPosition.x - cameraPosition.x - lineX);
+                        float lineDist = abs(vPosition.x - cameraPosCustom.x - lineX);
                         
                         // Racing effect - lines that move forward and fade
                         float z = vPosition.z;
@@ -1619,7 +1619,7 @@ class ExplorationAnimation {
         // Update grid material
         if (this.gridMaterial) {
             this.gridMaterial.uniforms.time.value = this.time;
-            this.gridMaterial.uniforms.cameraPosition.value.copy(this.camera.position);
+            this.gridMaterial.uniforms.cameraPosCustom.value.copy(this.camera.position);
         }
         
         // Update post-processing effects
