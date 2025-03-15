@@ -886,14 +886,17 @@ class ExplorationAnimation {
         // Base cloud color
         const baseColor = new THREE.Color(SCENE_CONFIG.clouds.color);
         
-        // Generate random cloud particles
+        // Generate random cloud particles in a sphere around origin (will be attached to camera)
         for (let i = 0; i < cloudCount; i++) {
-            // Random position within the city area
-            const x = (Math.random() - 0.5) * SCENE_CONFIG.clouds.area.width;
-            const z = (Math.random() - 0.5) * SCENE_CONFIG.clouds.area.depth;
+            // Position clouds in a flattened sphere around the origin
+            const radius = SCENE_CONFIG.clouds.area.width * (0.2 + Math.random() * 0.8);
+            const theta = Math.random() * Math.PI * 2; // Horizontal angle
+            const phi = (Math.random() * 0.5 + 0.25) * Math.PI; // Limited vertical angle for flattened distribution
             
-            // Height around building tops with variation
-            const y = SCENE_CONFIG.clouds.height + (Math.random() - 0.5) * SCENE_CONFIG.clouds.heightVariation;
+            const x = radius * Math.sin(phi) * Math.cos(theta);
+            // Keep y position within cloud height range, but relative to origin
+            const y = (Math.random() - 0.5) * SCENE_CONFIG.clouds.heightVariation;
+            const z = radius * Math.sin(phi) * Math.sin(theta);
             
             // Store position
             positions[i * 3] = x;
@@ -980,7 +983,16 @@ class ExplorationAnimation {
         
         // Create the cloud particle system
         this.clouds = new THREE.Points(cloudGeometry, cloudMaterial);
-        this.scene.add(this.clouds);
+        
+        // Create a container for the clouds that will follow the camera
+        this.cloudContainer = new THREE.Object3D();
+        this.cloudContainer.add(this.clouds);
+        
+        // Position the cloud container at the appropriate height
+        this.cloudContainer.position.y = SCENE_CONFIG.clouds.height;
+        
+        // Add the container to the scene
+        this.scene.add(this.cloudContainer);
         
         // Store speeds for animation
         this.cloudSpeeds = speeds;
@@ -1429,6 +1441,16 @@ class ExplorationAnimation {
             this.starContainer.rotation.x += 0.00005;
         }
         
+        // Update cloud container to follow camera
+        if (this.cloudContainer) {
+            // Position the cloud container at the camera position, but maintain its height
+            this.cloudContainer.position.x = this.camera.position.x;
+            this.cloudContainer.position.z = this.camera.position.z;
+            
+            // Add a very subtle rotation for visual interest
+            this.cloudContainer.rotation.y += 0.00005;
+        }
+        
         // Update grid position to follow camera
         const gridSegmentSize = SCENE_CONFIG.grid.size / 2;
         const cameraZGrid = Math.floor(this.camera.position.z / gridSegmentSize) * gridSegmentSize;
@@ -1503,20 +1525,12 @@ class ExplorationAnimation {
             // Get cloud positions
             const positions = this.clouds.geometry.attributes.position.array;
             
-            // Update each cloud particle
+            // Update each cloud particle with subtle movement
             for (let i = 0, j = 0; i < positions.length; i += 3, j++) {
-                // Move cloud along z-axis
-                positions[i + 2] += this.cloudSpeeds[j] * delta * 10;
-                
-                // Add slight x movement for swirling effect
-                positions[i] += Math.sin(this.time * 0.2 + j * 0.1) * 0.05;
-                
-                // If cloud moves too far, reset it
-                if (positions[i + 2] > this.camera.position.z + SCENE_CONFIG.clouds.area.depth / 2) {
-                    positions[i + 2] = this.camera.position.z - SCENE_CONFIG.clouds.area.depth / 2;
-                    positions[i] = (Math.random() - 0.5) * SCENE_CONFIG.clouds.area.width;
-                    positions[i + 1] = SCENE_CONFIG.clouds.height + (Math.random() - 0.5) * SCENE_CONFIG.clouds.heightVariation;
-                }
+                // Add slight movement for swirling effect
+                positions[i] += Math.sin(this.time * 0.1 + j * 0.1) * 0.02;
+                positions[i + 1] += Math.cos(this.time * 0.15 + j * 0.05) * 0.01;
+                positions[i + 2] += Math.sin(this.time * 0.12 + j * 0.15) * 0.02;
             }
             
             // Update the geometry
