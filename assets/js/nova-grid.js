@@ -168,7 +168,7 @@ const SCENE_CONFIG = {
             bloom: {
                 strength: 1.2,  // Increased normal bloom
                 radius: 0.5,    // Increased normal radius
-                threshold: 0.3  // Lower threshold for more bloom
+                threshold: 0.2  // Lower threshold for more bloom
             },
             city: {
                 size: 400,
@@ -198,7 +198,7 @@ const SCENE_CONFIG = {
                 }
             },
             bloom: {
-                strength: 2.0,    // Even stronger bloom in warp
+                strength: 1.5,    // Even stronger bloom in warp
                 radius: 0.8,      // Wider bloom radius
                 threshold: 0.2     // Even lower threshold
             },
@@ -593,7 +593,7 @@ class ExplorationAnimation {
         // Create geometry
         const geometry = new THREE.BoxGeometry(width, height, depth);
         
-        // Create custom shader material for the building
+        // Create custom shader material for the building with enhanced electric effects
         const material = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 0 },
@@ -603,14 +603,17 @@ class ExplorationAnimation {
                     0.2 + Math.random() * 0.6
                 ) },
                 baseColor: { value: new THREE.Color(0x223366) }, // Lighter base color for buildings
-                glitchIntensity: { value: 0.1 + Math.random() * 0.3 }
+                glitchIntensity: { value: 0.1 + Math.random() * 0.3 },
+                warpFactor: { value: 0.0 } // New uniform for warp transition
             },
             vertexShader: `
                 uniform float time;
                 uniform float glitchIntensity;
+                uniform float warpFactor;
                 
                 varying vec2 vUv;
                 varying vec3 vPosition;
+                varying vec3 vNormal;
                 
                 // Pseudo-random function
                 float random(vec2 st) {
@@ -620,6 +623,7 @@ class ExplorationAnimation {
                 void main() {
                     vUv = uv;
                     vPosition = position;
+                    vNormal = normal;
                     
                     // Apply glitch effect to vertex position
                     vec3 pos = position;
@@ -633,6 +637,14 @@ class ExplorationAnimation {
                     // Subtle wave motion
                     pos.x += sin(pos.y * 0.2 + time) * 0.05;
                     
+                    // Add more distortion during warp
+                    if (warpFactor > 0.0) {
+                        float warpGlitch = random(vec2(floor(time * 5.0), floor(position.y * 20.0)));
+                        if (warpGlitch > 0.8) {
+                            pos += normal * sin(time * 30.0) * warpFactor * 0.2;
+                        }
+                    }
+                    
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
                 }
             `,
@@ -641,9 +653,11 @@ class ExplorationAnimation {
                 uniform vec3 emissiveColor;
                 uniform vec3 baseColor;
                 uniform float glitchIntensity;
+                uniform float warpFactor;
                 
                 varying vec2 vUv;
                 varying vec3 vPosition;
+                varying vec3 vNormal;
                 
                 // Pseudo-random function
                 float random(vec2 st) {
@@ -652,6 +666,10 @@ class ExplorationAnimation {
                 
                 void main() {
                     vec2 uv = vUv;
+                    
+                    // Calculate fresnel effect for edge glow
+                    vec3 viewDirection = normalize(cameraPosition - vPosition);
+                    float fresnel = pow(1.0 - max(0.0, dot(viewDirection, normalize(vNormal))), 3.0);
                     
                     // Base color
                     vec3 color = baseColor;
@@ -668,14 +686,23 @@ class ExplorationAnimation {
                     // Flickering effect
                     float flicker = sin(time * 10.0 * windowRandom) * 0.3 + 0.7; // Less flickering
                     
-                    // Edge glow
-                    float edgeX = smoothstep(0.0, 0.05, uv.x) * smoothstep(1.0, 0.95, uv.x);
-                    float edgeY = smoothstep(0.0, 0.05, uv.y) * smoothstep(1.0, 0.95, uv.y);
-                    float edge = edgeX * edgeY;
+                    // Enhanced edge glow - stronger and more electric
+                    float edgeX = smoothstep(0.0, 0.1, uv.x) * smoothstep(1.0, 0.9, uv.x);
+                    float edgeY = smoothstep(0.0, 0.1, uv.y) * smoothstep(1.0, 0.9, uv.y);
+                    float edge = max(edgeX, edgeY); // Use max instead of multiplication for stronger edges
+                    
+                    // Electric pulse on edges
+                    float electricPulse = sin(time * 5.0 + vPosition.y * 0.2) * 0.5 + 0.5;
                     
                     // Combine effects - brighter windows
-                    color = mix(color, emissiveColor * 1.5, window * windowLight * flicker);
-                    color = mix(color, emissiveColor * 1.2, edge * 0.7);
+                    color = mix(color, emissiveColor * 2.0, window * windowLight * flicker);
+                    
+                    // Add stronger edge glow with electric effect
+                    vec3 edgeColor = mix(emissiveColor * 1.5, vec3(1.0, 1.0, 1.0), electricPulse * 0.5);
+                    color = mix(color, edgeColor, edge * (0.7 + electricPulse * 0.3));
+                    
+                    // Add fresnel edge glow
+                    color = mix(color, edgeColor * 1.5, fresnel * 0.7);
                     
                     // Glitch effect
                     float glitchLine = step(0.98, random(vec2(floor(time * 10.0), floor(uv.y * 50.0))));
@@ -686,13 +713,40 @@ class ExplorationAnimation {
                         uv.x += (random(vec2(time, uv.y)) - 0.5) * 0.1;
                     }
                     
-                    // Scanlines - reduced for cleaner look
-                    float scanline = sin(uv.y * 100.0 + time * 5.0) * 0.3 + 0.7;
-                    color *= mix(0.95, 1.0, scanline);
+                    // Add electric circuit pattern
+                    float circuit = 0.0;
+                    // Horizontal lines
+                    circuit += step(0.98, sin(uv.y * 50.0 + sin(uv.x * 20.0) * 2.0));
+                    // Vertical lines
+                    circuit += step(0.98, sin(uv.x * 50.0 + sin(uv.y * 20.0) * 2.0));
+                    // Add circuit pattern with electric color
+                    color = mix(color, vec3(0.5, 0.8, 1.0), circuit * 0.7 * (0.5 + electricPulse * 0.5));
                     
-                    gl_FragColor = vec4(color, 1.0);
+                    // Enhance during warp
+                    if (warpFactor > 0.0) {
+                        // More intense colors during warp
+                        color = mix(color, vec3(1.0, 0.2, 0.2), warpFactor * 0.5);
+                        
+                        // Add electric arcs during warp
+                        float warpArc = step(0.97, sin(uv.y * 100.0 + time * 10.0) * sin(uv.x * 100.0 + time * 5.0));
+                        color = mix(color, vec3(1.0, 0.5, 0.0), warpArc * warpFactor);
+                        
+                        // Increase overall brightness
+                        color *= (1.0 + warpFactor * 0.5);
+                    }
+                    
+                    // Scanlines - reduced for cleaner look
+                    float scanline = sin(vPosition.y * 100.0 + time * 5.0) * 0.05 + 0.95;
+                    color *= scanline;
+                    
+                    // Final alpha - make buildings more solid
+                    float alpha = 0.95 + edge * 0.05;
+                    
+                    gl_FragColor = vec4(color, alpha);
                 }
-            `
+            `,
+            transparent: true,
+            side: THREE.DoubleSide
         });
         
         // Create mesh
@@ -725,14 +779,14 @@ class ExplorationAnimation {
         
         const geometry = geometryTypes[Math.floor(Math.random() * geometryTypes.length)];
         
-        // Create neon material with custom shader - brighter colors for evening
+        // Create neon material with custom shader
         const material = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 0 },
                 color: { value: new THREE.Color(
-                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0, // More red
-                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0, // More green
-                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0  // More blue
+                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0,
+                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0,
+                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0
                 ) }
             },
             vertexShader: `
@@ -793,6 +847,9 @@ class ExplorationAnimation {
         
         neon.position.set(x, y, z);
         
+        // Store rotation speed for reference during warp transitions
+        const rotationSpeed = (Math.random() - 0.5) * 0.02;
+        
         // Store for animation
         this.neonLights.push({
             mesh: neon,
@@ -800,7 +857,8 @@ class ExplorationAnimation {
             initialY: y,
             initialX: x,
             initialZ: z,
-            rotationSpeed: (Math.random() - 0.5) * 0.02,
+            rotationSpeed: rotationSpeed,
+            originalRotationSpeed: rotationSpeed, // Store original for reference
             floatSpeed: 0.2 + Math.random() * 0.5
         });
         
@@ -1177,15 +1235,18 @@ class ExplorationAnimation {
     startWarp() {
         this.isWarping = true;
         this.currentDimension = 'warp';
-        this.regenerateCity(SCENE_CONFIG.warp.warpDimension.city);
+        // Remove city regeneration
+        // this.regenerateCity(SCENE_CONFIG.warp.warpDimension.city);
     }
 
     endWarp() {
         this.isWarping = false;
         this.currentDimension = 'normal';
-        this.regenerateCity(SCENE_CONFIG.warp.normalDimension.city);
+        // Remove city regeneration
+        // this.regenerateCity(SCENE_CONFIG.warp.normalDimension.city);
     }
 
+    // Keep the regenerateCity method for reference but we won't call it during boost
     regenerateCity(cityConfig) {
         // Remove existing buildings and neon structures
         this.buildings.forEach(building => {
@@ -1230,24 +1291,27 @@ class ExplorationAnimation {
         // Create geometry
         const geometry = new THREE.BoxGeometry(width, height, depth);
         
-        // Create custom shader material for the building
+        // Create custom shader material for the building with enhanced electric effects
         const material = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 0 },
                 emissiveColor: { value: new THREE.Color(
-                    this.isWarping ? 0.8 + Math.random() * 0.2 : 0.1 + Math.random() * 0.2,
-                    this.isWarping ? 0.1 + Math.random() * 0.2 : 0.1 + Math.random() * 0.3,
-                    this.isWarping ? 0.1 + Math.random() * 0.2 : 0.2 + Math.random() * 0.6
+                    0.1 + Math.random() * 0.2, 
+                    0.1 + Math.random() * 0.3, 
+                    0.2 + Math.random() * 0.6
                 ) },
-                baseColor: { value: new THREE.Color(this.isWarping ? 0x662211 : 0x223366) },
-                glitchIntensity: { value: this.isWarping ? 0.3 + Math.random() * 0.5 : 0.1 + Math.random() * 0.3 }
+                baseColor: { value: new THREE.Color(0x223366) }, // Lighter base color for buildings
+                glitchIntensity: { value: 0.1 + Math.random() * 0.3 },
+                warpFactor: { value: 0.0 } // New uniform for warp transition
             },
             vertexShader: `
                 uniform float time;
                 uniform float glitchIntensity;
+                uniform float warpFactor;
                 
                 varying vec2 vUv;
                 varying vec3 vPosition;
+                varying vec3 vNormal;
                 
                 // Pseudo-random function
                 float random(vec2 st) {
@@ -1257,6 +1321,7 @@ class ExplorationAnimation {
                 void main() {
                     vUv = uv;
                     vPosition = position;
+                    vNormal = normal;
                     
                     // Apply glitch effect to vertex position
                     vec3 pos = position;
@@ -1270,6 +1335,14 @@ class ExplorationAnimation {
                     // Subtle wave motion
                     pos.x += sin(pos.y * 0.2 + time) * 0.05;
                     
+                    // Add more distortion during warp
+                    if (warpFactor > 0.0) {
+                        float warpGlitch = random(vec2(floor(time * 5.0), floor(position.y * 20.0)));
+                        if (warpGlitch > 0.8) {
+                            pos += normal * sin(time * 30.0) * warpFactor * 0.2;
+                        }
+                    }
+                    
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
                 }
             `,
@@ -1278,9 +1351,11 @@ class ExplorationAnimation {
                 uniform vec3 emissiveColor;
                 uniform vec3 baseColor;
                 uniform float glitchIntensity;
+                uniform float warpFactor;
                 
                 varying vec2 vUv;
                 varying vec3 vPosition;
+                varying vec3 vNormal;
                 
                 // Pseudo-random function
                 float random(vec2 st) {
@@ -1289,6 +1364,10 @@ class ExplorationAnimation {
                 
                 void main() {
                     vec2 uv = vUv;
+                    
+                    // Calculate fresnel effect for edge glow
+                    vec3 viewDirection = normalize(cameraPosition - vPosition);
+                    float fresnel = pow(1.0 - max(0.0, dot(viewDirection, normalize(vNormal))), 3.0);
                     
                     // Base color
                     vec3 color = baseColor;
@@ -1305,14 +1384,23 @@ class ExplorationAnimation {
                     // Flickering effect
                     float flicker = sin(time * 10.0 * windowRandom) * 0.3 + 0.7; // Less flickering
                     
-                    // Edge glow
-                    float edgeX = smoothstep(0.0, 0.05, uv.x) * smoothstep(1.0, 0.95, uv.x);
-                    float edgeY = smoothstep(0.0, 0.05, uv.y) * smoothstep(1.0, 0.95, uv.y);
-                    float edge = edgeX * edgeY;
+                    // Enhanced edge glow - stronger and more electric
+                    float edgeX = smoothstep(0.0, 0.1, uv.x) * smoothstep(1.0, 0.9, uv.x);
+                    float edgeY = smoothstep(0.0, 0.1, uv.y) * smoothstep(1.0, 0.9, uv.y);
+                    float edge = max(edgeX, edgeY); // Use max instead of multiplication for stronger edges
+                    
+                    // Electric pulse on edges
+                    float electricPulse = sin(time * 5.0 + vPosition.y * 0.2) * 0.5 + 0.5;
                     
                     // Combine effects - brighter windows
-                    color = mix(color, emissiveColor * 1.5, window * windowLight * flicker);
-                    color = mix(color, emissiveColor * 1.2, edge * 0.7);
+                    color = mix(color, emissiveColor * 2.0, window * windowLight * flicker);
+                    
+                    // Add stronger edge glow with electric effect
+                    vec3 edgeColor = mix(emissiveColor * 1.5, vec3(1.0, 1.0, 1.0), electricPulse * 0.5);
+                    color = mix(color, edgeColor, edge * (0.7 + electricPulse * 0.3));
+                    
+                    // Add fresnel edge glow
+                    color = mix(color, edgeColor * 1.5, fresnel * 0.7);
                     
                     // Glitch effect
                     float glitchLine = step(0.98, random(vec2(floor(time * 10.0), floor(uv.y * 50.0))));
@@ -1323,13 +1411,40 @@ class ExplorationAnimation {
                         uv.x += (random(vec2(time, uv.y)) - 0.5) * 0.1;
                     }
                     
-                    // Scanlines - reduced for cleaner look
-                    float scanline = sin(uv.y * 100.0 + time * 5.0) * 0.3 + 0.7;
-                    color *= mix(0.95, 1.0, scanline);
+                    // Add electric circuit pattern
+                    float circuit = 0.0;
+                    // Horizontal lines
+                    circuit += step(0.98, sin(uv.y * 50.0 + sin(uv.x * 20.0) * 2.0));
+                    // Vertical lines
+                    circuit += step(0.98, sin(uv.x * 50.0 + sin(uv.y * 20.0) * 2.0));
+                    // Add circuit pattern with electric color
+                    color = mix(color, vec3(0.5, 0.8, 1.0), circuit * 0.7 * (0.5 + electricPulse * 0.5));
                     
-                    gl_FragColor = vec4(color, 1.0);
+                    // Enhance during warp
+                    if (warpFactor > 0.0) {
+                        // More intense colors during warp
+                        color = mix(color, vec3(1.0, 0.2, 0.2), warpFactor * 0.5);
+                        
+                        // Add electric arcs during warp
+                        float warpArc = step(0.97, sin(uv.y * 100.0 + time * 10.0) * sin(uv.x * 100.0 + time * 5.0));
+                        color = mix(color, vec3(1.0, 0.5, 0.0), warpArc * warpFactor);
+                        
+                        // Increase overall brightness
+                        color *= (1.0 + warpFactor * 0.5);
+                    }
+                    
+                    // Scanlines - reduced for cleaner look
+                    float scanline = sin(vPosition.y * 100.0 + time * 5.0) * 0.05 + 0.95;
+                    color *= scanline;
+                    
+                    // Final alpha - make buildings more solid
+                    float alpha = 0.95 + edge * 0.05;
+                    
+                    gl_FragColor = vec4(color, alpha);
                 }
-            `
+            `,
+            transparent: true,
+            side: THREE.DoubleSide
         });
         
         // Create mesh
@@ -1345,7 +1460,7 @@ class ExplorationAnimation {
             material: material,
             initialX: x,
             initialZ: z,
-            speed: (this.isWarping ? 0.02 : 0.01) + Math.random() * 0.05
+            speed: 0.01 + Math.random() * 0.05
         });
         
         this.scene.add(building);
@@ -1362,14 +1477,14 @@ class ExplorationAnimation {
         
         const geometry = geometryTypes[Math.floor(Math.random() * geometryTypes.length)];
         
-        // Create neon material with custom shader - brighter colors for warp dimension
+        // Create neon material with custom shader
         const material = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 0 },
                 color: { value: new THREE.Color(
-                    this.isWarping ? 1.0 : Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0,
-                    this.isWarping ? 0.3 + Math.random() * 0.7 : Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0,
-                    this.isWarping ? 0.0 : Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0
+                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0,
+                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0,
+                    Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0
                 ) }
             },
             vertexShader: `
@@ -1423,22 +1538,26 @@ class ExplorationAnimation {
         // Create mesh
         const neon = new THREE.Mesh(geometry, material);
         
-        // Position randomly in the scene with higher elevation in warp dimension
+        // Position randomly in the scene
         const x = (Math.random() - 0.5) * cityConfig.size * 2;
-        const y = (this.isWarping ? 10 : 5) + Math.random() * (this.isWarping ? 40 : 20);
-        const z = (Math.random() - 0.5) * cityConfig.size * 2 - 50;
+        const y = 5 + Math.random() * 20;
+        const z = (Math.random() - 0.5) * cityConfig.size * 2 - 50; // Bias towards negative z
         
         neon.position.set(x, y, z);
         
-        // Store for animation with faster movement in warp dimension
+        // Store rotation speed for reference during warp transitions
+        const rotationSpeed = (Math.random() - 0.5) * 0.02;
+        
+        // Store for animation
         this.neonLights.push({
             mesh: neon,
             material: material,
             initialY: y,
             initialX: x,
             initialZ: z,
-            rotationSpeed: (Math.random() - 0.5) * (this.isWarping ? 0.04 : 0.02),
-            floatSpeed: (0.2 + Math.random() * 0.5) * (this.isWarping ? 2 : 1)
+            rotationSpeed: rotationSpeed,
+            originalRotationSpeed: rotationSpeed, // Store original for reference
+            floatSpeed: 0.2 + Math.random() * 0.5
         });
         
         this.scene.add(neon);
@@ -1459,6 +1578,9 @@ class ExplorationAnimation {
                 this.warpTransition - transitionRate
             );
         }
+
+        // Calculate the eased transition value once for use throughout the method
+        const transitionEased = this.easeInOutQuad(this.warpTransition);
 
         // Update visual elements based on warp transition
         if (this.warpTransition > 0 || !this.isWarping) {  // Always update bloom
@@ -1491,7 +1613,6 @@ class ExplorationAnimation {
                 
                 const mainColor = new THREE.Color(normalColors.main);
                 const warpMainColor = new THREE.Color(warpColors.main);
-                const transitionEased = this.easeInOutQuad(this.warpTransition);
                 mainColor.lerp(warpMainColor, transitionEased);
                 
                 const secondaryColor = new THREE.Color(normalColors.secondary);
@@ -1510,7 +1631,6 @@ class ExplorationAnimation {
                 for (let i = 0; i < colors.count; i++) {
                     const normalColor = new THREE.Color(normalStarColors[i % normalStarColors.length]);
                     const warpColor = new THREE.Color(warpStarColors[i % warpStarColors.length]);
-                    const transitionEased = this.easeInOutQuad(this.warpTransition);
                     normalColor.lerp(warpColor, transitionEased);
                     
                     colors.setXYZ(i, normalColor.r, normalColor.g, normalColor.b);
@@ -1522,10 +1642,65 @@ class ExplorationAnimation {
             if (this.starContainer) {
                 const normalRotation = 0.0001;
                 const warpRotation = 0.001;
-                const rotationTransition = this.easeInOutQuad(this.warpTransition);
+                const rotationTransition = transitionEased; // Use the pre-calculated value
                 this.starContainer.rotation.y += THREE.MathUtils.lerp(normalRotation, warpRotation, rotationTransition);
                 this.starContainer.rotation.x += THREE.MathUtils.lerp(normalRotation/2, warpRotation/2, rotationTransition);
             }
+            
+            // Update building and neon structure colors during warp
+            // Instead of rebuilding, we'll just change their appearance
+            
+            // Update building colors
+            this.buildings.forEach(building => {
+                if (building.material && building.material.uniforms) {
+                    // Transition emissive color
+                    const normalColor = new THREE.Color(0.1, 0.1, 0.3);
+                    const warpColor = new THREE.Color(0.8, 0.1, 0.1);
+                    const mixedColor = normalColor.clone().lerp(warpColor, transitionEased);
+                    
+                    // Update the emissive color uniform if it exists
+                    if (building.material.uniforms.emissiveColor) {
+                        building.material.uniforms.emissiveColor.value = mixedColor;
+                    }
+                    
+                    // Increase glitch intensity during warp
+                    if (building.material.uniforms.glitchIntensity) {
+                        const normalGlitch = 0.1;
+                        const warpGlitch = 0.4;
+                        building.material.uniforms.glitchIntensity.value = 
+                            THREE.MathUtils.lerp(normalGlitch, warpGlitch, transitionEased);
+                    }
+                    
+                    // Update warp factor for electric effects
+                    if (building.material.uniforms.warpFactor) {
+                        building.material.uniforms.warpFactor.value = transitionEased;
+                    }
+                }
+            });
+            
+            // Update neon structure colors
+            this.neonLights.forEach(neon => {
+                if (neon.material && neon.material.uniforms && neon.material.uniforms.color) {
+                    // Create more intense colors during warp
+                    const normalColor = neon.material.uniforms.color.value.clone();
+                    const warpColor = new THREE.Color(
+                        Math.min(1.0, normalColor.r * 1.5),
+                        Math.min(1.0, normalColor.g * 0.5),
+                        Math.min(1.0, normalColor.b * 0.5)
+                    );
+                    
+                    neon.material.uniforms.color.value.copy(
+                        normalColor.clone().lerp(warpColor, transitionEased)
+                    );
+                    
+                    // Increase rotation speed during warp
+                    neon.rotationSpeed = THREE.MathUtils.lerp(
+                        neon.originalRotationSpeed || neon.rotationSpeed,
+                        (neon.originalRotationSpeed || neon.rotationSpeed) * 2.5,
+                        transitionEased
+                    );
+                }
+            });
         }
     }
 
