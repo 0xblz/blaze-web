@@ -233,6 +233,9 @@ class ExplorationAnimation {
         // Get the canvas element
         const canvas = document.getElementById('novaGridCanvas');
         
+        // Create mobile controls if on mobile
+        this.createMobileControls();
+        
         // Create scene
         this.scene = new THREE.Scene();
         // No fog
@@ -1529,6 +1532,91 @@ class ExplorationAnimation {
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.composer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    createMobileControls() {
+        const mobileControls = document.createElement('div');
+        mobileControls.style.cssText = `
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            z-index: 1000;
+            width: 180px;
+            height: 180px;
+        `;
+
+        // Only show on mobile
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            mobileControls.style.display = 'grid';
+            mobileControls.style.gridTemplateAreas = `
+                ". up ."
+                "left down right"
+                ". . ."
+            `;
+            mobileControls.style.gridTemplateColumns = '60px 60px 60px';
+            mobileControls.style.gridTemplateRows = '60px 60px 60px';
+        }
+
+        const createButton = (direction, symbol, gridArea) => {
+            const button = document.createElement('button');
+            button.innerHTML = symbol;
+            button.style.cssText = `
+                width: 50px;
+                height: 50px;
+                border: none;
+                border-radius: 50%;
+                background: rgba(0, 0, 0, 0.3);
+                color: white;
+                font-size: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                outline: none;
+                grid-area: ${gridArea};
+                margin: auto;
+                padding: 0;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+                user-select: none;
+                -webkit-user-select: none;
+            `;
+
+            // Touch events for mobile
+            button.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.onKeyDown({ code: `Arrow${direction}` });
+                button.style.background = 'rgba(255, 255, 255, 0.2)';
+            });
+
+            button.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.onKeyUp({ code: `Arrow${direction}` });
+                button.style.background = 'rgba(0, 0, 0, 0.3)';
+            });
+
+            // Prevent default touch behavior
+            button.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+            });
+
+            return button;
+        };
+
+        // Create directional buttons with arrow symbols
+        const upButton = createButton('Up', '↑', 'up');
+        const downButton = createButton('Down', '↓', 'down');
+        const leftButton = createButton('Left', '←', 'left');
+        const rightButton = createButton('Right', '→', 'right');
+
+        mobileControls.appendChild(upButton);
+        mobileControls.appendChild(leftButton);
+        mobileControls.appendChild(downButton);
+        mobileControls.appendChild(rightButton);
+
+        document.body.appendChild(mobileControls);
     }
 }
 
