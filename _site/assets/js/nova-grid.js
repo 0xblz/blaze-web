@@ -130,13 +130,13 @@ const SCENE_CONFIG = {
     
     // Cloud configuration
     clouds: {
-        count: 200,          // Number of cloud particles
-        height: 600,          // Average height of clouds
-        heightVariation: 400, // Variation in cloud height
-        size: 1200,            // Size of cloud particles
-        sizeVariation: 900,   // Variation in cloud size
-        color: 0x8822aa,     // Base color (purple/pink)
-        opacity: 0.1,        // Base opacity
+        count: 2000,          // Number of cloud particles
+        height: 200,          // Average height of clouds
+        heightVariation: 100, // Variation in cloud height
+        size: 250,            // Size of cloud particles
+        sizeVariation: 40,   // Variation in cloud size
+        color: 0x4422ff,     // Base color (blue/purple)
+        opacity: 0.05,        // Base opacity
         speed: 0.2,          // Movement speed
         area: {              // Area where clouds can appear
             width: 1200,
