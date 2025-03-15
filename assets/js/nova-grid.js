@@ -192,6 +192,71 @@ const SCENE_CONFIG = {
                 threshold: 0.2     // Even lower threshold
             }
         }
+    },
+    
+    // Marble configuration
+    marbles: {
+        count: 200,                // Number of marbles
+        minRadius: 0.8,           // Minimum marble radius
+        maxRadius: 1.0,           // Slightly smaller maximum radius for better grid alignment
+        bounceHeight: 0.3,        // Reduced bounce height for smoother grid rolling
+        bounceSpeed: 0.8,         // Increased bounce speed for more dynamic movement
+        rollSpeed: 2.2,           // Increased roll speed
+        gridAlignment: {          // New section for grid alignment settings
+            snapThreshold: 0.5,   // How close to snap to grid lines
+            lineWidth: 0.2,       // Visual width of grid lines for marbles to follow
+            turnChance: 0.005     // Chance per frame to turn at intersections
+        },
+        spawnArea: {              // Area where marbles can spawn
+            width: 400,
+            depth: 400
+        },
+        lifecycle: {              // New section for marble lifecycle
+            minLifespan: 15,      // Minimum lifespan in seconds
+            maxLifespan: 45,      // Maximum lifespan in seconds
+            fadeOutDuration: 2.0, // How long it takes to fade out when dying
+            spawnDelay: 0.5,      // Delay between death and respawn
+            spawnEffect: {        // Visual effect when spawning
+                duration: 0.1,    // Duration of spawn effect
+                expandScale: 1.5, // How much to expand during spawn
+                glowMultiplier: 3.0 // How much brighter during spawn
+            },
+            deathEffect: {        // Visual effect when dying
+                duration: 0.8,    // Duration of death effect
+                pulseFrequency: 15.0, // Frequency of pulse when dying
+                finalFlash: 2.0   // Intensity of final flash
+            }
+        },
+        colors: [                 // Marble color palette - matched to grid colors
+            0x00ffff,             // Cyan
+            0xff00ff,             // Magenta
+            0xffff00,             // Yellow
+            0x00ff99,             // Mint
+            0xff0066,             // Hot pink
+            0x9900ff              // Purple
+        ],
+        physics: {
+            gravity: 0.01,        // Reduced gravity for smoother movement
+            friction: 0.995,      // Reduced friction for longer rolling
+            restitution: 0.5      // Reduced bounciness
+        },
+        glow: {
+            intensity: 1.0,       // Increased base glow intensity
+            pulseSpeed: 0.8,      // Faster pulse for more dynamic appearance
+            pulseAmount: 0.4      // Increased pulse amount
+        },
+        collision: {
+            threshold: 3.0,       // Distance threshold for collision
+            flashDuration: 0.5,   // How long collision flash lasts
+            flashIntensity: 3.0,  // Increased intensity of collision flash
+            rippleDuration: 1.0,  // How long ripple effect lasts
+            rippleSize: 12.0      // Increased maximum size of ripple
+        },
+        warpEffect: {             // New section for warp dimension effects
+            speedMultiplier: 2.0, // How much faster marbles move in warp
+            glowMultiplier: 2.5,  // How much brighter marbles glow in warp
+            colorShift: true      // Whether to shift colors in warp
+        }
     }
 };
 
@@ -211,6 +276,8 @@ class ExplorationAnimation {
         this.skyGlow = null;
         this.starSpeeds = [];
         this.clouds = null;
+        this.marbles = [];
+        this.marbleCollisions = [];
         
         // Controls state
         this.controls = {
@@ -290,6 +357,9 @@ class ExplorationAnimation {
         
         // Create atmospheric clouds
         this.createClouds();
+        
+        // Create energy marbles
+        this.createMarbles();
         
         // Add post-processing
         this.setupPostProcessing();
@@ -1537,6 +1607,9 @@ class ExplorationAnimation {
             this.clouds.geometry.attributes.position.needsUpdate = true;
         }
         
+        // Update marbles
+        this.updateMarbles(delta);
+        
         // Render scene with post-processing
         this.composer.render();
     }
@@ -1631,6 +1704,627 @@ class ExplorationAnimation {
         mobileControls.appendChild(rightButton);
 
         document.body.appendChild(mobileControls);
+    }
+
+    createMarbles() {
+        // Create refractive material for marbles
+        const refractiveShader = {
+            uniforms: {
+                time: { value: 0 },
+                baseColor: { value: new THREE.Color(0xffffff) },
+                envMap: { value: null },
+                refractionRatio: { value: 0.98 },
+                glowIntensity: { value: 0.0 },
+                glowColor: { value: new THREE.Color(0xffffff) },
+                distortionAmount: { value: 0.1 },
+                rippleCenter: { value: new THREE.Vector3(0, 0, 0) },
+                rippleRadius: { value: 0.0 },
+                rippleWidth: { value: 2.0 },
+                rippleIntensity: { value: 0.0 }
+            },
+            vertexShader: `
+                uniform float time;
+                uniform float distortionAmount;
+                uniform vec3 rippleCenter;
+                uniform float rippleRadius;
+                uniform float rippleWidth;
+                uniform float rippleIntensity;
+                
+                varying vec3 vPosition;
+                varying vec3 vNormal;
+                varying vec3 vWorldPosition;
+                varying vec3 vViewDirection;
+                
+                void main() {
+                    vPosition = position;
+                    vNormal = normal;
+                    
+                    // Calculate world position
+                    vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                    vWorldPosition = worldPosition.xyz;
+                    
+                    // Calculate view direction
+                    vViewDirection = normalize(cameraPosition - worldPosition.xyz);
+                    
+                    // Apply ripple distortion if active
+                    vec3 pos = position;
+                    if (rippleRadius > 0.0) {
+                        // Calculate distance from ripple center in object space
+                        vec3 rippleCenterObj = (inverse(modelMatrix) * vec4(rippleCenter, 1.0)).xyz;
+                        float dist = distance(position, rippleCenterObj);
+                        
+                        // Create ripple wave effect
+                        float rippleEffect = smoothstep(rippleRadius - rippleWidth, rippleRadius, dist) * 
+                                            smoothstep(rippleRadius + rippleWidth, rippleRadius, dist);
+                        
+                        // Apply distortion along normal
+                        pos += normal * rippleEffect * rippleIntensity;
+                    }
+                    
+                    // Apply subtle pulsing distortion
+                    float pulse = sin(time * 2.0 + position.x * position.z) * 0.5 + 0.5;
+                    pos += normal * pulse * distortionAmount;
+                    
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform float time;
+                uniform vec3 baseColor;
+                uniform samplerCube envMap;
+                uniform float refractionRatio;
+                uniform float glowIntensity;
+                uniform vec3 glowColor;
+                
+                varying vec3 vPosition;
+                varying vec3 vNormal;
+                varying vec3 vWorldPosition;
+                varying vec3 vViewDirection;
+                
+                void main() {
+                    // Calculate refraction
+                    vec3 refractedDirection = refract(-vViewDirection, normalize(vNormal), refractionRatio);
+                    vec4 envColor = textureCube(envMap, refractedDirection);
+                    
+                    // Add chromatic aberration effect
+                    float aberration = 0.02;
+                    vec3 refractedRed = refract(-vViewDirection, normalize(vNormal), refractionRatio - aberration);
+                    vec3 refractedBlue = refract(-vViewDirection, normalize(vNormal), refractionRatio + aberration);
+                    
+                    vec4 envColorR = textureCube(envMap, refractedRed);
+                    vec4 envColorB = textureCube(envMap, refractedBlue);
+                    
+                    // Combine for chromatic effect
+                    vec3 refractedColor = vec3(envColorR.r, envColor.g, envColorB.b);
+                    
+                    // Calculate fresnel effect for edge glow
+                    float fresnel = pow(1.0 - max(0.0, dot(vViewDirection, normalize(vNormal))), 3.0);
+                    
+                    // Pulse the glow
+                    float glowPulse = sin(time * 1.5 + vPosition.x * 2.0) * 0.5 + 0.5;
+                    
+                    // Combine base color, refraction, and glow
+                    vec3 finalColor = refractedColor * baseColor;
+                    
+                    // Add edge glow
+                    finalColor += glowColor * fresnel * 0.5;
+                    
+                    // Add inner glow
+                    finalColor += glowColor * glowIntensity * glowPulse;
+                    
+                    // Add subtle sparkles
+                    float sparkle = pow(sin(vPosition.x * 100.0 + time * 5.0) * 
+                                       sin(vPosition.y * 100.0 + time * 3.0) * 
+                                       sin(vPosition.z * 100.0 + time * 7.0), 16.0);
+                    finalColor += vec3(1.0) * sparkle * fresnel * 0.5;
+                    
+                    gl_FragColor = vec4(finalColor, 0.7 + fresnel * 0.3);
+                }
+            `,
+            transparent: true,
+            side: THREE.DoubleSide
+        };
+        
+        // Create a simple environment map for refraction
+        const envMapSize = 128;
+        const envMapRenderTarget = new THREE.WebGLCubeRenderTarget(envMapSize);
+        const envMapCamera = new THREE.CubeCamera(0.1, 1000, envMapRenderTarget);
+        this.scene.add(envMapCamera);
+        
+        // Create marbles
+        for (let i = 0; i < SCENE_CONFIG.marbles.count; i++) {
+            // Random radius
+            const radius = SCENE_CONFIG.marbles.minRadius + 
+                Math.random() * (SCENE_CONFIG.marbles.maxRadius - SCENE_CONFIG.marbles.minRadius);
+            
+            // Create geometry
+            const geometry = new THREE.SphereGeometry(radius, 32, 32);
+            
+            // Create material with unique color
+            const marbleColor = new THREE.Color(
+                SCENE_CONFIG.marbles.colors[Math.floor(Math.random() * SCENE_CONFIG.marbles.colors.length)]
+            );
+            
+            // Create shader material
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: { value: 0 },
+                    baseColor: { value: marbleColor },
+                    envMap: { value: envMapRenderTarget.texture },
+                    refractionRatio: { value: 0.95 + Math.random() * 0.04 },
+                    glowIntensity: { value: Math.random() * SCENE_CONFIG.marbles.glow.intensity },
+                    glowColor: { value: marbleColor.clone() },
+                    distortionAmount: { value: 0.05 + Math.random() * 0.1 },
+                    rippleCenter: { value: new THREE.Vector3(0, 0, 0) },
+                    rippleRadius: { value: 0.0 },
+                    rippleWidth: { value: 2.0 },
+                    rippleIntensity: { value: 0.0 }
+                },
+                vertexShader: refractiveShader.vertexShader,
+                fragmentShader: refractiveShader.fragmentShader,
+                transparent: true,
+                side: THREE.DoubleSide
+            });
+            
+            // Create mesh
+            const marble = new THREE.Mesh(geometry, material);
+            
+            // Random position within spawn area
+            const x = (Math.random() - 0.5) * SCENE_CONFIG.marbles.spawnArea.width;
+            const y = radius + Math.random() * SCENE_CONFIG.marbles.bounceHeight;
+            const z = (Math.random() - 0.5) * SCENE_CONFIG.marbles.spawnArea.depth;
+            
+            marble.position.set(x, y, z);
+            
+            // Physics properties
+            const physics = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * SCENE_CONFIG.marbles.rollSpeed,
+                    0,
+                    (Math.random() - 0.5) * SCENE_CONFIG.marbles.rollSpeed
+                ),
+                acceleration: new THREE.Vector3(0, -SCENE_CONFIG.marbles.physics.gravity, 0),
+                angularVelocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.1,
+                    (Math.random() - 0.5) * 0.1,
+                    (Math.random() - 0.5) * 0.1
+                ),
+                bouncePhase: Math.random() * Math.PI * 2,
+                bounceFrequency: 0.5 + Math.random() * SCENE_CONFIG.marbles.bounceSpeed,
+                radius: radius,
+                onGround: false,
+                lastCollisionTime: 0
+            };
+            
+            // Lifecycle properties
+            const lifecycle = {
+                age: 0,
+                lifespan: SCENE_CONFIG.marbles.lifecycle.minLifespan + 
+                          Math.random() * (SCENE_CONFIG.marbles.lifecycle.maxLifespan - 
+                                          SCENE_CONFIG.marbles.lifecycle.minLifespan),
+                state: 'spawning', // spawning, active, dying, dead
+                stateTime: 0,      // Time in current state
+                opacity: 0         // Start at 0 opacity when spawning
+            };
+            
+            // Store marble
+            this.marbles.push({
+                mesh: marble,
+                material: material,
+                physics: physics,
+                lifecycle: lifecycle,
+                initialColor: marbleColor.clone(),
+                initialGlow: material.uniforms.glowIntensity.value
+            });
+            
+            this.scene.add(marble);
+        }
+        
+        // Store environment map camera for updates
+        this.envMapCamera = envMapCamera;
+    }
+
+    updateMarbles(delta) {
+        // Update environment map for refraction
+        if (this.envMapCamera) {
+            this.envMapCamera.position.copy(this.camera.position);
+            this.envMapCamera.update(this.renderer, this.scene);
+        }
+        
+        // Process any active collisions
+        for (let i = this.marbleCollisions.length - 1; i >= 0; i--) {
+            const collision = this.marbleCollisions[i];
+            collision.time += delta;
+            
+            // Update ripple effect
+            const rippleProgress = collision.time / SCENE_CONFIG.marbles.collision.rippleDuration;
+            if (rippleProgress < 1.0) {
+                // Expand ripple
+                const rippleSize = rippleProgress * SCENE_CONFIG.marbles.collision.rippleSize;
+                const rippleIntensity = (1.0 - rippleProgress) * 0.3;
+                
+                collision.marbleA.material.uniforms.rippleRadius.value = rippleSize;
+                collision.marbleA.material.uniforms.rippleIntensity.value = rippleIntensity;
+                
+                collision.marbleB.material.uniforms.rippleRadius.value = rippleSize;
+                collision.marbleB.material.uniforms.rippleIntensity.value = rippleIntensity;
+            } else {
+                // Reset ripple when done
+                collision.marbleA.material.uniforms.rippleRadius.value = 0;
+                collision.marbleA.material.uniforms.rippleIntensity.value = 0;
+                
+                collision.marbleB.material.uniforms.rippleRadius.value = 0;
+                collision.marbleB.material.uniforms.rippleIntensity.value = 0;
+                
+                // Remove collision
+                this.marbleCollisions.splice(i, 1);
+            }
+        }
+        
+        // Get grid size and divisions for snapping marbles to grid lines
+        const gridSize = SCENE_CONFIG.grid.size;
+        const gridDivisions = SCENE_CONFIG.grid.divisions;
+        const gridSpacing = gridSize / gridDivisions;
+        
+        // Update each marble
+        for (let i = 0; i < this.marbles.length; i++) {
+            const marble = this.marbles[i];
+            const physics = marble.physics;
+            const lifecycle = marble.lifecycle;
+            
+            // Update material time uniform
+            marble.material.uniforms.time.value = this.time;
+            
+            // Update lifecycle
+            lifecycle.age += delta;
+            lifecycle.stateTime += delta;
+            
+            // Handle lifecycle states
+            switch (lifecycle.state) {
+                case 'spawning':
+                    // Handle spawn effect
+                    const spawnProgress = Math.min(1.0, lifecycle.stateTime / SCENE_CONFIG.marbles.lifecycle.spawnEffect.duration);
+                    
+                    // Fade in
+                    lifecycle.opacity = spawnProgress;
+                    
+                    // Scale effect - start small and grow
+                    const spawnScale = 0.1 + spawnProgress * 0.9;
+                    marble.mesh.scale.set(spawnScale, spawnScale, spawnScale);
+                    
+                    // Glow effect - extra bright when spawning
+                    const spawnGlow = marble.initialGlow * 
+                                     (1 + (SCENE_CONFIG.marbles.lifecycle.spawnEffect.glowMultiplier - 1) * 
+                                     (1 - spawnProgress));
+                    marble.material.uniforms.glowIntensity.value = spawnGlow;
+                    
+                    // Transition to active state when spawn effect is complete
+                    if (spawnProgress >= 1.0) {
+                        lifecycle.state = 'active';
+                        lifecycle.stateTime = 0;
+                        lifecycle.opacity = 1.0;
+                        marble.mesh.scale.set(1, 1, 1);
+                    }
+                    break;
+                    
+                case 'active':
+                    // Check if marble should start dying
+                    if (lifecycle.age >= lifecycle.lifespan) {
+                        lifecycle.state = 'dying';
+                        lifecycle.stateTime = 0;
+                    }
+                    
+                    // Normal marble behavior
+                    // Determine if marble should follow grid lines
+                    if (!physics.gridAligned) {
+                        // Assign a grid line to follow if not already assigned
+                        physics.gridAligned = true;
+                        physics.followsXAxis = Math.random() > 0.5; // Randomly choose x or z axis
+                        
+                        // Snap to nearest grid line
+                        if (physics.followsXAxis) {
+                            // Follow x-axis grid line (constant z)
+                            const nearestZ = Math.round(marble.mesh.position.z / gridSpacing) * gridSpacing;
+                            marble.mesh.position.z = nearestZ;
+                            // Set velocity along x-axis
+                            physics.velocity.set((Math.random() > 0.5 ? 1 : -1) * SCENE_CONFIG.marbles.rollSpeed, 0, 0);
+                        } else {
+                            // Follow z-axis grid line (constant x)
+                            const nearestX = Math.round(marble.mesh.position.x / gridSpacing) * gridSpacing;
+                            marble.mesh.position.x = nearestX;
+                            // Set velocity along z-axis
+                            physics.velocity.set(0, 0, (Math.random() > 0.5 ? 1 : -1) * SCENE_CONFIG.marbles.rollSpeed);
+                        }
+                    }
+                    
+                    // Apply a small bounce effect for visual interest
+                    const bounceHeight = physics.radius * 0.2;
+                    const bounceSpeed = 2.0 + physics.bounceFrequency;
+                    marble.mesh.position.y = physics.radius + Math.abs(Math.sin(this.time * bounceSpeed + physics.bouncePhase)) * bounceHeight;
+                    
+                    // Update position based on velocity
+                    marble.mesh.position.add(physics.velocity.clone().multiplyScalar(delta * 60));
+                    
+                    // Rotate based on velocity for rolling effect
+                    if (physics.followsXAxis) {
+                        // Rolling along x-axis
+                        marble.mesh.rotateZ(-physics.velocity.x * delta * 60 / physics.radius);
+                    } else {
+                        // Rolling along z-axis
+                        marble.mesh.rotateX(physics.velocity.z * delta * 60 / physics.radius);
+                    }
+                    
+                    // Apply additional angular velocity for spinning effect
+                    marble.mesh.rotateY(physics.angularVelocity.y * delta);
+                    
+                    // Check if marble has gone too far from camera and needs to be repositioned
+                    const distanceFromCamera = marble.mesh.position.distanceTo(this.camera.position);
+                    const maxDistance = gridSize * 0.8;
+                    
+                    // Check if marble is behind the camera (for z-axis marbles moving backward)
+                    const isBehindCamera = physics.followsXAxis ? false : 
+                        (physics.velocity.z > 0 && marble.mesh.position.z > this.camera.position.z + 10);
+                    
+                    if (distanceFromCamera > maxDistance || isBehindCamera) {
+                        // Instead of repositioning, start the death process
+                        lifecycle.state = 'dying';
+                        lifecycle.stateTime = 0;
+                    }
+                    
+                    // Update glow based on pulse
+                    const glowPulse = Math.sin(this.time * SCENE_CONFIG.marbles.glow.pulseSpeed + i) * 
+                                    SCENE_CONFIG.marbles.glow.pulseAmount + 1.0;
+                    
+                    marble.material.uniforms.glowIntensity.value = 
+                        marble.initialGlow * glowPulse;
+                    break;
+                    
+                case 'dying':
+                    // Handle death effect
+                    const deathProgress = Math.min(1.0, lifecycle.stateTime / SCENE_CONFIG.marbles.lifecycle.fadeOutDuration);
+                    
+                    // Fade out
+                    lifecycle.opacity = 1.0 - deathProgress;
+                    
+                    // Rapid pulsing effect
+                    const deathPulse = Math.sin(lifecycle.stateTime * 
+                                              SCENE_CONFIG.marbles.lifecycle.deathEffect.pulseFrequency) * 0.5 + 0.5;
+                    
+                    // Final flash at the end
+                    const finalFlash = deathProgress > 0.8 ? 
+                                     SCENE_CONFIG.marbles.lifecycle.deathEffect.finalFlash * 
+                                     (1.0 - (deathProgress - 0.8) / 0.2) : 0;
+                    
+                    // Apply visual effects
+                    marble.material.uniforms.glowIntensity.value = 
+                        marble.initialGlow * (1.0 + deathPulse + finalFlash) * (1.0 - deathProgress * 0.5);
+                    
+                    // Slow down as it dies
+                    physics.velocity.multiplyScalar(0.95);
+                    
+                    // Transition to dead state when fade out is complete
+                    if (deathProgress >= 1.0) {
+                        lifecycle.state = 'dead';
+                        lifecycle.stateTime = 0;
+                        marble.mesh.visible = false;
+                    }
+                    break;
+                    
+                case 'dead':
+                    // Wait for spawn delay before respawning
+                    if (lifecycle.stateTime >= SCENE_CONFIG.marbles.lifecycle.spawnDelay) {
+                        // Respawn the marble with new properties
+                        this.respawnMarble(marble);
+                    }
+                    break;
+            }
+            
+            // Apply opacity
+            if (marble.material.uniforms.opacity) {
+                marble.material.uniforms.opacity.value = lifecycle.opacity;
+            } else {
+                // If opacity uniform doesn't exist, create it
+                marble.material.uniforms.opacity = { value: lifecycle.opacity };
+                // Update fragment shader to use opacity
+                const fragmentShader = marble.material.fragmentShader;
+                if (!fragmentShader.includes('uniform float opacity;')) {
+                    const updatedShader = fragmentShader.replace(
+                        'void main() {',
+                        'uniform float opacity;\n\nvoid main() {'
+                    ).replace(
+                        'gl_FragColor = vec4(finalColor, 0.7 + fresnel * 0.3);',
+                        'gl_FragColor = vec4(finalColor, (0.7 + fresnel * 0.3) * opacity);'
+                    );
+                    marble.material.fragmentShader = updatedShader;
+                    marble.material.needsUpdate = true;
+                }
+            }
+            
+            // Only process collisions for active marbles
+            if (lifecycle.state === 'active') {
+                // Check for collisions with other marbles
+                for (let j = i + 1; j < this.marbles.length; j++) {
+                    const otherMarble = this.marbles[j];
+                    
+                    // Skip if other marble is not active
+                    if (otherMarble.lifecycle.state !== 'active') continue;
+                    
+                    // Only check collisions between marbles on the same grid line
+                    const sameGridLine = (physics.followsXAxis === otherMarble.physics.followsXAxis) && 
+                                        (physics.followsXAxis ? 
+                                            Math.abs(marble.mesh.position.z - otherMarble.mesh.position.z) < gridSpacing * 0.5 :
+                                            Math.abs(marble.mesh.position.x - otherMarble.mesh.position.x) < gridSpacing * 0.5);
+                    
+                    if (!sameGridLine) continue;
+                    
+                    // Calculate distance between marbles
+                    const distance = marble.mesh.position.distanceTo(otherMarble.mesh.position);
+                    const minDistance = physics.radius + otherMarble.physics.radius;
+                    
+                    // Check if collision occurred
+                    if (distance < minDistance) {
+                        // Reverse directions
+                        if (physics.followsXAxis) {
+                            physics.velocity.x *= -1;
+                            otherMarble.physics.velocity.x *= -1;
+                        } else {
+                            physics.velocity.z *= -1;
+                            otherMarble.physics.velocity.z *= -1;
+                        }
+                        
+                        // Move marbles apart to prevent sticking
+                        const overlap = minDistance - distance;
+                        const moveAmount = overlap * 0.5;
+                        
+                        // Calculate direction to move
+                        const moveDir = new THREE.Vector3().subVectors(
+                            marble.mesh.position, 
+                            otherMarble.mesh.position
+                        ).normalize();
+                        
+                        marble.mesh.position.add(moveDir.clone().multiplyScalar(moveAmount));
+                        otherMarble.mesh.position.sub(moveDir.clone().multiplyScalar(moveAmount));
+                        
+                        // Only create collision effect if it's been a while since last collision
+                        const timeSinceLastCollision = this.time - physics.lastCollisionTime;
+                        const otherTimeSinceLastCollision = this.time - otherMarble.physics.lastCollisionTime;
+                        
+                        if (timeSinceLastCollision > 0.2 && otherTimeSinceLastCollision > 0.2) {
+                            // Update last collision time
+                            physics.lastCollisionTime = this.time;
+                            otherMarble.physics.lastCollisionTime = this.time;
+                            
+                            // Create collision point
+                            const collisionPoint = new THREE.Vector3()
+                                .addVectors(
+                                    marble.mesh.position,
+                                    otherMarble.mesh.position
+                                )
+                                .multiplyScalar(0.5);
+                            
+                            // Set ripple center
+                            marble.material.uniforms.rippleCenter.value.copy(collisionPoint);
+                            otherMarble.material.uniforms.rippleCenter.value.copy(collisionPoint);
+                            
+                            // Add to active collisions
+                            this.marbleCollisions.push({
+                                marbleA: marble,
+                                marbleB: otherMarble,
+                                point: collisionPoint.clone(),
+                                time: 0
+                            });
+                            
+                            // Temporarily increase glow intensity for both marbles
+                            marble.material.uniforms.glowIntensity.value = 
+                                marble.initialGlow * SCENE_CONFIG.marbles.collision.flashIntensity;
+                            
+                            otherMarble.material.uniforms.glowIntensity.value = 
+                                otherMarble.initialGlow * SCENE_CONFIG.marbles.collision.flashIntensity;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    respawnMarble(marble) {
+        // Get grid size and divisions for snapping to grid lines
+        const gridSize = SCENE_CONFIG.grid.size;
+        const gridDivisions = SCENE_CONFIG.grid.divisions;
+        const gridSpacing = gridSize / gridDivisions;
+        
+        // Reset lifecycle
+        marble.lifecycle.age = 0;
+        marble.lifecycle.state = 'spawning';
+        marble.lifecycle.stateTime = 0;
+        marble.lifecycle.opacity = 0;
+        marble.lifecycle.lifespan = SCENE_CONFIG.marbles.lifecycle.minLifespan + 
+                                  Math.random() * (SCENE_CONFIG.marbles.lifecycle.maxLifespan - 
+                                                 SCENE_CONFIG.marbles.lifecycle.minLifespan);
+        
+        // Make visible again
+        marble.mesh.visible = true;
+        
+        // Reset scale
+        marble.mesh.scale.set(0.1, 0.1, 0.1);
+        
+        // Get camera direction vectors
+        const cameraForward = this.controls.direction.clone();
+        const cameraRight = new THREE.Vector3().crossVectors(cameraForward, new THREE.Vector3(0, 1, 0)).normalize();
+        
+        // Determine spawn strategy - we want to maintain marbles in all directions
+        // Force more marbles to spawn on perpendicular grid lines (left/right) as we move forward
+        const forceAxis = Math.random() < 0.7; // 70% chance to force axis choice
+        const preferXAxis = forceAxis ? true : Math.random() > 0.5; // Prefer X axis (left/right movement)
+        
+        // Position relative to camera
+        let newPos;
+        
+        if (preferXAxis) {
+            // For X-axis marbles (moving left/right), position them ahead and to the sides
+            const forwardDistance = -gridSize * (0.3 + Math.random() * 0.5); // Ahead of camera
+            const sideDistance = (Math.random() > 0.5 ? 1 : -1) * gridSize * (0.5 + Math.random() * 0.3); // Far to the sides
+            
+            // Calculate position
+            newPos = this.camera.position.clone()
+                .add(cameraForward.clone().multiplyScalar(forwardDistance))
+                .add(cameraRight.clone().multiplyScalar(sideDistance));
+                
+            // Snap Z to grid line
+            const nearestZ = Math.round(newPos.z / gridSpacing) * gridSpacing;
+            newPos.z = nearestZ;
+            
+            // Set marble to follow X axis
+            marble.physics.gridAligned = true;
+            marble.physics.followsXAxis = true;
+            
+            // Set position and velocity
+            marble.mesh.position.set(newPos.x, marble.physics.radius, newPos.z);
+            
+            // Direction based on position - marbles on left move right, marbles on right move left
+            const directionX = (newPos.x < this.camera.position.x) ? 1 : -1;
+            marble.physics.velocity.set(directionX * SCENE_CONFIG.marbles.rollSpeed, 0, 0);
+        } else {
+            // For Z-axis marbles (moving forward/backward), position them to the sides
+            const forwardDistance = -gridSize * (0.2 + Math.random() * 0.6); // Varied distance ahead
+            const sideDistance = (Math.random() > 0.5 ? 1 : -1) * gridSize * (0.2 + Math.random() * 0.4); // Not too far to sides
+            
+            // Calculate position
+            newPos = this.camera.position.clone()
+                .add(cameraForward.clone().multiplyScalar(forwardDistance))
+                .add(cameraRight.clone().multiplyScalar(sideDistance));
+                
+            // Snap X to grid line
+            const nearestX = Math.round(newPos.x / gridSpacing) * gridSpacing;
+            newPos.x = nearestX;
+            
+            // Set marble to follow Z axis
+            marble.physics.gridAligned = true;
+            marble.physics.followsXAxis = false;
+            
+            // Set position and velocity
+            marble.mesh.position.set(newPos.x, marble.physics.radius, newPos.z);
+            
+            // Most Z-axis marbles should move away from camera (forward)
+            const directionZ = Math.random() < 0.8 ? -1 : 1; // 80% chance to move forward
+            marble.physics.velocity.set(0, 0, directionZ * SCENE_CONFIG.marbles.rollSpeed);
+        }
+        
+        // Reset bounce phase
+        marble.physics.bouncePhase = Math.random() * Math.PI * 2;
+        
+        // Potentially change color
+        if (Math.random() > 0.7) {
+            const newColor = new THREE.Color(
+                SCENE_CONFIG.marbles.colors[Math.floor(Math.random() * SCENE_CONFIG.marbles.colors.length)]
+            );
+            marble.material.uniforms.baseColor.value = newColor;
+            marble.material.uniforms.glowColor.value = newColor;
+            marble.initialColor = newColor.clone();
+        }
+        
+        // Reset glow intensity
+        marble.initialGlow = Math.random() * SCENE_CONFIG.marbles.glow.intensity;
     }
 }
 
