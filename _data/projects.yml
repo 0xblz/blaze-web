@@ -1,7 +1,7 @@
 - title: "Nova Grid"
   link: "projects/nova-grid"
   image: /assets/images/nova-grid.jpg
-  platform: "three.js"
+  platform: "three.js / webgl"
   role: "Creator"
   year: "2025"
 

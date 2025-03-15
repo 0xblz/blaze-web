@@ -101,9 +101,9 @@ const SCENE_CONFIG = {
     // Post-processing
     postProcessing: {
         bloom: {
-            strength: 0.7,    // Lower overall bloom
-            radius: 0.3,      // Tighter bloom radius
-            threshold: 0.4    // Higher threshold to only catch bright points
+            strength: 1.2,    // Increased base bloom strength
+            radius: 0.5,      // Increased base radius
+            threshold: 0.3    // Lower threshold to catch more elements
         },
         glitch: {
             amount: 0.01,
@@ -142,6 +142,78 @@ const SCENE_CONFIG = {
             width: 1200,
             depth: 1200
         }
+    },
+    
+    // Warp dimension settings
+    warp: {
+        transitionDuration: 1.0, // Duration for entering warp
+        exitDuration: 2.0,      // Longer duration for exiting warp
+        boostThreshold: 3.0,
+        effectPersistence: 0.2,  // How much of the effect remains after exiting warp
+        normalDimension: {
+            colors: {
+                stars: [
+                    0xFFFFFF, 0xFFFFFF, 0xFFFFFF,
+                    0x00FFFF, 0xFF00FF, 0xFFFF00
+                ],
+                grid: {
+                    main: 0xff00ff,
+                    secondary: 0x00ffff,
+                    shader: {
+                        color1: [1.0, 0.2, 0.8],
+                        color2: [0.2, 0.8, 1.0]
+                    }
+                }
+            },
+            bloom: {
+                strength: 1.2,  // Increased normal bloom
+                radius: 0.5,    // Increased normal radius
+                threshold: 0.3  // Lower threshold for more bloom
+            },
+            city: {
+                size: 400,
+                buildingCount: 1500,
+                neonStructureCount: 500,
+                building: {
+                    maxHeight: 200,
+                    minHeight: 4,
+                    maxWidth: 1,
+                    minWidth: 0.5
+                }
+            }
+        },
+        warpDimension: {
+            colors: {
+                stars: [
+                    0xFF0000, 0xFF3300, 0xFF0066,
+                    0x9900FF, 0x0033FF, 0x00FF99
+                ],
+                grid: {
+                    main: 0x00ff33,
+                    secondary: 0x3300ff,
+                    shader: {
+                        color1: [0.0, 1.0, 0.2],
+                        color2: [0.2, 0.0, 1.0]
+                    }
+                }
+            },
+            bloom: {
+                strength: 2.0,    // Even stronger bloom in warp
+                radius: 0.8,      // Wider bloom radius
+                threshold: 0.2     // Even lower threshold
+            },
+            city: {
+                size: 600, // Larger city
+                buildingCount: 2000, // More buildings
+                neonStructureCount: 800, // More neon structures
+                building: {
+                    maxHeight: 400, // Taller buildings
+                    minHeight: 100, // No small buildings
+                    maxWidth: 2, // Wider buildings
+                    minWidth: 1
+                }
+            }
+        }
     }
 };
 
@@ -172,6 +244,11 @@ class ExplorationAnimation {
             direction: new THREE.Vector3(0, 0, -1), // Forward direction vector
             velocity: new THREE.Vector3()
         };
+        
+        this.boostTimer = 0;
+        this.isWarping = false;
+        this.warpTransition = 0; // 0 = normal dimension, 1 = warp dimension
+        this.currentDimension = 'normal';
     }
 
     init() {
@@ -883,14 +960,17 @@ class ExplorationAnimation {
         const renderPass = new THREE.RenderPass(this.scene, this.camera);
         this.composer.addPass(renderPass);
         
-        // Add bloom pass with settings to enhance stars
+        // Add bloom pass with enhanced settings
         const bloomPass = new THREE.UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
-            1,    // Higher strength for stars
-            1,    // Larger radius for bigger glow
-            0.1     // Lower threshold to catch more stars
+            SCENE_CONFIG.postProcessing.bloom.strength,    // Use config values
+            SCENE_CONFIG.postProcessing.bloom.radius,
+            SCENE_CONFIG.postProcessing.bloom.threshold
         );
         this.composer.addPass(bloomPass);
+        
+        // Store the bloom pass for updates
+        this.bloomPass = bloomPass;
         
         // Add custom glitch and chromatic aberration shader pass
         const glitchPass = new THREE.ShaderPass({
@@ -1019,6 +1099,12 @@ class ExplorationAnimation {
         if (this.controls.boost) {
             currentSpeed = SCENE_CONFIG.camera.controls.boostSpeed;
             
+            // Update boost timer and check for warp
+            this.boostTimer += delta;
+            if (this.boostTimer >= SCENE_CONFIG.warp.boostThreshold && !this.isWarping) {
+                this.startWarp();
+            }
+            
             // Gradually increase FOV when boosting
             this.camera.fov = THREE.MathUtils.lerp(
                 this.camera.fov,
@@ -1027,6 +1113,12 @@ class ExplorationAnimation {
             );
             this.camera.updateProjectionMatrix();
         } else {
+            // Reset boost timer when not boosting
+            this.boostTimer = 0;
+            if (this.isWarping) {
+                this.endWarp();
+            }
+            
             // Gradually return to normal FOV when not boosting
             this.camera.fov = THREE.MathUtils.lerp(
                 this.camera.fov,
@@ -1082,6 +1174,366 @@ class ExplorationAnimation {
         this.camera.lookAt(lookAtPosition);
     }
 
+    startWarp() {
+        this.isWarping = true;
+        this.currentDimension = 'warp';
+        this.regenerateCity(SCENE_CONFIG.warp.warpDimension.city);
+    }
+
+    endWarp() {
+        this.isWarping = false;
+        this.currentDimension = 'normal';
+        this.regenerateCity(SCENE_CONFIG.warp.normalDimension.city);
+    }
+
+    regenerateCity(cityConfig) {
+        // Remove existing buildings and neon structures
+        this.buildings.forEach(building => {
+            this.scene.remove(building.mesh);
+        });
+        this.neonLights.forEach(neon => {
+            this.scene.remove(neon.mesh);
+        });
+
+        // Clear arrays
+        this.buildings = [];
+        this.neonLights = [];
+
+        // Store current city config
+        this.citySize = cityConfig.size;
+
+        // Create new buildings with the new configuration
+        for (let i = 0; i < cityConfig.buildingCount; i++) {
+            this.createBuilding(cityConfig);
+        }
+
+        // Create new neon structures
+        for (let i = 0; i < cityConfig.neonStructureCount; i++) {
+            this.createNeonStructure(cityConfig);
+        }
+    }
+
+    createBuilding(cityConfig = SCENE_CONFIG.warp.normalDimension.city) {
+        // Use procedural noise to determine building properties
+        const x = (Math.random() - 0.5) * this.citySize * 2;
+        const z = (Math.random() - 0.5) * this.citySize * 2 - 50; // Bias towards negative z for camera path
+        
+        // Use simplex-like noise for height
+        const seed = Math.sin(x * 0.1) * Math.cos(z * 0.1);
+        const height = cityConfig.building.minHeight + 
+            Math.pow(Math.random(), 2) * (cityConfig.building.maxHeight - cityConfig.building.minHeight);
+        const width = cityConfig.building.minWidth + 
+            Math.random() * (cityConfig.building.maxWidth - cityConfig.building.minWidth);
+        const depth = cityConfig.building.minWidth + 
+            Math.random() * (cityConfig.building.maxWidth - cityConfig.building.minWidth);
+        
+        // Create geometry
+        const geometry = new THREE.BoxGeometry(width, height, depth);
+        
+        // Create custom shader material for the building
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+                time: { value: 0 },
+                emissiveColor: { value: new THREE.Color(
+                    this.isWarping ? 0.8 + Math.random() * 0.2 : 0.1 + Math.random() * 0.2,
+                    this.isWarping ? 0.1 + Math.random() * 0.2 : 0.1 + Math.random() * 0.3,
+                    this.isWarping ? 0.1 + Math.random() * 0.2 : 0.2 + Math.random() * 0.6
+                ) },
+                baseColor: { value: new THREE.Color(this.isWarping ? 0x662211 : 0x223366) },
+                glitchIntensity: { value: this.isWarping ? 0.3 + Math.random() * 0.5 : 0.1 + Math.random() * 0.3 }
+            },
+            vertexShader: `
+                uniform float time;
+                uniform float glitchIntensity;
+                
+                varying vec2 vUv;
+                varying vec3 vPosition;
+                
+                // Pseudo-random function
+                float random(vec2 st) {
+                    return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+                }
+                
+                void main() {
+                    vUv = uv;
+                    vPosition = position;
+                    
+                    // Apply glitch effect to vertex position
+                    vec3 pos = position;
+                    
+                    // Glitch effect based on time and position
+                    float glitch = random(vec2(floor(time * 2.0), floor(position.y * 10.0)));
+                    if (glitch > 0.95) {
+                        pos.x += sin(time * 20.0) * glitchIntensity;
+                    }
+                    
+                    // Subtle wave motion
+                    pos.x += sin(pos.y * 0.2 + time) * 0.05;
+                    
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform float time;
+                uniform vec3 emissiveColor;
+                uniform vec3 baseColor;
+                uniform float glitchIntensity;
+                
+                varying vec2 vUv;
+                varying vec3 vPosition;
+                
+                // Pseudo-random function
+                float random(vec2 st) {
+                    return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+                }
+                
+                void main() {
+                    vec2 uv = vUv;
+                    
+                    // Base color
+                    vec3 color = baseColor;
+                    
+                    // Window pattern - more windows for evening
+                    float windowX = step(0.85, fract(uv.x * 12.0));
+                    float windowY = step(0.85, fract(uv.y * 24.0));
+                    float window = windowX * windowY;
+                    
+                    // Random window lights - more lights on in evening
+                    float windowRandom = random(vec2(floor(uv.x * 12.0), floor(uv.y * 24.0)));
+                    float windowLight = step(0.4, windowRandom); // Lower threshold = more lights
+                    
+                    // Flickering effect
+                    float flicker = sin(time * 10.0 * windowRandom) * 0.3 + 0.7; // Less flickering
+                    
+                    // Edge glow
+                    float edgeX = smoothstep(0.0, 0.05, uv.x) * smoothstep(1.0, 0.95, uv.x);
+                    float edgeY = smoothstep(0.0, 0.05, uv.y) * smoothstep(1.0, 0.95, uv.y);
+                    float edge = edgeX * edgeY;
+                    
+                    // Combine effects - brighter windows
+                    color = mix(color, emissiveColor * 1.5, window * windowLight * flicker);
+                    color = mix(color, emissiveColor * 1.2, edge * 0.7);
+                    
+                    // Glitch effect
+                    float glitchLine = step(0.98, random(vec2(floor(time * 10.0), floor(uv.y * 50.0))));
+                    if (glitchLine > 0.0) {
+                        color = mix(color, vec3(1.0), 0.8 * glitchIntensity);
+                        
+                        // Horizontal displacement
+                        uv.x += (random(vec2(time, uv.y)) - 0.5) * 0.1;
+                    }
+                    
+                    // Scanlines - reduced for cleaner look
+                    float scanline = sin(uv.y * 100.0 + time * 5.0) * 0.3 + 0.7;
+                    color *= mix(0.95, 1.0, scanline);
+                    
+                    gl_FragColor = vec4(color, 1.0);
+                }
+            `
+        });
+        
+        // Create mesh
+        const building = new THREE.Mesh(geometry, material);
+        building.position.set(x, height / 2, z);
+        
+        // Add some rotation for variety
+        building.rotation.y = Math.random() * Math.PI * 2;
+        
+        // Store reference for animation
+        this.buildings.push({
+            mesh: building,
+            material: material,
+            initialX: x,
+            initialZ: z,
+            speed: (this.isWarping ? 0.02 : 0.01) + Math.random() * 0.05
+        });
+        
+        this.scene.add(building);
+    }
+
+    createNeonStructure(cityConfig = SCENE_CONFIG.warp.normalDimension.city) {
+        // Create a floating neon structure
+        const geometryTypes = [
+            new THREE.TorusGeometry(1 + Math.random() * 2, 0.2, 16, 100),
+            new THREE.TetrahedronGeometry(1 + Math.random()),
+            new THREE.OctahedronGeometry(1 + Math.random()),
+            new THREE.IcosahedronGeometry(0.5 + Math.random())
+        ];
+        
+        const geometry = geometryTypes[Math.floor(Math.random() * geometryTypes.length)];
+        
+        // Create neon material with custom shader - brighter colors for warp dimension
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+                time: { value: 0 },
+                color: { value: new THREE.Color(
+                    this.isWarping ? 1.0 : Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0,
+                    this.isWarping ? 0.3 + Math.random() * 0.7 : Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0,
+                    this.isWarping ? 0.0 : Math.random() > 0.3 ? 0.8 + Math.random() * 0.2 : 0.0
+                ) }
+            },
+            vertexShader: `
+                uniform float time;
+                
+                varying vec2 vUv;
+                varying vec3 vNormal;
+                varying vec3 vPosition;
+                
+                void main() {
+                    vUv = uv;
+                    vNormal = normal;
+                    vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
+                    
+                    // Apply wave distortion
+                    vec3 pos = position;
+                    pos += normal * sin(pos.x * 5.0 + time) * 0.1;
+                    pos += normal * cos(pos.y * 5.0 + time * 0.7) * 0.1;
+                    
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform float time;
+                uniform vec3 color;
+                
+                varying vec2 vUv;
+                varying vec3 vNormal;
+                varying vec3 vPosition;
+                
+                void main() {
+                    // Calculate fresnel effect for edge glow
+                    vec3 viewDirection = normalize(cameraPosition - vPosition);
+                    float fresnel = dot(viewDirection, vNormal);
+                    fresnel = pow(1.0 - fresnel, 3.0);
+                    
+                    // Pulse effect - more subtle for evening
+                    float pulse = sin(time * 2.0) * 0.3 + 0.7;
+                    
+                    // Final color with edge glow - brighter
+                    vec3 finalColor = color * (0.7 + pulse * 0.3);
+                    finalColor += vec3(1.0) * fresnel * pulse;
+                    
+                    gl_FragColor = vec4(finalColor, 0.7 + fresnel * 0.3);
+                }
+            `,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+        
+        // Create mesh
+        const neon = new THREE.Mesh(geometry, material);
+        
+        // Position randomly in the scene with higher elevation in warp dimension
+        const x = (Math.random() - 0.5) * cityConfig.size * 2;
+        const y = (this.isWarping ? 10 : 5) + Math.random() * (this.isWarping ? 40 : 20);
+        const z = (Math.random() - 0.5) * cityConfig.size * 2 - 50;
+        
+        neon.position.set(x, y, z);
+        
+        // Store for animation with faster movement in warp dimension
+        this.neonLights.push({
+            mesh: neon,
+            material: material,
+            initialY: y,
+            initialX: x,
+            initialZ: z,
+            rotationSpeed: (Math.random() - 0.5) * (this.isWarping ? 0.04 : 0.02),
+            floatSpeed: (0.2 + Math.random() * 0.5) * (this.isWarping ? 2 : 1)
+        });
+        
+        this.scene.add(neon);
+    }
+
+    updateWarpEffect(delta) {
+        // Calculate transition rate based on whether entering or exiting warp
+        const transitionRate = this.isWarping ? 
+            delta / SCENE_CONFIG.warp.transitionDuration : 
+            delta / SCENE_CONFIG.warp.exitDuration;
+
+        if (this.isWarping && this.warpTransition < 1) {
+            this.warpTransition = Math.min(1, this.warpTransition + transitionRate);
+        } else if (!this.isWarping && this.warpTransition > SCENE_CONFIG.warp.effectPersistence) {
+            // Transition down to effectPersistence value instead of 0
+            this.warpTransition = Math.max(
+                SCENE_CONFIG.warp.effectPersistence, 
+                this.warpTransition - transitionRate
+            );
+        }
+
+        // Update visual elements based on warp transition
+        if (this.warpTransition > 0 || !this.isWarping) {  // Always update bloom
+            // Interpolate bloom settings with persistence and smooth transition
+            if (this.bloomPass) {
+                const normal = SCENE_CONFIG.warp.normalDimension.bloom;
+                const warp = SCENE_CONFIG.warp.warpDimension.bloom;
+                const transitionPower = Math.pow(this.warpTransition, 1.5); // More dramatic at peak
+                
+                // Ensure we maintain at least the normal bloom values
+                this.bloomPass.strength = Math.max(
+                    normal.strength,
+                    THREE.MathUtils.lerp(normal.strength, warp.strength, transitionPower)
+                );
+                this.bloomPass.radius = Math.max(
+                    normal.radius,
+                    THREE.MathUtils.lerp(normal.radius, warp.radius, transitionPower)
+                );
+                this.bloomPass.threshold = Math.min(
+                    normal.threshold,
+                    THREE.MathUtils.lerp(normal.threshold, warp.threshold, transitionPower)
+                );
+            }
+
+            // Update grid colors with smoother transition
+            const gridHelper = this.scene.children.find(child => child instanceof THREE.GridHelper);
+            if (gridHelper) {
+                const normalColors = SCENE_CONFIG.warp.normalDimension.colors.grid;
+                const warpColors = SCENE_CONFIG.warp.warpDimension.colors.grid;
+                
+                const mainColor = new THREE.Color(normalColors.main);
+                const warpMainColor = new THREE.Color(warpColors.main);
+                const transitionEased = this.easeInOutQuad(this.warpTransition);
+                mainColor.lerp(warpMainColor, transitionEased);
+                
+                const secondaryColor = new THREE.Color(normalColors.secondary);
+                const warpSecondaryColor = new THREE.Color(warpColors.secondary);
+                secondaryColor.lerp(warpSecondaryColor, transitionEased);
+                
+                gridHelper.material.color = mainColor;
+            }
+
+            // Update star colors with persistence
+            if (this.stars) {
+                const colors = this.stars.geometry.attributes.color;
+                const normalStarColors = SCENE_CONFIG.warp.normalDimension.colors.stars;
+                const warpStarColors = SCENE_CONFIG.warp.warpDimension.colors.stars;
+                
+                for (let i = 0; i < colors.count; i++) {
+                    const normalColor = new THREE.Color(normalStarColors[i % normalStarColors.length]);
+                    const warpColor = new THREE.Color(warpStarColors[i % warpStarColors.length]);
+                    const transitionEased = this.easeInOutQuad(this.warpTransition);
+                    normalColor.lerp(warpColor, transitionEased);
+                    
+                    colors.setXYZ(i, normalColor.r, normalColor.g, normalColor.b);
+                }
+                colors.needsUpdate = true;
+            }
+
+            // Add more intense rotation to star container in warp with smooth transition
+            if (this.starContainer) {
+                const normalRotation = 0.0001;
+                const warpRotation = 0.001;
+                const rotationTransition = this.easeInOutQuad(this.warpTransition);
+                this.starContainer.rotation.y += THREE.MathUtils.lerp(normalRotation, warpRotation, rotationTransition);
+                this.starContainer.rotation.x += THREE.MathUtils.lerp(normalRotation/2, warpRotation/2, rotationTransition);
+            }
+        }
+    }
+
+    // Add easing function for smoother transitions
+    easeInOutQuad(t) {
+        return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    }
+
     animate() {
         requestAnimationFrame(this.animate.bind(this));
         
@@ -1103,6 +1555,9 @@ class ExplorationAnimation {
                 + Math.sin(this.time * SCENE_CONFIG.camera.waveSpeed.y) 
                 * SCENE_CONFIG.camera.waveMagnitude.y;
         }
+        
+        // Update warp effect
+        this.updateWarpEffect(delta);
         
         // Update star container to follow camera
         if (this.starContainer) {
