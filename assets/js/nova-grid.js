@@ -32,7 +32,7 @@ const SCENE_CONFIG = {
         fovChangeSpeed: 2, // How quickly FOV changes when boosting/stopping
         near: 0.1,
         far: 10000, // Much larger far plane to see distant stars
-        position: { x: 0, y: 1, z: 5 },
+        position: { x: 0, y: 4, z: 0 },
         movementSpeed: 0.3,
         waveMagnitude: { x: 0.5, y: 0 }, // Sine wave movement magnitude
         waveSpeed: { x: 0.5, y: 0 },  // Sine wave movement speed
