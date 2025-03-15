@@ -1379,11 +1379,9 @@ class ExplorationAnimation {
             this.controls.velocity.add(forward.clone().multiplyScalar(moveSpeed));
         }
         if (this.controls.moveBackward) {
-            // Move backward (in opposite direction)
-            this.controls.velocity.add(forward.clone().multiplyScalar(-moveSpeed));
-            
-            // Debug log for backward movement
-            console.log('Moving backward:', this.controls.moveBackward, this.controls.velocity);
+            // Move backward with increased speed to overcome autoMove
+            // Multiply by 3 to ensure noticeable backward movement
+            this.controls.velocity.add(forward.clone().multiplyScalar(-moveSpeed * 3));
         }
         
         // Apply velocity to camera position
