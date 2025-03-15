@@ -113,9 +113,9 @@ const SCENE_CONFIG = {
     
     // Starfield configuration
     starfield: {
-        stars: 5000,         // Number of stars
+        stars: 10000,         // Number of stars
         size: 2000,         // Size of the star field
-        starSize: 3.0,       // Much larger stars
+        starSize: 2.0,       // Much larger stars
         speed: 1.5,          // Faster movement speed for stars
         maxSpeed: 4.0,       // Maximum speed for closest stars
         colors: [
@@ -1148,9 +1148,33 @@ class ExplorationAnimation {
                     return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
                 }
                 
+                // Function to check if a pixel is likely a star
+                bool isStar(vec3 color) {
+                    // Stars are typically very bright
+                    float brightness = (color.r + color.g + color.b) / 3.0;
+                    
+                    // Check if the pixel is bright enough to be a star
+                    // and has relatively balanced RGB values (not heavily tinted)
+                    return brightness > 0.7 && 
+                           abs(color.r - color.g) < 0.3 && 
+                           abs(color.r - color.b) < 0.3 && 
+                           abs(color.g - color.b) < 0.3;
+                }
+                
                 void main() {
                     vec2 uv = vUv;
                     
+                    // Sample the center pixel first to check if it's a star
+                    vec3 centerColor = texture2D(tDiffuse, uv).rgb;
+                    bool pixelIsStar = isStar(centerColor);
+                    
+                    // If it's a star, don't apply chromatic aberration
+                    if (pixelIsStar) {
+                        gl_FragColor = vec4(centerColor, 1.0);
+                        return;
+                    }
+                    
+                    // For non-star pixels, apply chromatic aberration
                     // Chromatic aberration
                     float aberration = distortion * (0.5 + 0.5 * sin(time * 0.1));
                     vec2 dir = uv - vec2(0.5);
