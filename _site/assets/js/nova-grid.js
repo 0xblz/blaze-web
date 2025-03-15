@@ -29,7 +29,7 @@ const SCENE_CONFIG = {
     camera: {
         fov: 125, // Default FOV
         boostFov: 160, // FOV when boosting
-        fovChangeSpeed: 5, // How quickly FOV changes when boosting/stopping
+        fovChangeSpeed: 2, // How quickly FOV changes when boosting/stopping
         near: 0.1,
         far: 10000, // Much larger far plane to see distant stars
         position: { x: 0, y: 1, z: 5 },
@@ -1122,9 +1122,13 @@ class ExplorationAnimation {
                 const dz = z - this.camera.position.z;
                 const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
                 
-                // If star is too close to camera, reset it at a random position on a sphere
-                if (distance < 10) {
-                    const radius = SCENE_CONFIG.starfield.size;
+                // Reset stars if they're too close or too far from camera
+                const minDistance = 10;
+                const maxDistance = SCENE_CONFIG.starfield.size * 0.8;
+                
+                if (distance < minDistance || distance > maxDistance) {
+                    // Generate new position on sphere around camera
+                    const radius = SCENE_CONFIG.starfield.size * (0.4 + Math.random() * 0.3); // Keep radius more consistent
                     const theta = Math.random() * Math.PI * 2;
                     const phi = Math.acos((Math.random() * 2) - 1);
                     
@@ -1132,6 +1136,11 @@ class ExplorationAnimation {
                     positions[i] = this.camera.position.x + radius * Math.sin(phi) * Math.cos(theta);
                     positions[i + 1] = this.camera.position.y + radius * Math.sin(phi) * Math.sin(theta);
                     positions[i + 2] = this.camera.position.z + radius * Math.cos(phi);
+                    
+                    // Update speed for the reset star
+                    const newDistanceFactor = 1.0 - (Math.abs(positions[i + 2] - this.camera.position.z) / SCENE_CONFIG.starfield.size);
+                    this.starSpeeds[j] = SCENE_CONFIG.starfield.speed + 
+                                       (newDistanceFactor * SCENE_CONFIG.starfield.maxSpeed * Math.random());
                 } else {
                     // Move stars slightly towards camera
                     const speed = this.starSpeeds[j] * delta;
