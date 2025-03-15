@@ -278,6 +278,7 @@ class ExplorationAnimation {
         this.clouds = null;
         this.marbles = [];
         this.marbleCollisions = [];
+        this.floatingArtifacts = [];
         
         // Controls state
         this.controls = {
@@ -360,6 +361,9 @@ class ExplorationAnimation {
         
         // Create energy marbles
         this.createMarbles();
+        
+        // Add floating artifacts
+        this.createFloatingArtifacts();
         
         // Add post-processing
         this.setupPostProcessing();
@@ -1632,7 +1636,14 @@ class ExplorationAnimation {
         }
         
         // Update marbles
-        this.updateMarbles(delta);
+        if (this.marbles && this.marbles.length > 0) {
+            this.updateMarbles(delta);
+        }
+        
+        // Update floating artifacts
+        if (this.floatingArtifacts && this.floatingArtifacts.length > 0) {
+            this.updateFloatingArtifacts(delta);
+        }
         
         // Render scene with post-processing
         this.composer.render();
@@ -2349,6 +2360,228 @@ class ExplorationAnimation {
         
         // Reset glow intensity
         marble.initialGlow = Math.random() * SCENE_CONFIG.marbles.glow.intensity;
+    }
+    
+    createFloatingArtifacts() {
+        this.floatingArtifacts = [];
+        const artifactCount = 30; // Number of artifacts to create
+        
+        // Define different geometric shapes for variety
+        const geometries = [
+            new THREE.TetrahedronGeometry(1, 0), // Triangular pyramid
+            new THREE.OctahedronGeometry(1, 0),  // Diamond shape
+            new THREE.IcosahedronGeometry(1, 0), // Complex polyhedron
+            new THREE.TorusGeometry(1, 0.4, 8, 12), // Ring
+            new THREE.TorusKnotGeometry(0.8, 0.3, 32, 8, 2, 3), // Complex knot
+            new THREE.DodecahedronGeometry(1, 0) // Another complex polyhedron
+        ];
+        
+        // Define artifact colors - using bright neon colors
+        const artifactColors = [
+            '#00ffff', // Cyan
+            '#ff00ff', // Magenta
+            '#ffff00', // Yellow
+            '#00ff8f', // Neon green
+            '#ff2a6d', // Neon pink
+            '#01cdfe', // Bright blue
+            '#05ffa1', // Bright mint
+            '#b967ff'  // Purple
+        ];
+        
+        // Create shader material for the artifacts
+        const artifactMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                baseColor: { value: new THREE.Color(artifactColors[0]) },
+                glowColor: { value: new THREE.Color(artifactColors[0]) },
+                glowIntensity: { value: 1.0 },
+                time: { value: 0 }
+            },
+            vertexShader: `
+                varying vec3 vNormal;
+                varying vec3 vPosition;
+                uniform float time;
+                
+                void main() {
+                    vNormal = normalize(normalMatrix * normal);
+                    vPosition = position;
+                    
+                    // Add subtle vertex displacement for organic movement
+                    vec3 pos = position;
+                    float displacement = sin(time * 2.0 + position.x * 5.0) * 0.05;
+                    pos += normal * displacement;
+                    
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 baseColor;
+                uniform vec3 glowColor;
+                uniform float glowIntensity;
+                uniform float time;
+                varying vec3 vNormal;
+                varying vec3 vPosition;
+                
+                void main() {
+                    // Calculate fresnel effect for edge glow
+                    vec3 viewDirection = normalize(cameraPosition - vPosition);
+                    float fresnel = 1.0 - max(0.0, dot(viewDirection, vNormal));
+                    fresnel = pow(fresnel, 3.0) * glowIntensity;
+                    
+                    // Pulse effect
+                    float pulse = sin(time * 3.0) * 0.5 + 0.5;
+                    
+                    // Final color with glow
+                    vec3 finalColor = mix(baseColor, glowColor, fresnel * pulse);
+                    
+                    gl_FragColor = vec4(finalColor, 0.8); // Slightly transparent
+                }
+            `,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+        
+        for (let i = 0; i < artifactCount; i++) {
+            // Clone the material so each artifact can have its own color and animation
+            const material = artifactMaterial.clone();
+            const colorIndex = Math.floor(Math.random() * artifactColors.length);
+            const color = new THREE.Color(artifactColors[colorIndex]);
+            
+            material.uniforms.baseColor.value = color;
+            material.uniforms.glowColor.value = color;
+            material.uniforms.glowIntensity.value = 0.5 + Math.random() * 1.5;
+            
+            // Select a random geometry
+            const geometryIndex = Math.floor(Math.random() * geometries.length);
+            const geometry = geometries[geometryIndex].clone();
+            
+            // Random scale for variety
+            const scale = 0.5 + Math.random() * 2.0;
+            geometry.scale(scale, scale, scale);
+            
+            // Create mesh
+            const artifact = new THREE.Mesh(geometry, material);
+            
+            // Position randomly in the scene
+            const posRange = 200;
+            artifact.position.set(
+                (Math.random() - 0.5) * posRange,
+                (Math.random() - 0.5) * posRange / 2 + 50, // Keep most artifacts above the grid
+                (Math.random() - 0.5) * posRange - 50 // Mostly in front of the camera
+            );
+            
+            // Add physics properties for movement
+            artifact.physics = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 1,
+                    (Math.random() - 0.5) * 2
+                ),
+                rotationSpeed: new THREE.Vector3(
+                    Math.random() * 0.01,
+                    Math.random() * 0.01,
+                    Math.random() * 0.01
+                ),
+                pulsePhase: Math.random() * Math.PI * 2,
+                lifetime: 10 + Math.random() * 20, // Seconds before regenerating
+                age: 0
+            };
+            
+            this.scene.add(artifact);
+            this.floatingArtifacts.push(artifact);
+        }
+    }
+    
+    updateFloatingArtifacts(delta) {
+        const time = this.clock.getElapsedTime();
+        
+        this.floatingArtifacts.forEach(artifact => {
+            // Update position based on velocity
+            artifact.position.add(artifact.physics.velocity.clone().multiplyScalar(delta));
+            
+            // Update rotation
+            artifact.rotation.x += artifact.physics.rotationSpeed.x;
+            artifact.rotation.y += artifact.physics.rotationSpeed.y;
+            artifact.rotation.z += artifact.physics.rotationSpeed.z;
+            
+            // Update shader time uniform for animation effects
+            artifact.material.uniforms.time.value = time + artifact.physics.pulsePhase;
+            
+            // Update age and check if it's time to respawn
+            artifact.physics.age += delta;
+            if (artifact.physics.age > artifact.physics.lifetime) {
+                this.respawnArtifact(artifact);
+            }
+            
+            // Fade out artifacts that are getting too far away
+            const distanceToCamera = artifact.position.distanceTo(this.camera.position);
+            if (distanceToCamera > 250) {
+                // Start fading out
+                const opacity = Math.max(0, 1 - (distanceToCamera - 250) / 50);
+                artifact.material.opacity = opacity;
+                
+                // Respawn if completely faded out
+                if (opacity < 0.05) {
+                    this.respawnArtifact(artifact);
+                }
+            } else {
+                artifact.material.opacity = 0.8; // Reset opacity
+            }
+        });
+    }
+    
+    respawnArtifact(artifact) {
+        // Reset age
+        artifact.physics.age = 0;
+        
+        // New lifetime
+        artifact.physics.lifetime = 10 + Math.random() * 20;
+        
+        // New position - spawn in front of the camera but off-screen
+        const cameraDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion);
+        const perpendicular = new THREE.Vector3(-cameraDirection.z, 0, cameraDirection.x).normalize();
+        
+        // Position to the sides and in front of the camera
+        const distance = 150 + Math.random() * 100;
+        const sideOffset = (Math.random() - 0.5) * 200;
+        const heightOffset = (Math.random() - 0.5) * 100 + 50;
+        
+        artifact.position.copy(this.camera.position)
+            .add(cameraDirection.multiplyScalar(distance))
+            .add(perpendicular.multiplyScalar(sideOffset))
+            .add(new THREE.Vector3(0, heightOffset, 0));
+        
+        // New velocity - slight movement in random directions
+        artifact.physics.velocity.set(
+            (Math.random() - 0.5) * 2,
+            (Math.random() - 0.5) * 1,
+            (Math.random() - 0.5) * 2
+        );
+        
+        // New rotation speed
+        artifact.physics.rotationSpeed.set(
+            Math.random() * 0.01,
+            Math.random() * 0.01,
+            Math.random() * 0.01
+        );
+        
+        // New pulse phase
+        artifact.physics.pulsePhase = Math.random() * Math.PI * 2;
+        
+        // Potentially change color
+        if (Math.random() > 0.7) {
+            const artifactColors = [
+                '#00ffff', '#ff00ff', '#ffff00', '#00ff8f', 
+                '#ff2a6d', '#01cdfe', '#05ffa1', '#b967ff'
+            ];
+            const newColor = new THREE.Color(
+                artifactColors[Math.floor(Math.random() * artifactColors.length)]
+            );
+            artifact.material.uniforms.baseColor.value = newColor;
+            artifact.material.uniforms.glowColor.value = newColor;
+        }
+        
+        // Reset opacity
+        artifact.material.opacity = 0.8;
     }
 }
 
