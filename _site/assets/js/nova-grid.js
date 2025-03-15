@@ -47,7 +47,10 @@ const SCENE_CONFIG = {
                 backward: 'ArrowDown',
                 left: 'ArrowLeft',
                 right: 'ArrowRight'
-            }
+            },
+            // Look control parameters
+            rotationSpeed: 0.03,
+            verticalRotationLimit: Math.PI / 2.5  // Limit vertical rotation to avoid over-rotation
         }
     },
     
@@ -288,7 +291,16 @@ class ExplorationAnimation {
             moveRight: false,
             boost: false,
             direction: new THREE.Vector3(0, 0, -1), // Forward direction vector
-            velocity: new THREE.Vector3()
+            velocity: new THREE.Vector3(),
+            // Look controls
+            lookUp: false,
+            lookDown: false,
+            lookLeft: false,
+            lookRight: false,
+            // Initialize rotation here where THREE is available
+            rotation: new THREE.Euler(0, 0, 0, 'YXZ'),
+            rotationSpeed: SCENE_CONFIG.camera.controls.rotationSpeed,
+            verticalRotationLimit: SCENE_CONFIG.camera.controls.verticalRotationLimit
         };
         
         this.boostTimer = 0;
@@ -1238,10 +1250,18 @@ class ExplorationAnimation {
                 this.controls.moveBackward = true;
                 break;
             case keyMapping.left:
-                this.controls.moveLeft = true;
+            case 'KeyA':
+                this.controls.lookLeft = true;
                 break;
             case keyMapping.right:
-                this.controls.moveRight = true;
+            case 'KeyD':
+                this.controls.lookRight = true;
+                break;
+            case 'KeyW':
+                this.controls.lookUp = true;
+                break;
+            case 'KeyS':
+                this.controls.lookDown = true;
                 break;
         }
     }
@@ -1252,16 +1272,24 @@ class ExplorationAnimation {
         switch (event.code) {
             case keyMapping.forward:
                 this.controls.moveForward = false;
-                this.controls.boost = false; // Deactivate boost when forward key is released
+                this.controls.boost = false;
                 break;
             case keyMapping.backward:
                 this.controls.moveBackward = false;
                 break;
             case keyMapping.left:
-                this.controls.moveLeft = false;
+            case 'KeyA':
+                this.controls.lookLeft = false;
                 break;
             case keyMapping.right:
-                this.controls.moveRight = false;
+            case 'KeyD':
+                this.controls.lookRight = false;
+                break;
+            case 'KeyW':
+                this.controls.lookUp = false;
+                break;
+            case 'KeyS':
+                this.controls.lookDown = false;
                 break;
         }
     }
@@ -1301,51 +1329,50 @@ class ExplorationAnimation {
             );
             this.camera.updateProjectionMatrix();
         }
+
+        // Handle camera rotation from WASD/Arrow keys
+        if (this.controls.lookUp) {
+            this.controls.rotation.x += this.controls.rotationSpeed;
+        }
+        if (this.controls.lookDown) {
+            this.controls.rotation.x -= this.controls.rotationSpeed;
+        }
+        if (this.controls.lookLeft) {
+            this.controls.rotation.y += this.controls.rotationSpeed;
+        }
+        if (this.controls.lookRight) {
+            this.controls.rotation.y -= this.controls.rotationSpeed;
+        }
+
+        // Clamp vertical rotation to avoid over-rotation
+        this.controls.rotation.x = Math.max(
+            -this.controls.verticalRotationLimit,
+            Math.min(this.controls.verticalRotationLimit, this.controls.rotation.x)
+        );
+
+        // Apply rotation to camera
+        this.camera.quaternion.setFromEuler(this.controls.rotation);
         
         // Calculate movement based on current direction
         const moveSpeed = currentSpeed * delta * 60; // Normalize by framerate
         
-        // Update direction vector based on turning
-        if (this.controls.moveLeft) {
-            // Rotate direction vector around Y axis (left)
-            this.controls.direction.applyAxisAngle(
-                new THREE.Vector3(0, 1, 0), 
-                SCENE_CONFIG.camera.controls.turnSpeed
-            );
-        }
-        if (this.controls.moveRight) {
-            // Rotate direction vector around Y axis (right)
-            this.controls.direction.applyAxisAngle(
-                new THREE.Vector3(0, 1, 0), 
-                -SCENE_CONFIG.camera.controls.turnSpeed
-            );
-        }
+        // Update movement direction based on camera's look direction
+        const forward = new THREE.Vector3(0, 0, -1);
+        forward.applyQuaternion(this.camera.quaternion);
+        forward.normalize();
         
-        // Normalize direction vector
-        this.controls.direction.normalize();
-        
-        // Calculate velocity based on forward/backward movement
+        // Calculate velocity based on forward/backward input only
         this.controls.velocity.set(0, 0, 0);
         
         if (this.controls.moveForward || SCENE_CONFIG.camera.controls.autoMove) {
-            // Move in the direction we're facing
-            this.controls.velocity.add(
-                this.controls.direction.clone().multiplyScalar(moveSpeed)
-            );
+            this.controls.velocity.add(forward.multiplyScalar(moveSpeed));
         }
         if (this.controls.moveBackward) {
-            // Move opposite to the direction we're facing
-            this.controls.velocity.add(
-                this.controls.direction.clone().multiplyScalar(-moveSpeed)
-            );
+            this.controls.velocity.sub(forward.multiplyScalar(moveSpeed));
         }
         
         // Apply velocity to camera position
         this.camera.position.add(this.controls.velocity);
-        
-        // Update camera look direction
-        const lookAtPosition = this.camera.position.clone().add(this.controls.direction);
-        this.camera.lookAt(lookAtPosition);
     }
 
     startWarp() {
