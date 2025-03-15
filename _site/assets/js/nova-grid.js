@@ -1241,22 +1241,28 @@ class ExplorationAnimation {
     onKeyDown(event) {
         const keyMapping = SCENE_CONFIG.camera.controls.keyMapping;
         
+        // Debug log to check key codes
+        console.log('Key pressed:', event.code);
+        
         switch (event.code) {
-            case keyMapping.forward:
+            // Movement controls (arrows only)
+            case 'ArrowUp':
                 this.controls.moveForward = true;
-                this.controls.boost = true; // Activate boost when moving forward
+                this.controls.boost = true;
                 break;
-            case keyMapping.backward:
+            case 'ArrowDown':
                 this.controls.moveBackward = true;
                 break;
-            case keyMapping.left:
+            // Look controls (both arrows and WASD)
+            case 'ArrowLeft':
             case 'KeyA':
                 this.controls.lookLeft = true;
                 break;
-            case keyMapping.right:
+            case 'ArrowRight':
             case 'KeyD':
                 this.controls.lookRight = true;
                 break;
+            // Look up/down (W/S only)
             case 'KeyW':
                 this.controls.lookUp = true;
                 break;
@@ -1270,21 +1276,24 @@ class ExplorationAnimation {
         const keyMapping = SCENE_CONFIG.camera.controls.keyMapping;
         
         switch (event.code) {
-            case keyMapping.forward:
+            // Movement controls (arrows only)
+            case 'ArrowUp':
                 this.controls.moveForward = false;
                 this.controls.boost = false;
                 break;
-            case keyMapping.backward:
+            case 'ArrowDown':
                 this.controls.moveBackward = false;
                 break;
-            case keyMapping.left:
+            // Look controls (both arrows and WASD)
+            case 'ArrowLeft':
             case 'KeyA':
                 this.controls.lookLeft = false;
                 break;
-            case keyMapping.right:
+            case 'ArrowRight':
             case 'KeyD':
                 this.controls.lookRight = false;
                 break;
+            // Look up/down (W/S only)
             case 'KeyW':
                 this.controls.lookUp = false;
                 break;
@@ -1361,14 +1370,20 @@ class ExplorationAnimation {
         forward.applyQuaternion(this.camera.quaternion);
         forward.normalize();
         
-        // Calculate velocity based on forward/backward input only
+        // Calculate velocity based on input
         this.controls.velocity.set(0, 0, 0);
         
+        // Handle forward/backward movement
         if (this.controls.moveForward || SCENE_CONFIG.camera.controls.autoMove) {
-            this.controls.velocity.add(forward.multiplyScalar(moveSpeed));
+            // Move forward
+            this.controls.velocity.add(forward.clone().multiplyScalar(moveSpeed));
         }
         if (this.controls.moveBackward) {
-            this.controls.velocity.sub(forward.multiplyScalar(moveSpeed));
+            // Move backward (in opposite direction)
+            this.controls.velocity.add(forward.clone().multiplyScalar(-moveSpeed));
+            
+            // Debug log for backward movement
+            console.log('Moving backward:', this.controls.moveBackward, this.controls.velocity);
         }
         
         // Apply velocity to camera position
