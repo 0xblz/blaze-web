@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avatar</title>
+    <meta name="description" content="A simple avatar experiment.">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <script src="https://kit.fontawesome.com/53df3a2a07.js" crossorigin="anonymous"></script>
+</head>
+<body class="experiment">
+    <main>
+        <header>
+    
+        <nav>
+            <a href="/" class="back-button"><i class="fa-solid fa-arrow-left"></i></a>
+            <h2>Avatar</h2>
+        </nav>
+        <nav>
+            <p>A simple avatar experiment.</p>
+        </nav>
+    
+</header>
+        <section>
+            <svg preserveAspectRatio="xMidYMid meet">
+  <style>
+    svg {
+      display: block;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-radius: 50%;
+    }
+    #shader-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    #shader-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+      border-radius: 50%;
+    }
+  </style>
+  <foreignObject width="100%" height="100%" x="0" y="0">
+    <div xmlns="http://www.w3.org/1999/xhtml" id="shader-container"></div>
+  </foreignObject>
+  <script type="module">
+    import * as THREE from 'https://cdn.skypack.dev/three@0.136.0';
+    import { GUI } from 'https://cdn.skypack.dev/dat.gui';
+
+    // Add styles for GUI positioning
+    const style = document.createElement('style');
+    style.textContent = `
+      .dg.ac {
+        z-index: 1000 !important;
+        position: fixed !important;
+        top: 0 !important;
+        right: 0 !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Configuration object for all adjustable parameters
+    const config = {
+      // Animation settings
+      animation: {
+        timeScale: 0.002,      // Speed of animation
+      },
+      // Color settings
+      colors: {
+        primary: new THREE.Vector3(1, 0.7, 0.8),    // Main color
+        range: {
+          min: 0.2,           // Minimum color value
+          max: 1.0            // Maximum color value
+        },
+        adjustment: {
+          saturation: 1.6,    // Color saturation multiplier
+          brightness: 1.3,    // Overall brightness
+          contrast: 2.0       // Color contrast
+        }
+      },
+      // Effect settings
+      effect: {
+        iterations: 100,      // Number of iterations (N)
+        rotationSpeed: 2.4,   // Speed of rotation
+        intensity: 0.1,       // Overall effect intensity
+        distribution: {
+          x: 0,              // X offset for distribution
+          y: 11              // Y offset for distribution
+        }
+      }
+    };
+
+    // Function to update uniforms when config changes
+    function updateUniforms() {
+      if (uniforms) {
+        Object.assign(uniforms.config.value, {
+          colorMin: config.colors.range.min,
+          colorMax: config.colors.range.max,
+          primaryColor: config.colors.primary,
+          saturation: config.colors.adjustment.saturation,
+          brightness: config.colors.adjustment.brightness,
+          contrast: config.colors.adjustment.contrast,
+          effectIntensity: config.effect.intensity
+        });
+      }
+    }
+
+    // Setup GUI controls
+    function setupGUI() {
+      const gui = new GUI();
+      
+      // Colors folder
+      const colorsFolder = gui.addFolder('Colors');
+      colorsFolder.add(config.colors.range, 'min', 0, 1).onChange(updateUniforms);
+      colorsFolder.add(config.colors.range, 'max', 0, 1).onChange(updateUniforms);
+      
+      // Primary Color
+      const primaryFolder = colorsFolder.addFolder('Primary Color');
+      primaryFolder.add(config.colors.primary, 'x', 0, 1).name('R').onChange(updateUniforms);
+      primaryFolder.add(config.colors.primary, 'y', 0, 1).name('G').onChange(updateUniforms);
+      primaryFolder.add(config.colors.primary, 'z', 0, 1).name('B').onChange(updateUniforms);
+      
+      // Color Adjustments
+      const adjustmentFolder = colorsFolder.addFolder('Adjustments');
+      adjustmentFolder.add(config.colors.adjustment, 'saturation', 0, 2).onChange(updateUniforms);
+      adjustmentFolder.add(config.colors.adjustment, 'brightness', 0, 2).onChange(updateUniforms);
+      adjustmentFolder.add(config.colors.adjustment, 'contrast', 0, 2).onChange(updateUniforms);
+      
+      // Animation folder
+      const animationFolder = gui.addFolder('Animation');
+      animationFolder.add(config.animation, 'timeScale', 0, 0.05).onChange(updateUniforms);
+      
+      // Effect folder
+      const effectFolder = gui.addFolder('Effect');
+      effectFolder.add(config.effect, 'intensity', 0, 1).onChange(updateUniforms);
+      effectFolder.add(config.effect, 'rotationSpeed', 0, 5).onChange(updateUniforms);
+      
+      const distributionFolder = effectFolder.addFolder('Distribution');
+      distributionFolder.add(config.effect.distribution, 'x', -20, 20).onChange(updateUniforms);
+      distributionFolder.add(config.effect.distribution, 'y', -20, 20).onChange(updateUniforms);
+      
+      // Open folders by default
+      colorsFolder.open();
+      animationFolder.open();
+      effectFolder.open();
+    }
+
+    let container;
+    let camera, scene, renderer;
+    let uniforms;
+
+    init();
+    animate();
+
+    function init() {
+      container = document.getElementById('shader-container');
+
+      camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      scene = new THREE.Scene();
+
+      const geometry = new THREE.PlaneGeometry(2, 2);
+
+      uniforms = {
+        time: { value: 1.0 },
+        resolution: { value: new THREE.Vector2() },
+        config: { 
+          value: {
+            colorMin: config.colors.range.min,
+            colorMax: config.colors.range.max,
+            primaryColor: config.colors.primary,
+            saturation: config.colors.adjustment.saturation,
+            brightness: config.colors.adjustment.brightness,
+            contrast: config.colors.adjustment.contrast,
+            effectIntensity: config.effect.intensity
+          }
+        }
+      };
+
+      const material = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: `
+          void main() {
+            gl_Position = vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform float time;
+          uniform vec2 resolution;
+          uniform struct Config {
+            float colorMin;
+            float colorMax;
+            vec3 primaryColor;
+            float saturation;
+            float brightness;
+            float contrast;
+            float effectIntensity;
+          } config;
+
+          vec3 adjustColor(vec3 color) {
+            float luminance = dot(color, vec3(0.299, 0.587, 0.114));
+            vec3 saturated = mix(vec3(luminance), color, config.saturation);
+            vec3 contrasted = (saturated - 0.5) * config.contrast + 0.5;
+            return contrasted * config.brightness;
+          }
+
+          void main() {
+            vec4 o = vec4(0.0);
+            vec2 r = resolution;
+            vec2 FC = gl_FragCoord.xy;
+            float t = time;
+
+            vec2 p = (FC.xy * 2. - r) / r.y;
+            
+            vec3 v;
+            
+            float N = ${config.effect.iterations}.0;
+            float rotSpeed = ${config.effect.rotationSpeed};
+            vec2 dist = vec2(${config.effect.distribution.x}, ${config.effect.distribution.y});
+            
+            for(float i = -1.; i < 1.; i += 2. / N) {
+              v = vec3(cos(N * i * rotSpeed + t + dist) * sqrt(1. - i * i), i);
+              
+              o += (cos(i * 4. + vec4(6, 1, 2, 3)) + 1.) / N / length(p - v.xz / (1. / length(p) - v.y));
+            }
+            
+            o = tanh(config.effectIntensity * o * o);
+            
+            float range = config.colorMax - config.colorMin;
+            vec3 baseColor = vec3(
+              o.x * range + config.colorMin,
+              o.y * range + config.colorMin,
+              o.z * range + config.colorMin
+            );
+            
+            vec3 color = config.primaryColor * baseColor;
+            color = adjustColor(color);
+            
+            gl_FragColor = vec4(color, 1.0);
+          }
+        `
+      });
+
+      const mesh = new THREE.Mesh(geometry, material);
+      scene.add(mesh);
+
+      renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true
+      });
+
+      function updateSize() {
+        const rect = container.getBoundingClientRect();
+        const width = rect.width;
+        const height = rect.width; // Keep it square
+        renderer.setSize(width, height, false);
+        uniforms.resolution.value.set(width, height);
+      }
+
+      // Initial size setup
+      container.appendChild(renderer.domElement);
+      updateSize();
+
+      // Add resize listener
+      const resizeObserver = new ResizeObserver(updateSize);
+      resizeObserver.observe(container);
+
+      // Add GUI after renderer setup
+      setupGUI();
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      render();
+    }
+
+    function render() {
+      uniforms.time.value += config.animation.timeScale;
+      renderer.render(scene, camera);
+    }
+  </script>
+</svg>
+
+
+        </section>
+    </main>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-355V4GHGSF"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-355V4GHGSF');
+    </script>
+    
+    
+</body>
+</html> 
