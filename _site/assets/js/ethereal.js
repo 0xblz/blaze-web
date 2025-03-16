@@ -4,37 +4,44 @@ const loadThreeJS = () => {
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
         script.onload = () => {
-            // After Three.js is loaded, load the post-processing library
-            const ppScript = document.createElement('script');
-            ppScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js';
-            ppScript.onload = () => {
-                // Load additional post-processing modules
-                const renderPassScript = document.createElement('script');
-                renderPassScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js';
-                renderPassScript.onload = () => {
-                    const shaderPassScript = document.createElement('script');
-                    shaderPassScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js';
-                    shaderPassScript.onload = () => {
-                        const digitalGlitchScript = document.createElement('script');
-                        digitalGlitchScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/DigitalGlitch.js';
-                        digitalGlitchScript.onload = () => {
-                            const glitchPassScript = document.createElement('script');
-                            glitchPassScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/GlitchPass.js';
-                            glitchPassScript.onload = () => resolve();
-                            glitchPassScript.onerror = () => reject(new Error('Failed to load GlitchPass'));
-                            document.head.appendChild(glitchPassScript);
+            // After Three.js is loaded, load the CopyShader first
+            const copyShaderScript = document.createElement('script');
+            copyShaderScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js';
+            copyShaderScript.onload = () => {
+                // Then load the post-processing library
+                const ppScript = document.createElement('script');
+                ppScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js';
+                ppScript.onload = () => {
+                    // Load additional post-processing modules
+                    const renderPassScript = document.createElement('script');
+                    renderPassScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js';
+                    renderPassScript.onload = () => {
+                        const shaderPassScript = document.createElement('script');
+                        shaderPassScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js';
+                        shaderPassScript.onload = () => {
+                            const digitalGlitchScript = document.createElement('script');
+                            digitalGlitchScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/DigitalGlitch.js';
+                            digitalGlitchScript.onload = () => {
+                                const glitchPassScript = document.createElement('script');
+                                glitchPassScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/GlitchPass.js';
+                                glitchPassScript.onload = () => resolve();
+                                glitchPassScript.onerror = () => reject(new Error('Failed to load GlitchPass'));
+                                document.head.appendChild(glitchPassScript);
+                            };
+                            digitalGlitchScript.onerror = () => reject(new Error('Failed to load DigitalGlitch'));
+                            document.head.appendChild(digitalGlitchScript);
                         };
-                        digitalGlitchScript.onerror = () => reject(new Error('Failed to load DigitalGlitch'));
-                        document.head.appendChild(digitalGlitchScript);
+                        shaderPassScript.onerror = () => reject(new Error('Failed to load ShaderPass'));
+                        document.head.appendChild(shaderPassScript);
                     };
-                    shaderPassScript.onerror = () => reject(new Error('Failed to load ShaderPass'));
-                    document.head.appendChild(shaderPassScript);
+                    renderPassScript.onerror = () => reject(new Error('Failed to load RenderPass'));
+                    document.head.appendChild(renderPassScript);
                 };
-                renderPassScript.onerror = () => reject(new Error('Failed to load RenderPass'));
-                document.head.appendChild(renderPassScript);
+                ppScript.onerror = () => reject(new Error('Failed to load EffectComposer'));
+                document.head.appendChild(ppScript);
             };
-            ppScript.onerror = () => reject(new Error('Failed to load EffectComposer'));
-            document.head.appendChild(ppScript);
+            copyShaderScript.onerror = () => reject(new Error('Failed to load CopyShader'));
+            document.head.appendChild(copyShaderScript);
         };
         script.onerror = () => reject(new Error('Failed to load Three.js'));
         document.head.appendChild(script);
