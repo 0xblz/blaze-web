@@ -1394,19 +1394,19 @@ class ExplorationAnimation {
             case 'ArrowDown':
                 this.controls.moveBackward = true;
                 break;
-            // Look controls (arrow keys)
+            // Roll controls (arrow keys)
             case 'ArrowLeft':
-                this.controls.lookLeft = true;
-                break;
-            case 'ArrowRight':
-                this.controls.lookRight = true;
-                break;
-            // Barrel roll controls (A/D)
-            case 'KeyA':
                 this.controls.rollLeft = true;
                 break;
-            case 'KeyD':
+            case 'ArrowRight':
                 this.controls.rollRight = true;
+                break;
+            // Look controls (A/D)
+            case 'KeyA':
+                this.controls.lookLeft = true;
+                break;
+            case 'KeyD':
+                this.controls.lookRight = true;
                 break;
             // Inverted look up/down (W/S)
             case 'KeyW':
@@ -1429,19 +1429,19 @@ class ExplorationAnimation {
             case 'ArrowDown':
                 this.controls.moveBackward = false;
                 break;
-            // Look controls
+            // Roll controls
             case 'ArrowLeft':
-                this.controls.lookLeft = false;
-                break;
-            case 'ArrowRight':
-                this.controls.lookRight = false;
-                break;
-            // Barrel roll controls
-            case 'KeyA':
                 this.controls.rollLeft = false;
                 break;
-            case 'KeyD':
+            case 'ArrowRight':
                 this.controls.rollRight = false;
+                break;
+            // Look controls
+            case 'KeyA':
+                this.controls.lookLeft = false;
+                break;
+            case 'KeyD':
+                this.controls.lookRight = false;
                 break;
             // Inverted look up/down
             case 'KeyW':
@@ -1546,8 +1546,20 @@ class ExplorationAnimation {
             this.controls.rollAngle -= this.controls.rollSpeed * delta;
         }
         
-        // Apply damping to roll
-        this.controls.rollAngle *= Math.pow(this.controls.rollDamping, delta * 60);
+        // Restore damping to return to level position when keys are released
+        // but normalize the angle first to allow full rolls
+        if (!this.controls.rollLeft && !this.controls.rollRight) {
+            // Normalize roll angle to -PI to PI range for smooth return to level
+            this.controls.rollAngle = this.controls.rollAngle % (Math.PI * 2);
+            if (this.controls.rollAngle > Math.PI) {
+                this.controls.rollAngle -= Math.PI * 2;
+            } else if (this.controls.rollAngle < -Math.PI) {
+                this.controls.rollAngle += Math.PI * 2;
+            }
+            
+            // Apply damping only when not actively rolling
+            this.controls.rollAngle *= Math.pow(this.controls.rollDamping, delta * 60);
+        }
 
         // Create quaternions for look and roll
         const lookQuaternion = new THREE.Quaternion().setFromEuler(this.controls.rotation);
