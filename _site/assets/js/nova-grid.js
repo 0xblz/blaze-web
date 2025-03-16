@@ -91,13 +91,13 @@ const SCENE_CONFIG = {
     // City generation
     city: {
         size: 600,
-        buildingCount: 500,
-        neonStructureCount: 100,
+        buildingCount: 200,
+        neonStructureCount: 50,
         building: {
-            maxHeight: 200,
+            maxHeight: 1200,
             minHeight: 50,
-            maxWidth: 5,
-            minWidth: 0.5
+            maxWidth: 10,
+            minWidth: 5
         }
     },
     
@@ -136,7 +136,7 @@ const SCENE_CONFIG = {
         count: 2000,          // Number of cloud particles
         height: 200,          // Average height of clouds
         heightVariation: 100, // Variation in cloud height
-        size: 250,            // Size of cloud particles
+        size: 450,            // Size of cloud particles
         sizeVariation: 40,   // Variation in cloud size
         color: 0x4422ff,     // Base color (blue/purple)
         opacity: 0.05,        // Base opacity
@@ -169,9 +169,9 @@ const SCENE_CONFIG = {
                 }
             },
             bloom: {
-                strength: 1.2,  // Increased normal bloom
+                strength: 0.5,  // Increased normal bloom
                 radius: 0.5,    // Increased normal radius
-                threshold: 0.2  // Lower threshold for more bloom
+                threshold: 0.5  // Lower threshold for more bloom
             }
         },
         warpDimension: {
@@ -190,9 +190,9 @@ const SCENE_CONFIG = {
                 }
             },
             bloom: {
-                strength: 1.5,    // Even stronger bloom in warp
-                radius: 0.8,      // Wider bloom radius
-                threshold: 0.2     // Even lower threshold
+                strength: 0.1,    // Even stronger bloom in warp
+                radius: 0.5,      // Wider bloom radius
+                threshold: 0.5     // Even lower threshold
             }
         }
     },
@@ -200,8 +200,8 @@ const SCENE_CONFIG = {
     // Marble configuration
     marbles: {
         count: 200,                // Number of marbles
-        minRadius: 0.8,           // Minimum marble radius
-        maxRadius: 1.0,           // Slightly smaller maximum radius for better grid alignment
+        minRadius: 2.8,           // Minimum marble radius
+        maxRadius: 4.0,           // Slightly smaller maximum radius for better grid alignment
         bounceHeight: 0.3,        // Reduced bounce height for smoother grid rolling
         bounceSpeed: 0.8,         // Increased bounce speed for more dynamic movement
         rollSpeed: 2.2,           // Increased roll speed
