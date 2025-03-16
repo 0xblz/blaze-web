@@ -344,14 +344,20 @@ class ExplorationAnimation {
             moveLeft: false,
             moveRight: false,
             boost: false,
-            direction: new THREE.Vector3(0, 0, -1), // Forward direction vector
+            direction: new THREE.Vector3(0, 0, -1),
             velocity: new THREE.Vector3(),
             // Look controls
             lookUp: false,
             lookDown: false,
             lookLeft: false,
             lookRight: false,
-            // Initialize rotation here where THREE is available
+            // Add barrel roll controls
+            rollLeft: false,
+            rollRight: false,
+            rollAngle: 0,
+            rollSpeed: Math.PI * 2, // Full rotation speed
+            rollDamping: 0.92, // Smooth damping
+            // Initialize rotation
             rotation: new THREE.Euler(0, 0, 0, 'YXZ'),
             rotationSpeed: SCENE_CONFIG.camera.controls.rotationSpeed,
             verticalRotationLimit: SCENE_CONFIG.camera.controls.verticalRotationLimit
@@ -1298,11 +1304,8 @@ class ExplorationAnimation {
     onKeyDown(event) {
         const keyMapping = SCENE_CONFIG.camera.controls.keyMapping;
         
-        // Debug log to check key codes
-        console.log('Key pressed:', event.code);
-        
         switch (event.code) {
-            // Movement controls (arrows only)
+            // Movement controls
             case 'ArrowUp':
                 this.controls.moveForward = true;
                 this.controls.boost = true;
@@ -1310,21 +1313,26 @@ class ExplorationAnimation {
             case 'ArrowDown':
                 this.controls.moveBackward = true;
                 break;
-            // Look controls (both arrows and WASD)
+            // Look controls (arrow keys)
             case 'ArrowLeft':
-            case 'KeyA':
                 this.controls.lookLeft = true;
                 break;
             case 'ArrowRight':
-            case 'KeyD':
                 this.controls.lookRight = true;
                 break;
-            // Look up/down (W/S only)
+            // Barrel roll controls (A/D)
+            case 'KeyA':
+                this.controls.rollLeft = true;
+                break;
+            case 'KeyD':
+                this.controls.rollRight = true;
+                break;
+            // Inverted look up/down (W/S)
             case 'KeyW':
-                this.controls.lookUp = true;
+                this.controls.lookDown = true;  // Changed from lookUp
                 break;
             case 'KeyS':
-                this.controls.lookDown = true;
+                this.controls.lookUp = true;    // Changed from lookDown
                 break;
         }
     }
@@ -1333,7 +1341,6 @@ class ExplorationAnimation {
         const keyMapping = SCENE_CONFIG.camera.controls.keyMapping;
         
         switch (event.code) {
-            // Movement controls (arrows only)
             case 'ArrowUp':
                 this.controls.moveForward = false;
                 this.controls.boost = false;
@@ -1341,21 +1348,26 @@ class ExplorationAnimation {
             case 'ArrowDown':
                 this.controls.moveBackward = false;
                 break;
-            // Look controls (both arrows and WASD)
+            // Look controls
             case 'ArrowLeft':
-            case 'KeyA':
                 this.controls.lookLeft = false;
                 break;
             case 'ArrowRight':
-            case 'KeyD':
                 this.controls.lookRight = false;
                 break;
-            // Look up/down (W/S only)
+            // Barrel roll controls
+            case 'KeyA':
+                this.controls.rollLeft = false;
+                break;
+            case 'KeyD':
+                this.controls.rollRight = false;
+                break;
+            // Inverted look up/down
             case 'KeyW':
-                this.controls.lookUp = false;
+                this.controls.lookDown = false;  // Changed from lookUp
                 break;
             case 'KeyS':
-                this.controls.lookDown = false;
+                this.controls.lookUp = false;    // Changed from lookDown
                 break;
         }
     }
@@ -1396,7 +1408,7 @@ class ExplorationAnimation {
             this.camera.updateProjectionMatrix();
         }
 
-        // Handle camera rotation from WASD/Arrow keys
+        // Handle camera rotation
         if (this.controls.lookUp) {
             this.controls.rotation.x += this.controls.rotationSpeed;
         }
@@ -1410,21 +1422,36 @@ class ExplorationAnimation {
             this.controls.rotation.y -= this.controls.rotationSpeed;
         }
 
-        // Clamp vertical rotation to avoid over-rotation
+        // Handle barrel roll with delta time
+        if (this.controls.rollLeft) {
+            this.controls.rollAngle += this.controls.rollSpeed * delta;
+        }
+        if (this.controls.rollRight) {
+            this.controls.rollAngle -= this.controls.rollSpeed * delta;
+        }
+        
+        // Apply damping to roll
+        this.controls.rollAngle *= Math.pow(this.controls.rollDamping, delta * 60);
+
+        // Clamp vertical rotation
         this.controls.rotation.x = Math.max(
             -this.controls.verticalRotationLimit,
             Math.min(this.controls.verticalRotationLimit, this.controls.rotation.x)
         );
 
-        // Apply rotation to camera
-        this.camera.quaternion.setFromEuler(this.controls.rotation);
-        
-        // Calculate movement based on current direction
-        const moveSpeed = currentSpeed * delta * 60; // Normalize by framerate
-        
+        // Create quaternions for look and roll
+        const lookQuaternion = new THREE.Quaternion().setFromEuler(this.controls.rotation);
+        const rollQuaternion = new THREE.Quaternion().setFromAxisAngle(
+            new THREE.Vector3(0, 0, 1),
+            this.controls.rollAngle
+        );
+
+        // Apply rotations to camera
+        this.camera.quaternion.copy(lookQuaternion).multiply(rollQuaternion);
+
         // Update movement direction based on camera's look direction
         const forward = new THREE.Vector3(0, 0, -1);
-        forward.applyQuaternion(this.camera.quaternion);
+        forward.applyQuaternion(lookQuaternion); // Use look quaternion only for movement
         forward.normalize();
         
         // Calculate velocity based on input
@@ -1432,13 +1459,10 @@ class ExplorationAnimation {
         
         // Handle forward/backward movement
         if (this.controls.moveForward || SCENE_CONFIG.camera.controls.autoMove) {
-            // Move forward
-            this.controls.velocity.add(forward.clone().multiplyScalar(moveSpeed));
+            this.controls.velocity.add(forward.clone().multiplyScalar(currentSpeed));
         }
         if (this.controls.moveBackward) {
-            // Move backward with increased speed to overcome autoMove
-            // Multiply by 3 to ensure noticeable backward movement
-            this.controls.velocity.add(forward.clone().multiplyScalar(-moveSpeed * 3));
+            this.controls.velocity.add(forward.clone().multiplyScalar(-currentSpeed * 3));
         }
         
         // Apply velocity to camera position
