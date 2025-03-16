@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avatar</title>
-    <meta name="description" content="Create a custom avatar.">
+    <title>Marble Maker</title>
+    <meta name="description" content="Create a custom marble.">
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="stylesheet" href="/assets/css/main.css">
     <script src="https://kit.fontawesome.com/53df3a2a07.js" crossorigin="anonymous"></script>
@@ -15,10 +15,10 @@
     
         <nav>
             <a href="/" class="back-button"><i class="fa-solid fa-arrow-left"></i></a>
-            <h2>Avatar</h2>
+            <h2>Marble Maker</h2>
         </nav>
         <nav>
-            <p>Create a custom avatar.</p>
+            <p>Create a custom marble.</p>
         </nav>
     
 </header>
@@ -539,7 +539,7 @@
     </script>
   </svg>
   
-  <button onclick="downloadAvatar()" style="display: flex; align-items: center; width: 100%; justify-content: center; gap: 4px; margin-top: 16px; padding: 12px 24px; font-size: 16px; font-family: 'DM Sans', sans-serif; font-weight: 600; background-color: rgba(255, 255, 255, 0.1); color: white; border: none; border-radius: 9999px; cursor: pointer;">
+  <button onclick="downloadAvatar()" style="display: flex; align-items: center; width: 100%; justify-content: center; gap: 4px; padding: 12px 24px; font-size: 16px; font-family: 'DM Sans', sans-serif; font-weight: 600; background-color: rgba(255, 255, 255, 0.1); color: white; border: none; border-radius: 9999px; cursor: pointer;">
     <i class="fa-solid fa-circle-down"></i> Download .png
   </button>
 </div>
@@ -561,16 +561,39 @@ function downloadAvatar() {
   });
   tempRenderer.setSize(1024, 1024);
   
+  // Create a temporary orthographic camera
+  const tempCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  
   // Create a new mesh at high resolution
   const geometry = new THREE.PlaneGeometry(2, 2);
-  const mesh = new THREE.Mesh(geometry, material);
+  
+  // Clone material and copy all uniforms
+  const tempMaterial = material.clone();
+  tempMaterial.uniforms = {};
+  for (const key in material.uniforms) {
+    if (key === 'resolution') {
+      tempMaterial.uniforms[key] = { value: new THREE.Vector2(1024, 1024) };
+    } else if (key === 'config') {
+      // Deep clone the config uniform
+      tempMaterial.uniforms[key] = {
+        value: JSON.parse(JSON.stringify(material.uniforms[key].value))
+      };
+    } else {
+      // Clone other uniforms
+      tempMaterial.uniforms[key] = {
+        value: material.uniforms[key].value
+      };
+    }
+  }
+  
+  const mesh = new THREE.Mesh(geometry, tempMaterial);
   
   // Create a temporary scene
   const tempScene = new THREE.Scene();
   tempScene.add(mesh);
   
   // Render at high resolution
-  tempRenderer.render(tempScene, camera);
+  tempRenderer.render(tempScene, tempCamera);
   
   // Create a temporary canvas to handle the circular mask
   const maskCanvas = document.createElement('canvas');
@@ -589,15 +612,16 @@ function downloadAvatar() {
   
   // Convert to data URL and trigger download
   const link = document.createElement('a');
-  link.download = 'avatar.png';
+  link.download = 'marble.png';
   link.href = maskCanvas.toDataURL('image/png');
-  document.body.appendChild(link); // Add link to document
+  document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link); // Clean up
+  document.body.removeChild(link);
   
   // Cleanup
   tempRenderer.dispose();
   geometry.dispose();
+  tempMaterial.dispose();
   tempScene.remove(mesh);
 }
 </script>

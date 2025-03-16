@@ -50,9 +50,15 @@ const SCENE_CONFIG = {
             },
             // Look control parameters
             rotationSpeed: 0.03,
+            lookSensitivity: {
+                horizontal: 0.1,  // Multiplier for left/right look speed
+                vertical: 0.1     // Multiplier for up/down look speed
+            },
+            rollSpeed: Math.PI, // Speed of A/D barrel roll (reduced from 2π to π)
+            rollDamping: 0.92,  // How quickly roll motion slows down
             verticalRotationLimit: Math.PI / 2.5,  // Limit vertical rotation to avoid over-rotation
-            acceleration: 0.05,    // Acceleration rate
-            deceleration: 10.0   // Increased deceleration rate for faster slowdown
+            acceleration: 0.01,    // Acceleration rate
+            deceleration: 10.0    // Increased deceleration rate for faster slowdown
         }
     },
     
@@ -420,12 +426,15 @@ class ExplorationAnimation {
             rollLeft: false,
             rollRight: false,
             rollAngle: 0,
-            rollSpeed: Math.PI * 2, // Full rotation speed
-            rollDamping: 0.92, // Smooth damping
+            rollSpeed: SCENE_CONFIG.camera.controls.rollSpeed, // Use config value
+            rollDamping: SCENE_CONFIG.camera.controls.rollDamping, // Use config value
             // Initialize rotation
             rotation: new THREE.Euler(0, 0, 0, 'YXZ'),
             rotationSpeed: SCENE_CONFIG.camera.controls.rotationSpeed,
-            verticalRotationLimit: SCENE_CONFIG.camera.controls.verticalRotationLimit
+            verticalRotationLimit: SCENE_CONFIG.camera.controls.verticalRotationLimit,
+            // Add look damping
+            lookVelocity: new THREE.Vector2(0, 0),
+            lookDamping: 0.92 // Same as roll damping
         };
         
         this.boostTimer = 0;
@@ -1502,19 +1511,32 @@ class ExplorationAnimation {
             this.camera.updateProjectionMatrix();
         }
 
-        // Handle camera rotation
+        // Handle camera rotation with sensitivity multipliers
         if (this.controls.lookUp) {
-            this.controls.rotation.x += this.controls.rotationSpeed;
+            this.controls.lookVelocity.y += this.controls.rotationSpeed * SCENE_CONFIG.camera.controls.lookSensitivity.vertical;
         }
         if (this.controls.lookDown) {
-            this.controls.rotation.x -= this.controls.rotationSpeed;
+            this.controls.lookVelocity.y -= this.controls.rotationSpeed * SCENE_CONFIG.camera.controls.lookSensitivity.vertical;
         }
         if (this.controls.lookLeft) {
-            this.controls.rotation.y += this.controls.rotationSpeed;
+            this.controls.lookVelocity.x += this.controls.rotationSpeed * SCENE_CONFIG.camera.controls.lookSensitivity.horizontal;
         }
         if (this.controls.lookRight) {
-            this.controls.rotation.y -= this.controls.rotationSpeed;
+            this.controls.lookVelocity.x -= this.controls.rotationSpeed * SCENE_CONFIG.camera.controls.lookSensitivity.horizontal;
         }
+
+        // Apply damping to look velocity
+        this.controls.lookVelocity.multiplyScalar(Math.pow(this.controls.lookDamping, delta * 60));
+
+        // Apply look velocity to rotation
+        this.controls.rotation.x += this.controls.lookVelocity.y;
+        this.controls.rotation.y += this.controls.lookVelocity.x;
+
+        // Clamp vertical rotation
+        this.controls.rotation.x = Math.max(
+            -this.controls.verticalRotationLimit,
+            Math.min(this.controls.verticalRotationLimit, this.controls.rotation.x)
+        );
 
         // Handle barrel roll with delta time
         if (this.controls.rollLeft) {
@@ -1526,12 +1548,6 @@ class ExplorationAnimation {
         
         // Apply damping to roll
         this.controls.rollAngle *= Math.pow(this.controls.rollDamping, delta * 60);
-
-        // Clamp vertical rotation
-        this.controls.rotation.x = Math.max(
-            -this.controls.verticalRotationLimit,
-            Math.min(this.controls.verticalRotationLimit, this.controls.rotation.x)
-        );
 
         // Create quaternions for look and roll
         const lookQuaternion = new THREE.Quaternion().setFromEuler(this.controls.rotation);
@@ -1941,13 +1957,13 @@ class ExplorationAnimation {
         const mobileControls = document.createElement('div');
         mobileControls.style.cssText = `
             position: fixed;
-            bottom: 20px;
+            bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
             display: none;
             z-index: 1000;
-            width: 240px;
-            height: 60px;
+            width: auto;
+            height: auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -1962,8 +1978,8 @@ class ExplorationAnimation {
             const button = document.createElement('button');
             button.innerHTML = symbol;
             button.style.cssText = `
-                width: 50px;
-                height: 50px;
+                width: 48px;
+                height: 48px;
                 border: none;
                 border-radius: 50%;
                 background: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)};
