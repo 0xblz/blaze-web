@@ -3107,21 +3107,6 @@ class ExplorationAnimation {
             transition: transform 0.3s ease;
         `;
 
-        // Create boost label
-        const boostLabel = document.createElement('div');
-        boostLabel.className = 'boost-label';
-        boostLabel.textContent = 'BOOST';
-        boostLabel.style.cssText = `
-            position: absolute;
-            bottom: ${SCENE_CONFIG.hud.bars.bottom.height + 70}px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 12px;
-        `;
-
         // Assemble boost meter
         boostMeterContainer.appendChild(boostMeterFill);
 
@@ -3138,8 +3123,9 @@ class ExplorationAnimation {
                 height: 100%;
                 pointer-events: none;
                 overflow: hidden;
-                border: 12px solid rgba(0, 0, 0, 0.4);
+                border: 12px solid rgba(0, 0, 255, 0.6);
                 border-radius: 80px;
+                box-shadow: 0 0 40px rgba(0, 0, 255, 1);
             `;
 
             // Bottom bar with curve
@@ -3224,7 +3210,6 @@ class ExplorationAnimation {
         // Add new elements to HUD
         hudContainer.appendChild(speedIndicator);
         hudContainer.appendChild(boostMeterContainer);
-        hudContainer.appendChild(boostLabel);
 
         // Store references to new elements
         this.hudElements.speedIndicator = speedIndicator;
@@ -3312,7 +3297,7 @@ class ExplorationAnimation {
             `;
         }
 
-        // Update boost meter and label
+        // Update boost meter
         if (this.hudElements.boostMeterFill) {
             // Calculate boost percentage based on boost timer
             const maxBoostTime = SCENE_CONFIG.warp.boostThreshold;
@@ -3326,22 +3311,6 @@ class ExplorationAnimation {
                 this.hudElements.boostMeterFill.style.filter = `brightness(${1 + Math.sin(Date.now() * 0.01) * 0.5})`;
             } else {
                 this.hudElements.boostMeterFill.style.filter = 'none';
-            }
-
-            // Update boost label with percentage
-            const boostLabel = document.querySelector('.boost-label');
-            if (boostLabel) {
-                const percentage = this.controls.boost ? Math.min(100, Math.round(boostPercentage)) : 100;
-                boostLabel.textContent = `BOOST ${percentage}%`;
-                
-                // Add warning effect when close to warp
-                if (boostPercentage > 80) {
-                    boostLabel.style.color = this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 0.8);
-                    boostLabel.style.textShadow = `0 0 10px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 0.5)}`;
-                } else {
-                    boostLabel.style.color = this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.6);
-                    boostLabel.style.textShadow = `0 0 5px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.3)}`;
-                }
             }
         }
     }
