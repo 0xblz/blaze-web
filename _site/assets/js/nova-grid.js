@@ -318,7 +318,7 @@ const SCENE_CONFIG = {
     hud: {
         colors: {
             primary: 0x9900ff,     // Cyan for main elements
-            pulse: 0xff00ff,       // Magenta for pulse effects
+            pulse: 0xffffff,       // Magenta for pulse effects
         },
         opacity: {
             base: 0.3,            // Reduced base opacity for better visibility
@@ -1917,28 +1917,24 @@ class ExplorationAnimation {
         const mobileControls = document.createElement('div');
         mobileControls.style.cssText = `
             position: fixed;
-            bottom: 0;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: none;
             z-index: 1000;
-            width: 180px;
-            height: 180px;
+            width: 240px;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         `;
 
-        // Only show on mobile
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            mobileControls.style.display = 'grid';
-            mobileControls.style.gridTemplateAreas = `
-                ". up ."
-                "left down right"
-                ". . ."
-            `;
-            mobileControls.style.gridTemplateColumns = '60px 60px 60px';
-            mobileControls.style.gridTemplateRows = '60px 60px 60px';
+        // Show on mobile devices or small screens
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768) {
+            mobileControls.style.display = 'flex';
         }
 
-        const createButton = (direction, symbol, gridArea) => {
+        const createButton = (direction, symbol) => {
             const button = document.createElement('button');
             button.innerHTML = symbol;
             button.style.cssText = `
@@ -1946,56 +1942,80 @@ class ExplorationAnimation {
                 height: 50px;
                 border: none;
                 border-radius: 50%;
-                background: rgba(0, 0, 0, 0.3);
-                color: white;
+                background: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)};
+                color: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.8)};
                 font-size: 24px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
                 outline: none;
-                grid-area: ${gridArea};
-                margin: auto;
+                margin: 0 5px;
                 padding: 0;
                 -webkit-tap-highlight-color: transparent;
                 touch-action: manipulation;
                 user-select: none;
                 -webkit-user-select: none;
+                backdrop-filter: blur(4px);
+                -webkit-backdrop-filter: blur(4px);
+                box-shadow: 0 0 10px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.3)};
+                transition: transform 0.1s ease, background-color 0.1s ease;
             `;
 
-            // Touch events for mobile
-            button.addEventListener('touchstart', (e) => {
+            const startControl = (e) => {
                 e.preventDefault();
                 this.onKeyDown({ code: `Arrow${direction}` });
-                button.style.background = 'rgba(255, 255, 255, 0.2)';
-            });
+                button.style.background = this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.4);
+                button.style.transform = 'scale(0.95)';
+            };
 
-            button.addEventListener('touchend', (e) => {
+            const endControl = (e) => {
                 e.preventDefault();
                 this.onKeyUp({ code: `Arrow${direction}` });
-                button.style.background = 'rgba(0, 0, 0, 0.3)';
-            });
+                button.style.background = this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2);
+                button.style.transform = 'scale(1)';
+            };
+
+            // Touch events for mobile devices
+            button.addEventListener('touchstart', startControl, { passive: false });
+            button.addEventListener('touchend', endControl);
+            button.addEventListener('touchcancel', endControl);
+
+            // Mouse events for mobile web
+            button.addEventListener('mousedown', startControl);
+            button.addEventListener('mouseup', endControl);
+            button.addEventListener('mouseleave', endControl);
+
+            // Prevent context menu on long press
+            button.addEventListener('contextmenu', (e) => e.preventDefault());
 
             // Prevent default touch behavior
-            button.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-            });
+            button.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
             return button;
         };
 
-        // Create directional buttons with arrow symbols
-        const upButton = createButton('Up', '↑', 'up');
-        const downButton = createButton('Down', '↓', 'down');
-        const leftButton = createButton('Left', '←', 'left');
-        const rightButton = createButton('Right', '→', 'right');
+        // Create directional buttons with arrow symbols in a row
+        const leftButton = createButton('Left', '←');
+        const downButton = createButton('Down', '↓');
+        const upButton = createButton('Up', '↑');
+        const rightButton = createButton('Right', '→');
 
-        mobileControls.appendChild(upButton);
         mobileControls.appendChild(leftButton);
         mobileControls.appendChild(downButton);
+        mobileControls.appendChild(upButton);
         mobileControls.appendChild(rightButton);
 
         document.body.appendChild(mobileControls);
+
+        // Update visibility on resize
+        window.addEventListener('resize', () => {
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768) {
+                mobileControls.style.display = 'flex';
+            } else {
+                mobileControls.style.display = 'none';
+            }
+        });
     }
 
     createMarbles() {
@@ -3021,7 +3041,7 @@ class ExplorationAnimation {
             bottom: ${SCENE_CONFIG.hud.bars.bottom.height + 20}px;
             left: 50%;
             transform: translateX(-50%);
-            color: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 1)};
+            color: white;
             font-family: 'Courier New', monospace;
             font-size: 24px;
             font-weight: bold;
@@ -3247,7 +3267,7 @@ class ExplorationAnimation {
             }
         }
 
-        // Update boost meter
+        // Update boost meter and label
         if (this.hudElements.boostMeterFill) {
             // Calculate boost percentage based on boost timer
             const maxBoostTime = SCENE_CONFIG.warp.boostThreshold;
@@ -3261,6 +3281,22 @@ class ExplorationAnimation {
                 this.hudElements.boostMeterFill.style.filter = `brightness(${1 + Math.sin(Date.now() * 0.01) * 0.5})`;
             } else {
                 this.hudElements.boostMeterFill.style.filter = 'none';
+            }
+
+            // Update boost label with percentage
+            const boostLabel = document.querySelector('.boost-label');
+            if (boostLabel) {
+                const percentage = this.controls.boost ? Math.min(100, Math.round(boostPercentage)) : 100;
+                boostLabel.textContent = `BOOST ${percentage}%`;
+                
+                // Add warning effect when close to warp
+                if (boostPercentage > 80) {
+                    boostLabel.style.color = this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 0.8);
+                    boostLabel.style.textShadow = `0 0 10px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 0.5)}`;
+                } else {
+                    boostLabel.style.color = this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.6);
+                    boostLabel.style.textShadow = `0 0 5px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.3)}`;
+                }
             }
         }
     }
