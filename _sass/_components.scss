@@ -125,3 +125,38 @@ figure {
         color: white;
     }
 }
+
+.soundcloud-player {
+    position: fixed; 
+    top: 1rem; 
+    left: 1rem; 
+    z-index: 1000; 
+    width: 340px; 
+    height: 120px; 
+    background-color: black; 
+    border-radius: 8px; 
+    overflow: hidden; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    @media (max-width: 800px) {
+        display: none;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        top: initial;
+        &:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0, 0, 255, 0), rgba(0, 0, 255, 1));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+    }
+}
+
