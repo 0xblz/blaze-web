@@ -1,7 +1,7 @@
 <header>
     {% if page.url == "/" %}
         <nav class="logo">
-            <div class="avatar"><img src="/avatar.png"/></div>
+            <div class="avatar">{% include avatar.html %}</div>
             <h3>{{ site.title }}</h3>
         </nav>
         <nav>
