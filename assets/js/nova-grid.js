@@ -3067,12 +3067,12 @@ class ExplorationAnimation {
             transform: translateX(-50%);
             color: white;
             font-family: 'Courier New', monospace;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
             text-shadow: 0 0 10px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.5)};
             background: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.05)};
-            padding: 5px 15px;
-            border-radius: 10px;
+            padding: 8px 12px;
+            border-radius: 12px;
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
         `;
@@ -3100,8 +3100,8 @@ class ExplorationAnimation {
             height: 100%;
             background: linear-gradient(
                 90deg,
-                ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.8)},
-                ${this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 0.8)}
+                ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 1)},
+                ${this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 1)}
             );
             transform-origin: left;
             transition: transform 0.3s ease;
@@ -3116,11 +3116,10 @@ class ExplorationAnimation {
             bottom: ${SCENE_CONFIG.hud.bars.bottom.height + 70}px;
             left: 50%;
             transform: translateX(-50%);
-            color: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.6)};
+            color: white;
             font-family: 'Courier New', monospace;
             font-weight: bold;
             font-size: 12px;
-            text-shadow: 0 0 5px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.3)};
         `;
 
         // Assemble boost meter
@@ -3139,6 +3138,8 @@ class ExplorationAnimation {
                 height: 100%;
                 pointer-events: none;
                 overflow: hidden;
+                border: 12px solid rgba(0, 0, 0, 0.4);
+                border-radius: 80px;
             `;
 
             // Bottom bar with curve
@@ -3156,11 +3157,10 @@ class ExplorationAnimation {
                     transparent,
                     ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.1)} 40%,
                     ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)} 60%,
-                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.3)} 80%
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.6)} 80%
                 );
                 border-top-left-radius: ${SCENE_CONFIG.hud.bars.bottom.curve}px;
                 border-top-right-radius: ${SCENE_CONFIG.hud.bars.bottom.curve}px;
-                backdrop-filter: blur(4px);
                 transform-origin: bottom center;
             `;
 
@@ -3180,10 +3180,9 @@ class ExplorationAnimation {
                         transparent,
                         ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.1)} 40%,
                         ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)} 60%,
-                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.3)} 80%
+                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.6)} 80%
                     );
                     border-${side === 'left' ? 'right' : 'left'}-radius: ${SCENE_CONFIG.hud.layout.curveRadius}px;
-                    backdrop-filter: blur(4px);
                     transform-origin: ${side} center;
                 `;
                 barsContainer.appendChild(sideBar);
@@ -3204,7 +3203,7 @@ class ExplorationAnimation {
                     to right,
                     transparent,
                     ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.4)},
-                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.6)},
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 1)},
                     ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.4)},
                     transparent
                 );
