@@ -260,7 +260,60 @@ const SCENE_CONFIG = {
             glowMultiplier: 2.5,  // How much brighter marbles glow in warp
             colorShift: true      // Whether to shift colors in warp
         }
-    }
+    },
+    
+    // Root structure configuration
+    roots: {
+        structure: {
+            mainSegments: 100,          // Reduced from 225 for better performance
+            branchProbability: 0.6,    // Slightly reduced to limit total branches
+            maxBranchDepth: 3000,         // Drastically reduced from 300 to prevent exponential growth
+            minSegmentLength: 20,      // Slightly shorter segments
+            maxSegmentLength: 50,      // Reduced for more frequent regeneration
+            pointsPerSegment: 8,       // Reduced from 20 for smoother performance
+            startDepth: {              // Adjusted depth range for better visibility
+                min: 15,
+                max: 400
+            },
+            thickness: {
+                main: 0.6,             // Increased main thickness for better visibility
+                branchReduction: 0.6,  // Less aggressive reduction
+                min: 0.2              // Slightly smaller minimum
+            }
+        },
+        appearance: {
+            colors: {
+                primary: 0x00ffff,    // Base color (cyan)
+                pulse: 0xff00ff,      // Pulse color (magenta)
+                energy: 0xffff00      // Energy flow color (yellow)
+            },
+            glow: {
+                intensity: 0.5,       // Base glow intensity
+                pulseIntensity: 0.8,  // Intensity during pulse
+                edgeIntensity: 1.2    // Intensity of edge glow
+            },
+            animation: {
+                pulseSpeed: 2.0,      // Speed of color pulse
+                energyFlowSpeed: 3.0,  // Speed of energy flow effect
+                movementSpeed: 0.5     // Speed of subtle movement
+            },
+            opacity: {
+                base: 0.8,           // Base opacity
+                edge: 0.2            // Additional opacity at edges
+            }
+        },
+        physics: {
+            regenerationDistance: 60,   // Reduced from 100 for more frequent regeneration
+            verticalMovement: {
+                amplitude: 0.02,       // Slightly increased for more visible movement
+                frequency: 0.8         // Increased for more dynamic movement
+            },
+            branchAngles: {
+                horizontal: 1.5,       // Reduced for less chaotic branching
+                vertical: 0.8         // Reduced for less vertical spread
+            }
+        }
+    },
 };
 
 class ExplorationAnimation {
@@ -273,6 +326,7 @@ class ExplorationAnimation {
         this.citySize = SCENE_CONFIG.city.size;
         this.buildings = [];
         this.neonLights = [];
+        this.rootStructures = []; // Add root structures array
         this.cameraSpeed = SCENE_CONFIG.camera.movementSpeed;
         this.time = 0;
         this.stars = null;
@@ -364,6 +418,9 @@ class ExplorationAnimation {
         
         // Create grid
         this.createGrid();
+        
+        // Create root structure before the city
+        this.createRootStructure();
         
         // Create procedural city
         this.createProceduralCity();
@@ -1685,6 +1742,67 @@ class ExplorationAnimation {
             this.updateFloatingArtifacts(delta);
         }
         
+        // Create a container for roots if it doesn't exist
+        if (!this.rootContainer) {
+            this.rootContainer = new THREE.Object3D();
+            this.scene.add(this.rootContainer);
+            
+            // Move existing roots to the container
+            this.rootStructures.forEach(root => {
+                this.scene.remove(root.mesh);
+                this.rootContainer.add(root.mesh);
+            });
+        }
+        
+        // Always keep root container with camera
+        this.rootContainer.position.copy(this.camera.position);
+        
+        // Update individual root structures
+        this.rootStructures.forEach(root => {
+            // Update shader time
+            root.material.uniforms.time.value = this.time;
+            
+            // Calculate root's position relative to camera
+            const relativePos = root.mesh.position.clone().add(this.rootContainer.position);
+            const distanceFromCamera = relativePos.distanceTo(this.camera.position);
+            
+            // Check if root needs regeneration (either too far or behind camera)
+            const isTooFar = distanceFromCamera > this.citySize;
+            const isBehindCamera = root.mesh.position.z > 0; // Since container is at camera position
+            
+            if (isTooFar || isBehindCamera) {
+                // Calculate new position in front of camera
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * this.citySize * 0.8;
+                
+                // Position relative to container (which is at camera position)
+                root.mesh.position.x = Math.cos(angle) * radius;
+                root.mesh.position.z = -Math.random() * this.citySize; // Always in front
+                root.mesh.position.y = -SCENE_CONFIG.roots.structure.startDepth.min - 
+                    Math.random() * (SCENE_CONFIG.roots.structure.startDepth.max - SCENE_CONFIG.roots.structure.startDepth.min);
+                
+                root.initialZ = root.mesh.position.z;
+            }
+            
+            // Update visual effects based on boost/warp state
+            const boostIntensity = this.controls.boost ? 2.0 : 1.0;
+            
+            if (root.material.uniforms.glowIntensity) {
+                root.material.uniforms.glowIntensity.value = 
+                    SCENE_CONFIG.roots.appearance.glow.intensity * boostIntensity;
+            }
+            
+            if (root.material.uniforms.energyFlowSpeed) {
+                root.material.uniforms.energyFlowSpeed.value = 
+                    SCENE_CONFIG.roots.appearance.animation.energyFlowSpeed * boostIntensity;
+            }
+            
+            // Add subtle movement
+            root.mesh.position.y += Math.sin(
+                this.time * SCENE_CONFIG.roots.physics.verticalMovement.frequency + root.initialZ
+            ) * SCENE_CONFIG.roots.physics.verticalMovement.amplitude;
+        });
+        
         // Render scene with post-processing
         this.composer.render();
     }
@@ -2622,6 +2740,163 @@ class ExplorationAnimation {
         
         // Reset opacity
         artifact.material.opacity = 0.8;
+    }
+
+    createRootStructure() {
+        const config = SCENE_CONFIG.roots;
+        const segmentCount = config.structure.mainSegments;
+        const branchProbability = config.structure.branchProbability;
+        const maxBranchDepth = config.structure.maxBranchDepth;
+        
+        const createRootSegment = (startPoint, direction, depth = 0, thickness = config.structure.thickness.main) => {
+            if (depth >= maxBranchDepth || thickness < config.structure.thickness.min) return null;
+            
+            // Create a curved path for this segment
+            const points = [];
+            const segmentLength = config.structure.minSegmentLength + 
+                Math.random() * (config.structure.maxSegmentLength - config.structure.minSegmentLength);
+            const pointCount = config.structure.pointsPerSegment;
+            
+            for (let i = 0; i < pointCount; i++) {
+                const t = i / (pointCount - 1);
+                const point = startPoint.clone();
+                
+                // Add some randomness to the path
+                const randomOffset = new THREE.Vector3(
+                    (Math.random() - 0.5) * 5,
+                    (Math.random() - 0.5) * 5,
+                    (Math.random() - 0.5) * 5
+                );
+                
+                point.add(direction.clone().multiplyScalar(t * segmentLength));
+                point.add(randomOffset);
+                points.push(point);
+            }
+            
+            // Create the curve
+            const curve = new THREE.CatmullRomCurve3(points);
+            
+            // Create tube geometry
+            const tubeGeometry = new THREE.TubeGeometry(
+                curve,
+                20, // tubular segments
+                thickness,
+                8, // radial segments
+                false // closed
+            );
+            
+            // Create material with glow effect
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: { value: 0 },
+                    baseColor: { value: new THREE.Color(config.appearance.colors.primary) },
+                    pulseColor: { value: new THREE.Color(config.appearance.colors.pulse) },
+                    energyColor: { value: new THREE.Color(config.appearance.colors.energy) },
+                    glowIntensity: { value: config.appearance.glow.intensity },
+                    pulseSpeed: { value: config.appearance.animation.pulseSpeed },
+                    energyFlowSpeed: { value: config.appearance.animation.energyFlowSpeed }
+                },
+                vertexShader: `
+                    varying vec3 vPosition;
+                    varying vec3 vNormal;
+                    
+                    void main() {
+                        vPosition = position;
+                        vNormal = normal;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform float time;
+                    uniform vec3 baseColor;
+                    uniform vec3 pulseColor;
+                    uniform vec3 energyColor;
+                    uniform float glowIntensity;
+                    uniform float pulseSpeed;
+                    uniform float energyFlowSpeed;
+                    
+                    varying vec3 vPosition;
+                    varying vec3 vNormal;
+                    
+                    void main() {
+                        // Create energy pulse effect
+                        float pulse = sin(vPosition.z * 0.1 + time * pulseSpeed) * 0.5 + 0.5;
+                        
+                        // Calculate fresnel effect for edge glow
+                        vec3 viewDirection = normalize(cameraPosition - vPosition);
+                        float fresnel = pow(1.0 - max(0.0, dot(viewDirection, normalize(vNormal))), 3.0);
+                        
+                        // Energy flow effect
+                        float energy = sin(vPosition.z * 0.05 + time * energyFlowSpeed) * 0.5 + 0.5;
+                        
+                        // Mix colors based on pulse and energy
+                        vec3 finalColor = mix(baseColor, pulseColor, pulse);
+                        finalColor = mix(finalColor, energyColor, energy * 0.3);
+                        
+                        // Add edge glow
+                        finalColor += vec3(1.0) * fresnel * glowIntensity;
+                        
+                        gl_FragColor = vec4(finalColor, ${config.appearance.opacity.base} + fresnel * ${config.appearance.opacity.edge});
+                    }
+                `,
+                transparent: true,
+                side: THREE.DoubleSide
+            });
+            
+            // Create mesh
+            const tube = new THREE.Mesh(tubeGeometry, material);
+            
+            // Store the root segment
+            this.rootStructures.push({
+                mesh: tube,
+                material: material,
+                initialZ: startPoint.z,
+                thickness: thickness
+            });
+            
+            this.scene.add(tube);
+            
+            // Create branches
+            if (depth < maxBranchDepth && Math.random() < branchProbability) {
+                const branchCount = 1 + Math.floor(Math.random() * 2);
+                for (let i = 0; i < branchCount; i++) {
+                    const branchPoint = points[Math.floor(points.length * 0.5)].clone();
+                    
+                    // Use configured branch angles
+                    const branchDirection = direction.clone()
+                        .add(new THREE.Vector3(
+                            (Math.random() - 0.5) * config.physics.branchAngles.horizontal,
+                            (Math.random() - 0.5) * config.physics.branchAngles.vertical,
+                            (Math.random() - 0.5) * config.physics.branchAngles.horizontal
+                        ))
+                        .normalize();
+                    
+                    createRootSegment(
+                        branchPoint,
+                        branchDirection,
+                        depth + 1,
+                        thickness * config.structure.thickness.branchReduction
+                    );
+                }
+            }
+        };
+        
+        // Create initial root segments
+        for (let i = 0; i < segmentCount; i++) {
+            const startX = (Math.random() - 0.5) * this.citySize;
+            const startY = -config.structure.startDepth.min - 
+                          Math.random() * (config.structure.startDepth.max - config.structure.startDepth.min);
+            const startZ = (Math.random() - 0.5) * this.citySize;
+            
+            const startPoint = new THREE.Vector3(startX, startY, startZ);
+            const direction = new THREE.Vector3(
+                (Math.random() - 0.5) * config.physics.branchAngles.horizontal,
+                (Math.random() - 0.5) * config.physics.branchAngles.vertical,
+                (Math.random() - 0.5) * config.physics.branchAngles.horizontal
+            ).normalize();
+            
+            createRootSegment(startPoint, direction);
+        }
     }
 }
 
