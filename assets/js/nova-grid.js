@@ -318,32 +318,23 @@ const SCENE_CONFIG = {
     hud: {
         colors: {
             primary: 0x00ffff,     // Cyan for main elements
-            warning: 0xff00ff,     // Magenta for warnings/alerts
-            accent: 0xffff00,      // Yellow for highlights
-            boost: 0xff3366        // Hot pink for boost indicator
+            pulse: 0xff00ff,       // Magenta for pulse effects
         },
         opacity: {
-            base: 0.6,            // Base opacity for HUD elements
-            active: 0.8,          // Opacity when elements are active
-            scanline: 0.1         // Scanline effect opacity
+            base: 0.3,            // Reduced base opacity for better visibility
+            active: 0.6,          // Reduced active opacity for better balance
         },
         animation: {
-            pulseSpeed: 1.5,      // Speed of pulse animations
-            scanlineSpeed: 0.5,    // Speed of scanline movement
-            glitchInterval: 3.0    // Seconds between glitch effects
+            pulseSpeed: 2.0,      // Optimized pulse speed for smoother animation
+            reactionSpeed: 0.3    // Speed of movement reactions
         },
         layout: {
             frameWidth: 0.15,     // Width of frame elements as % of screen
-            cornerSize: 0.2,      // Size of corner elements as % of screen
-            margin: 20,           // Margin from screen edges in pixels
-            barThickness: 4,      // Thinner bars for sleeker look
-            barOpacity: 0.75,     // Slightly more transparent
+            barThickness: 4,      // Thin bars for sleek look
             curveRadius: 20,      // Radius for curved edges
-            pulseSpeed: 2.0,      // Speed of pulse animation
-            reactionSpeed: 0.3    // Speed of movement reactions
+            margin: 20            // Margin from screen edges in pixels
         },
-        
-        bars: {
+        bars: {                   // Moved to root of hud config to match code access
             bottom: {
                 height: 120,      // Height of bottom bar
                 curve: 40         // Curve amount for bottom bar
