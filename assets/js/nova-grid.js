@@ -345,6 +345,35 @@ const SCENE_CONFIG = {
             }
         }
     },
+
+    // Add to SCENE_CONFIG
+    groundFog: {
+        particles: {
+            count: 5000,
+            size: {
+                min: 50,
+                max: 100
+            },
+            height: {
+                min: -50,
+                max: 0
+            },
+            speed: 1.2,
+            area: {
+                width: 2000,    // Increased area for better coverage
+                depth: 2000     // Increased area for better coverage
+            }
+        },
+        colors: {
+            primary: 0x00ffff,    // Cyan base
+            secondary: 0xff00ff,   // Magenta accent
+            mix: 0.3              // Color mix factor
+        },
+        opacity: {
+            base: 0.15,          // Slightly increased base opacity
+            pulse: 0.05          // Reduced pulse for stability
+        }
+    },
 };
 
 class ExplorationAnimation {
@@ -367,6 +396,9 @@ class ExplorationAnimation {
         this.marbles = [];
         this.marbleCollisions = [];
         this.floatingArtifacts = [];
+        this.groundFog = null;
+        this.groundFogUniforms = null;
+        this.fogParticles = [];
         
         // Controls state
         this.controls = {
@@ -486,6 +518,8 @@ class ExplorationAnimation {
         
         // Create HUD after renderer setup
         this.createHUD();
+
+        this.createGroundFog();  // Add after other scene elements
     }
 
     createStarfield() {
@@ -1868,6 +1902,8 @@ class ExplorationAnimation {
         
         // Update HUD
         this.updateHUD();
+
+        this.updateGroundFog(delta);
     }
 
     onWindowResize() {
@@ -3165,6 +3201,201 @@ class ExplorationAnimation {
         const g = (hex >> 8) & 255;
         const b = hex & 255;
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    createGroundFog() {
+        const fogGeometry = new THREE.BufferGeometry();
+        const fogVertices = [];
+        const fogSizes = [];
+        const fogColors = [];
+        const fogOpacities = [];
+        
+        const config = SCENE_CONFIG.groundFog;
+        const color1 = new THREE.Color(config.colors.primary);
+        const color2 = new THREE.Color(config.colors.secondary);
+
+        // Create fog particles
+        for (let i = 0; i < config.particles.count; i++) {
+            // Random position within area
+            const x = (Math.random() - 0.5) * config.particles.area.width;
+            const z = (Math.random() - 0.5) * config.particles.area.depth;
+            const y = config.particles.height.min + 
+                     Math.random() * (config.particles.height.max - config.particles.height.min);
+
+            fogVertices.push(x, y, z);
+
+            // Random size
+            const size = config.particles.size.min + 
+                Math.random() * (config.particles.size.max - config.particles.size.min);
+            fogSizes.push(size);
+
+            // Mix colors
+            const mixFactor = Math.random() * config.colors.mix;
+            const color = new THREE.Color().lerpColors(color1, color2, mixFactor);
+            fogColors.push(color.r, color.g, color.b);
+
+            // Initial opacity
+            fogOpacities.push(config.opacity.base + Math.random() * config.opacity.pulse);
+
+            // Store particle data for animation
+            this.fogParticles.push({
+                baseY: y,
+                phase: Math.random() * Math.PI * 2,
+                speed: config.particles.speed * (0.8 + Math.random() * 0.4)
+            });
+        }
+
+        fogGeometry.setAttribute('position', new THREE.Float32BufferAttribute(fogVertices, 3));
+        fogGeometry.setAttribute('size', new THREE.Float32BufferAttribute(fogSizes, 1));
+        fogGeometry.setAttribute('color', new THREE.Float32BufferAttribute(fogColors, 3));
+        fogGeometry.setAttribute('opacity', new THREE.Float32BufferAttribute(fogOpacities, 1));
+
+        // Custom shader material for fog
+        this.groundFogUniforms = {
+            time: { value: 0 },
+            fogTexture: { value: this.createFogTexture() }
+        };
+
+        const fogMaterial = new THREE.ShaderMaterial({
+            uniforms: this.groundFogUniforms,
+            vertexShader: `
+                attribute float size;
+                attribute vec3 color;
+                attribute float opacity;
+                
+                varying vec3 vColor;
+                varying float vOpacity;
+                
+                void main() {
+                    vColor = color;
+                    vOpacity = opacity;
+                    
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    gl_PointSize = size * (300.0 / -mvPosition.z);
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D fogTexture;
+                uniform float time;
+                
+                varying vec3 vColor;
+                varying float vOpacity;
+                
+                void main() {
+                    vec2 uv = gl_PointCoord;
+                    
+                    // Sample fog texture
+                    vec4 tex = texture2D(fogTexture, uv);
+                    
+                    // Apply color and opacity
+                    gl_FragColor = vec4(vColor, vOpacity * tex.a);
+                    
+                    // Add subtle pulse
+                    float pulse = sin(time * 2.0 + gl_FragCoord.x * 0.01 + gl_FragCoord.y * 0.01) * 0.1 + 0.9;
+                    gl_FragColor.a *= pulse;
+                }
+            `,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+        });
+
+        this.groundFog = new THREE.Points(fogGeometry, fogMaterial);
+        this.scene.add(this.groundFog);
+    }
+
+    createFogTexture() {
+        const size = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        // Create radial gradient for fog particle
+        const gradient = ctx.createRadialGradient(
+            size/2, size/2, 0,
+            size/2, size/2, size/2
+        );
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+        gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.2)');
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, size, size);
+
+        const texture = new THREE.Texture(canvas);
+        texture.needsUpdate = true;
+        return texture;
+    }
+
+    updateGroundFog(delta) {
+        if (!this.groundFog || !this.groundFogUniforms) return;
+
+        const positions = this.groundFog.geometry.attributes.position;
+        const opacities = this.groundFog.geometry.attributes.opacity;
+        const config = SCENE_CONFIG.groundFog;
+
+        // Update time uniform for shader animation
+        this.groundFogUniforms.time.value += delta;
+
+        // Get camera position
+        const cameraX = this.camera.position.x;
+        const cameraZ = this.camera.position.z;
+
+        // Fixed coverage radius regardless of speed
+        const coverageRadius = config.particles.area.width * 0.5;
+        
+        // Update each particle
+        for (let i = 0; i < this.fogParticles.length; i++) {
+            const particle = this.fogParticles[i];
+            const idx = i * 3;
+            
+            // Get current particle position
+            let x = positions.array[idx];
+            let z = positions.array[idx + 2];
+
+            // Calculate distance from camera
+            const distanceX = x - cameraX;
+            const distanceZ = z - cameraZ;
+            const distance = Math.sqrt(distanceX * distanceX + distanceZ * distanceZ);
+
+            // Check if particle needs regeneration
+            if (distance > coverageRadius) {
+                // Generate new position in a circle around camera
+                const angle = Math.random() * Math.PI * 2;
+                const radius = coverageRadius * (0.3 + Math.random() * 0.7); // Between 30% and 100% of coverage
+                
+                x = cameraX + Math.cos(angle) * radius;
+                z = cameraZ + Math.sin(angle) * radius;
+
+                // Reset particle properties
+                particle.baseY = config.particles.height.min + 
+                    Math.random() * (config.particles.height.max - config.particles.height.min);
+                particle.phase = Math.random() * Math.PI * 2;
+                
+                // Update position
+                positions.array[idx] = x;
+                positions.array[idx + 2] = z;
+            }
+
+            // Vertical movement
+            const y = particle.baseY + 
+                Math.sin(this.groundFogUniforms.time.value * particle.speed + particle.phase) * 2;
+            positions.array[idx + 1] = y;
+
+            // Smooth distance-based opacity falloff
+            const normalizedDistance = distance / coverageRadius;
+            const distanceOpacity = Math.max(0, 1 - Math.pow(normalizedDistance, 1.5));
+            
+            // Combine with base opacity and subtle pulse
+            opacities.array[i] = (config.opacity.base + 
+                Math.sin(this.groundFogUniforms.time.value * 0.3 + particle.phase) * 
+                config.opacity.pulse) * distanceOpacity;
+        }
+
+        positions.needsUpdate = true;
+        opacities.needsUpdate = true;
     }
 }
 
