@@ -38,8 +38,8 @@ const SCENE_CONFIG = {
         waveSpeed: { x: 0.5, y: 0 },  // Sine wave movement speed
         controls: {
             enabled: true,
-            moveSpeed: 0.2,      // Base movement speed
-            boostSpeed: 2.5,     // Speed when holding shift
+            moveSpeed: 1.0,      // Base movement speed
+            boostSpeed: 50.0,    // Much higher boost speed to reach 5000 m/s
             turnSpeed: 0.02,     // How fast to turn left/right
             autoMove: true,      // Whether to automatically move forward
             keyMapping: {
@@ -50,7 +50,9 @@ const SCENE_CONFIG = {
             },
             // Look control parameters
             rotationSpeed: 0.03,
-            verticalRotationLimit: Math.PI / 2.5  // Limit vertical rotation to avoid over-rotation
+            verticalRotationLimit: Math.PI / 2.5,  // Limit vertical rotation to avoid over-rotation
+            acceleration: 0.05,    // Acceleration rate
+            deceleration: 10.0   // Increased deceleration rate for faster slowdown
         }
     },
     
@@ -1444,11 +1446,33 @@ class ExplorationAnimation {
     
     updateControls(delta) {
         // Get current speed based on boost state
-        let currentSpeed = SCENE_CONFIG.camera.controls.moveSpeed;
+        let targetSpeed = this.controls.boost ? 
+            SCENE_CONFIG.camera.controls.boostSpeed : 
+            SCENE_CONFIG.camera.controls.moveSpeed;
+        
+        // Initialize current speed if undefined
+        if (this.currentSpeed === undefined) this.currentSpeed = SCENE_CONFIG.camera.controls.moveSpeed;
+        
+        // Calculate acceleration and deceleration with easing
+        if (this.controls.boost) {
+            // Accelerate with easing for smoother ramp-up
+            const accelerationRate = SCENE_CONFIG.camera.controls.acceleration * delta;
+            const speedDiff = targetSpeed - this.currentSpeed;
+            this.currentSpeed += speedDiff * accelerationRate;
+        } else {
+            // Decelerate more quickly with easing
+            const decelerationRate = SCENE_CONFIG.camera.controls.deceleration * delta;
+            const speedDiff = this.currentSpeed - SCENE_CONFIG.camera.controls.moveSpeed;
+            this.currentSpeed -= speedDiff * decelerationRate;
+        }
+        
+        // Clamp speed to valid range
+        this.currentSpeed = Math.max(
+            SCENE_CONFIG.camera.controls.moveSpeed,
+            Math.min(SCENE_CONFIG.camera.controls.boostSpeed, this.currentSpeed)
+        );
         
         if (this.controls.boost) {
-            currentSpeed = SCENE_CONFIG.camera.controls.boostSpeed;
-            
             // Update boost timer and check for warp
             this.boostTimer += delta;
             if (this.boostTimer >= SCENE_CONFIG.warp.boostThreshold && !this.isWarping) {
@@ -1529,10 +1553,10 @@ class ExplorationAnimation {
         
         // Handle forward/backward movement
         if (this.controls.moveForward || SCENE_CONFIG.camera.controls.autoMove) {
-            this.controls.velocity.add(forward.clone().multiplyScalar(currentSpeed));
+            this.controls.velocity.add(forward.clone().multiplyScalar(this.currentSpeed));
         }
         if (this.controls.moveBackward) {
-            this.controls.velocity.add(forward.clone().multiplyScalar(-currentSpeed * 3));
+            this.controls.velocity.add(forward.clone().multiplyScalar(-this.currentSpeed * 0.5));
         }
         
         // Apply velocity to camera position
@@ -3254,17 +3278,39 @@ class ExplorationAnimation {
 
         // Update speed indicator
         if (this.hudElements.speedIndicator) {
-            // Calculate speed based on velocity
-            const speed = this.controls.velocity.length() * 3.6; // Convert to km/h
-            const speedMS = speed / 3.6; // Convert to m/s
-            this.hudElements.speedIndicator.textContent = `${speedMS.toFixed(1)} m/s`;
+            // Use the stored speed value and multiply by 100 for dramatic effect
+            const speedMS = this.currentSpeed * 100; // This will now reach 5000 m/s
+            
+            // Format speed with thousands separator
+            const formattedSpeed = Math.round(speedMS).toLocaleString();
+            this.hudElements.speedIndicator.textContent = `${formattedSpeed} m/s`;
 
-            // Add pulse effect when boosting
-            if (this.controls.boost) {
-                this.hudElements.speedIndicator.style.textShadow = `0 0 20px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 0.8)}`;
-            } else {
-                this.hudElements.speedIndicator.style.textShadow = `0 0 10px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.5)}`;
-            }
+            // Enhanced visual effects based on speed
+            const speedFactor = Math.min(1, speedMS / 5000); // Normalize speed for effects
+            const glowIntensity = 10 + (speedFactor * 30); // Increased glow effect range
+            const pulseEffect = this.controls.boost ? 
+                `0 0 ${glowIntensity}px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 0.8)}, 0 0 ${glowIntensity * 2}px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 0.4)}` :
+                `0 0 ${glowIntensity}px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.5)}`;
+
+            // Apply enhanced visual effects
+            this.hudElements.speedIndicator.style.cssText = `
+                position: absolute;
+                bottom: ${SCENE_CONFIG.hud.bars.bottom.height + 20}px;
+                left: 50%;
+                transform: translateX(-50%) scale(${1 + speedFactor * 0.3});
+                color: white;
+                font-family: 'Courier New', monospace;
+                font-size: 24px;
+                font-weight: bold;
+                text-shadow: ${pulseEffect};
+                background: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.05 + speedFactor * 0.15)};
+                padding: 5px 15px;
+                border-radius: 10px;
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                transition: transform 0.2s ease;
+                letter-spacing: ${speedFactor * 3}px;
+            `;
         }
 
         // Update boost meter and label
