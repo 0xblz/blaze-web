@@ -1941,13 +1941,13 @@ class ExplorationAnimation {
         const mobileControls = document.createElement('div');
         mobileControls.style.cssText = `
             position: fixed;
-            bottom: 20px;
+            bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
             display: none;
             z-index: 1000;
-            width: 240px;
-            height: 60px;
+            width: auto;
+            height: auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -1962,8 +1962,8 @@ class ExplorationAnimation {
             const button = document.createElement('button');
             button.innerHTML = symbol;
             button.style.cssText = `
-                width: 50px;
-                height: 50px;
+                width: 48px;
+                height: 48px;
                 border: none;
                 border-radius: 50%;
                 background: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)};
