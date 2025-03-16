@@ -2,8 +2,8 @@
   link: "experiments/nova-grid"
   platform: "three.js, webgl"
   
-- title: "Avatar"
-  link: "experiments/avatar"
+- title: "Marble Maker"
+  link: "experiments/marble-maker"
   platform: "three.js, webgl"
 
 - title: "Ethereal Sky"
