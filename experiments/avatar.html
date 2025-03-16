@@ -26,6 +26,13 @@ is_experiment: true
       height: 100% !important;
       border-radius: 50%;
     }
+    .dg.ac {
+      z-index: 1000 !important;
+      position: fixed !important;
+      top: 0 !important;
+      right: 0 !important;
+      display: none !important;
+    }
   </style>
   <foreignObject width="100%" height="100%" x="0" y="0">
     <div xmlns="http://www.w3.org/1999/xhtml" id="shader-container"></div>
@@ -33,18 +40,6 @@ is_experiment: true
   <script type="module">
     import * as THREE from 'https://cdn.skypack.dev/three@0.136.0';
     import { GUI } from 'https://cdn.skypack.dev/dat.gui';
-
-    // Add styles for GUI positioning
-    const style = document.createElement('style');
-    style.textContent = `
-      .dg.ac {
-        z-index: 1000 !important;
-        position: fixed !important;
-        top: 0 !important;
-        right: 0 !important;
-      }
-    `;
-    document.head.appendChild(style);
 
     // Configuration object for all adjustable parameters
     const config = {
