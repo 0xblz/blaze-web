@@ -1,7 +1,13 @@
 - title: "Nova Grid"
   link: "experiments/nova-grid"
   platform: "three.js, webgl"
+  
+- title: "Avatar"
+  link: "experiments/avatar"
+  platform: "three.js, webgl"
 
 - title: "Ethereal Sky"
   link: "experiments/ethereal"
-  platform: "three.js"
+  platform: "three.js, webgl"
+  
+  

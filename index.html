@@ -15,6 +15,19 @@ js_file: ethereal
 </aside>
 
 <aside>
+    <h2><i class="fa-solid fa-bolt"></i> experiments</h2>
+    {% for experiment in site.data.experiments %}
+    <a href="{{ experiment.link }}" {% if experiment.external_link %}target="_blank"{% endif %} class="row-link">
+        <div class="row-link-content">
+            <h3><i class="fa-solid fa-code"></i></h3>
+            <h3>{{ experiment.title }}</h3>
+        </div>
+        <small>{{ experiment.platform }}</small>
+    </a>
+    {% endfor %}
+</aside>
+
+<aside>
     <h2><i class="fa-solid fa-link"></i> projects</h2>
     {% for project in site.data.projects %}
     <a href="{{ project.link }}" {% if project.external_link %}target="_blank"{% endif %} class="row-link">
@@ -25,19 +38,6 @@ js_file: ethereal
             <h3>{{ project.title }}<br><small>{{ project.platform }}</small></h3>
         </div>
         <small>{{ project.role }}, {{ project.year }}</small>
-    </a>
-    {% endfor %}
-</aside>
-
-<aside>
-    <h2><i class="fa-solid fa-fire"></i> experiments</h2>
-    {% for experiment in site.data.experiments %}
-    <a href="{{ experiment.link }}" {% if experiment.external_link %}target="_blank"{% endif %} class="row-link">
-        <div class="row-link-content">
-            <h3><i class="fa-solid fa-code"></i></h3>
-            <h3>{{ experiment.title }}</h3>
-        </div>
-        <small>{{ experiment.platform }}</small>
     </a>
     {% endfor %}
 </aside>
