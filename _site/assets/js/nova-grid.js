@@ -3013,6 +3013,75 @@ class ExplorationAnimation {
             perspective: 1000px;
         `;
 
+        // Create speed indicator
+        const speedIndicator = document.createElement('div');
+        speedIndicator.className = 'speed-indicator';
+        speedIndicator.style.cssText = `
+            position: absolute;
+            bottom: ${SCENE_CONFIG.hud.bars.bottom.height + 20}px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 1)};
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.5)};
+            background: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.05)};
+            padding: 5px 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        `;
+
+        // Create boost meter container
+        const boostMeterContainer = document.createElement('div');
+        boostMeterContainer.className = 'boost-meter-container';
+        boostMeterContainer.style.cssText = `
+            position: absolute;
+            bottom: ${SCENE_CONFIG.hud.bars.bottom.height + 60}px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 4px;
+            background: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)};
+            border-radius: 2px;
+            overflow: hidden;
+        `;
+
+        // Create boost meter fill
+        const boostMeterFill = document.createElement('div');
+        boostMeterFill.className = 'boost-meter-fill';
+        boostMeterFill.style.cssText = `
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.8)},
+                ${this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 0.8)}
+            );
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        `;
+
+        // Create boost label
+        const boostLabel = document.createElement('div');
+        boostLabel.className = 'boost-label';
+        boostLabel.textContent = 'BOOST';
+        boostLabel.style.cssText = `
+            position: absolute;
+            bottom: ${SCENE_CONFIG.hud.bars.bottom.height + 70}px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.6)};
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 12px;
+            text-shadow: 0 0 5px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.3)};
+        `;
+
+        // Assemble boost meter
+        boostMeterContainer.appendChild(boostMeterFill);
+
         // Create enhanced cockpit frame bars
         const createFrameBars = () => {
             // Create container for bars
@@ -3109,38 +3178,14 @@ class ExplorationAnimation {
 
         createFrameBars();
 
-        // Add styles for cockpit bars
-        const hudStyles = document.createElement('style');
-        hudStyles.textContent = `
-            .cockpit-bar {
-                transition: transform ${SCENE_CONFIG.hud.layout.reactionSpeed}s ease-out,
-                            opacity 0.3s ease,
-                            box-shadow 0.3s ease;
-            }
+        // Add new elements to HUD
+        hudContainer.appendChild(speedIndicator);
+        hudContainer.appendChild(boostMeterContainer);
+        hudContainer.appendChild(boostLabel);
 
-            .cockpit-bar::after {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: linear-gradient(
-                    45deg,
-                    transparent,
-                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.1)},
-                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 0.2)}
-                );
-                animation: pulse ${SCENE_CONFIG.hud.layout.pulseSpeed}s ease-in-out infinite;
-                border-radius: inherit;
-            }
-
-            @keyframes pulse {
-                0%, 100% { opacity: 0.3; }
-                50% { opacity: 0.6; }
-            }
-        `;
-        document.head.appendChild(hudStyles);
+        // Store references to new elements
+        this.hudElements.speedIndicator = speedIndicator;
+        this.hudElements.boostMeterFill = boostMeterFill;
 
         document.body.appendChild(hudContainer);
         this.hudContainer = hudContainer;
@@ -3184,6 +3229,38 @@ class ExplorationAnimation {
                     scaleX(${1 + Math.abs(turnFactor) * 0.1})
                     rotate(${turnFactor * 2}deg)
                 `;
+            }
+        }
+
+        // Update speed indicator
+        if (this.hudElements.speedIndicator) {
+            // Calculate speed based on velocity
+            const speed = this.controls.velocity.length() * 3.6; // Convert to km/h
+            const speedMS = speed / 3.6; // Convert to m/s
+            this.hudElements.speedIndicator.textContent = `${speedMS.toFixed(1)} m/s`;
+
+            // Add pulse effect when boosting
+            if (this.controls.boost) {
+                this.hudElements.speedIndicator.style.textShadow = `0 0 20px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 0.8)}`;
+            } else {
+                this.hudElements.speedIndicator.style.textShadow = `0 0 10px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.5)}`;
+            }
+        }
+
+        // Update boost meter
+        if (this.hudElements.boostMeterFill) {
+            // Calculate boost percentage based on boost timer
+            const maxBoostTime = SCENE_CONFIG.warp.boostThreshold;
+            const boostPercentage = (this.boostTimer / maxBoostTime) * 100;
+            
+            // Update boost meter fill
+            this.hudElements.boostMeterFill.style.transform = `scaleX(${this.controls.boost ? 1 - (boostPercentage / 100) : 1})`;
+            
+            // Add pulse effect when close to warp
+            if (boostPercentage > 80) {
+                this.hudElements.boostMeterFill.style.filter = `brightness(${1 + Math.sin(Date.now() * 0.01) * 0.5})`;
+            } else {
+                this.hudElements.boostMeterFill.style.filter = 'none';
             }
         }
     }
