@@ -314,6 +314,46 @@ const SCENE_CONFIG = {
             }
         }
     },
+    
+    hud: {
+        colors: {
+            primary: 0x00ffff,     // Cyan for main elements
+            warning: 0xff00ff,     // Magenta for warnings/alerts
+            accent: 0xffff00,      // Yellow for highlights
+            boost: 0xff3366        // Hot pink for boost indicator
+        },
+        opacity: {
+            base: 0.6,            // Base opacity for HUD elements
+            active: 0.8,          // Opacity when elements are active
+            scanline: 0.1         // Scanline effect opacity
+        },
+        animation: {
+            pulseSpeed: 1.5,      // Speed of pulse animations
+            scanlineSpeed: 0.5,    // Speed of scanline movement
+            glitchInterval: 3.0    // Seconds between glitch effects
+        },
+        layout: {
+            frameWidth: 0.15,     // Width of frame elements as % of screen
+            cornerSize: 0.2,      // Size of corner elements as % of screen
+            margin: 20,           // Margin from screen edges in pixels
+            barThickness: 4,      // Thinner bars for sleeker look
+            barOpacity: 0.75,     // Slightly more transparent
+            curveRadius: 20,      // Radius for curved edges
+            pulseSpeed: 2.0,      // Speed of pulse animation
+            reactionSpeed: 0.3    // Speed of movement reactions
+        },
+        
+        bars: {
+            bottom: {
+                height: 120,      // Height of bottom bar
+                curve: 40         // Curve amount for bottom bar
+            },
+            side: {
+                width: 80,        // Width of side bars
+                stretch: 1.2      // Max stretch factor
+            }
+        }
+    },
 };
 
 class ExplorationAnimation {
@@ -367,6 +407,8 @@ class ExplorationAnimation {
         this.isWarping = false;
         this.warpTransition = 0; // 0 = normal dimension, 1 = warp dimension
         this.currentDimension = 'normal';
+        this.hudElements = {};
+        this.lastGlitchTime = 0;
     }
 
     init() {
@@ -450,6 +492,9 @@ class ExplorationAnimation {
         
         // Handle window resize
         window.addEventListener('resize', this.onWindowResize.bind(this));
+        
+        // Create HUD after renderer setup
+        this.createHUD();
     }
 
     createStarfield() {
@@ -1829,6 +1874,9 @@ class ExplorationAnimation {
         
         // Render scene with post-processing
         this.composer.render();
+        
+        // Update HUD
+        this.updateHUD();
     }
 
     onWindowResize() {
@@ -2921,6 +2969,211 @@ class ExplorationAnimation {
             
             createRootSegment(startPoint, direction);
         }
+    }
+
+    createHUD() {
+        // Create HUD container
+        const hudContainer = document.createElement('div');
+        hudContainer.id = 'hudContainer';
+        hudContainer.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            perspective: 1000px;
+        `;
+
+        // Create enhanced cockpit frame bars
+        const createFrameBars = () => {
+            // Create container for bars
+            const barsContainer = document.createElement('div');
+            barsContainer.className = 'cockpit-bars-container';
+            barsContainer.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                overflow: hidden;
+            `;
+
+            // Bottom bar with curve
+            const bottomBar = document.createElement('div');
+            bottomBar.className = 'cockpit-bar bottom-bar';
+            bottomBar.style.cssText = `
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 70%;
+                height: ${SCENE_CONFIG.hud.bars.bottom.height}px;
+                background: linear-gradient(
+                    to bottom,
+                    transparent,
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.1)} 40%,
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)} 60%,
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.3)} 80%
+                );
+                border-top-left-radius: ${SCENE_CONFIG.hud.bars.bottom.curve}px;
+                border-top-right-radius: ${SCENE_CONFIG.hud.bars.bottom.curve}px;
+                backdrop-filter: blur(4px);
+                transform-origin: bottom center;
+            `;
+
+            // Side bars with stretch effect
+            ['left', 'right'].forEach(side => {
+                const sideBar = document.createElement('div');
+                sideBar.className = `cockpit-bar side-bar ${side}-bar`;
+                sideBar.style.cssText = `
+                    position: absolute;
+                    top: 50%;
+                    ${side}: 0;
+                    width: ${SCENE_CONFIG.hud.bars.side.width}px;
+                    height: 60%;
+                    transform: translateY(-50%);
+                    background: linear-gradient(
+                        ${side === 'left' ? 'to right' : 'to left'},
+                        transparent,
+                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.1)} 40%,
+                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)} 60%,
+                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.3)} 80%
+                    );
+                    border-${side === 'left' ? 'right' : 'left'}-radius: ${SCENE_CONFIG.hud.layout.curveRadius}px;
+                    backdrop-filter: blur(4px);
+                    transform-origin: ${side} center;
+                `;
+                barsContainer.appendChild(sideBar);
+                this.hudElements[`${side}Bar`] = sideBar;
+            });
+
+            // Central directional bar
+            const centerBar = document.createElement('div');
+            centerBar.className = 'cockpit-bar center-bar';
+            centerBar.style.cssText = `
+                position: absolute;
+                bottom: ${SCENE_CONFIG.hud.bars.bottom.height - 20}px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 40%;
+                height: ${SCENE_CONFIG.hud.layout.barThickness}px;
+                background: linear-gradient(
+                    to right,
+                    transparent,
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.4)},
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.6)},
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.4)},
+                    transparent
+                );
+                border-radius: ${SCENE_CONFIG.hud.layout.barThickness}px;
+                box-shadow: 0 0 10px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.3)};
+            `;
+            
+            barsContainer.appendChild(bottomBar);
+            barsContainer.appendChild(centerBar);
+            hudContainer.appendChild(barsContainer);
+            
+            this.hudElements.bottomBar = bottomBar;
+            this.hudElements.centerBar = centerBar;
+        };
+
+        createFrameBars();
+
+        // Add styles for cockpit bars
+        const hudStyles = document.createElement('style');
+        hudStyles.textContent = `
+            .cockpit-bar {
+                transition: transform ${SCENE_CONFIG.hud.layout.reactionSpeed}s ease-out,
+                            opacity 0.3s ease,
+                            box-shadow 0.3s ease;
+            }
+
+            .cockpit-bar::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(
+                    45deg,
+                    transparent,
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.1)},
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 0.2)}
+                );
+                animation: pulse ${SCENE_CONFIG.hud.layout.pulseSpeed}s ease-in-out infinite;
+                border-radius: inherit;
+            }
+
+            @keyframes pulse {
+                0%, 100% { opacity: 0.3; }
+                50% { opacity: 0.6; }
+            }
+        `;
+        document.head.appendChild(hudStyles);
+
+        document.body.appendChild(hudContainer);
+        this.hudContainer = hudContainer;
+    }
+
+    updateHUD() {
+        // Update cockpit bars based on movement
+        if (this.hudElements.leftBar && this.hudElements.rightBar) {
+            const rollFactor = this.controls.rollAngle || 0;
+            const speedFactor = this.controls.boost ? 1.2 : 1;
+            const tiltFactor = Math.abs(this.camera.rotation.x) / Math.PI;
+
+            // Update side bars
+            this.hudElements.leftBar.style.transform = `
+                translateY(-50%) 
+                scaleY(${1 + tiltFactor * 0.2})
+                scaleX(${1 + (this.controls.boost ? 0.2 : 0)})
+                rotate(${rollFactor * 2}deg)
+            `;
+            this.hudElements.rightBar.style.transform = `
+                translateY(-50%) 
+                scaleY(${1 + tiltFactor * 0.2})
+                scaleX(${1 + (this.controls.boost ? 0.2 : 0)})
+                rotate(${rollFactor * 2}deg)
+            `;
+
+            // Update bottom bar
+            if (this.hudElements.bottomBar) {
+                this.hudElements.bottomBar.style.transform = `
+                    translateX(-50%)
+                    scaleX(${speedFactor})
+                    rotate(${rollFactor}deg)
+                `;
+            }
+
+            // Update center bar
+            if (this.hudElements.centerBar) {
+                const turnFactor = (this.controls.lookLeft ? -1 : 0) + (this.controls.lookRight ? 1 : 0);
+                this.hudElements.centerBar.style.transform = `
+                    translateX(-50%)
+                    scaleX(${1 + Math.abs(turnFactor) * 0.1})
+                    rotate(${turnFactor * 2}deg)
+                `;
+            }
+        }
+    }
+
+    applyGlitchEffect() {
+        const glitchDuration = 100; // milliseconds
+        this.hudContainer.style.transform = `translate(${Math.random() * 4 - 2}px, ${Math.random() * 4 - 2}px)`;
+        setTimeout(() => {
+            this.hudContainer.style.transform = 'none';
+        }, glitchDuration);
+    }
+
+    colorToRGBA(hex, alpha) {
+        const r = (hex >> 16) & 255;
+        const g = (hex >> 8) & 255;
+        const b = hex & 255;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 }
 
