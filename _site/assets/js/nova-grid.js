@@ -138,7 +138,7 @@ const SCENE_CONFIG = {
         heightVariation: 100, // Variation in cloud height
         size: 450,            // Size of cloud particles
         sizeVariation: 40,   // Variation in cloud size
-        color: 0x4422ff,     // Base color (blue/purple)
+        color: 0x9900ff,     // Base color (blue/purple)
         opacity: 0.05,        // Base opacity
         speed: 0.2,          // Movement speed
         area: {              // Area where clouds can appear
@@ -276,16 +276,16 @@ const SCENE_CONFIG = {
                 max: 400
             },
             thickness: {
-                main: 0.6,             // Increased main thickness for better visibility
+                main: 0.2,             // Increased main thickness for better visibility
                 branchReduction: 0.6,  // Less aggressive reduction
-                min: 0.2              // Slightly smaller minimum
+                min: 0.1              // Slightly smaller minimum
             }
         },
         appearance: {
             colors: {
-                primary: 0x00ffff,    // Base color (cyan)
-                pulse: 0xff00ff,      // Pulse color (magenta)
-                energy: 0xffff00      // Energy flow color (yellow)
+                primary: 0x000000,    // Base color black
+                pulse: 0x000000,      // Pulse color black
+                energy: 0x000000      // Energy flow color black
             },
             glow: {
                 intensity: 0.5,       // Base glow intensity
@@ -317,7 +317,7 @@ const SCENE_CONFIG = {
     
     hud: {
         colors: {
-            primary: 0x00ffff,     // Cyan for main elements
+            primary: 0x9900ff,     // Cyan for main elements
             pulse: 0xff00ff,       // Magenta for pulse effects
         },
         opacity: {
@@ -331,8 +331,8 @@ const SCENE_CONFIG = {
         layout: {
             frameWidth: 0.15,     // Width of frame elements as % of screen
             barThickness: 4,      // Thin bars for sleek look
-            curveRadius: 20,      // Radius for curved edges
-            margin: 20            // Margin from screen edges in pixels
+            curveRadius: 24,      // Radius for curved edges
+            margin: 24            // Margin from screen edges in pixels
         },
         bars: {                   // Moved to root of hud config to match code access
             bottom: {
@@ -894,7 +894,7 @@ class ExplorationAnimation {
                     
                     // Calculate fresnel effect for edge glow
                     vec3 viewDirection = normalize(cameraPosition - vPosition);
-                    float fresnel = pow(1.0 - max(0.0, dot(viewDirection, normalize(vNormal))), 3.0);
+                    float fresnel = pow(1.0 - max(0.0, dot(viewDirection, normalize(vNormal))), 2.0);
                     
                     // Base color
                     vec3 color = baseColor;
@@ -917,7 +917,7 @@ class ExplorationAnimation {
                     float edge = max(edgeX, edgeY); // Use max instead of multiplication for stronger edges
                     
                     // Electric pulse on edges
-                    float electricPulse = sin(time * 5.0 + vPosition.y * 0.2) * 0.5 + 0.5;
+                    float electricPulse = sin(time * 5.0 + vPosition.y * 0.8) * 0.5 + 0.5;
                     
                     // Combine effects - brighter windows
                     color = mix(color, emissiveColor * 2.0, window * windowLight * flicker);
@@ -965,7 +965,7 @@ class ExplorationAnimation {
                     color *= scanline;
                     
                     // Final alpha - make buildings more solid
-                    float alpha = 0.95 + edge * 0.05;
+                    float alpha = 0.5 + edge * 0.05;
                     
                     gl_FragColor = vec4(color, alpha);
                 }
