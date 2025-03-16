@@ -52,8 +52,10 @@ const SCENE_CONFIG = {
             rotationSpeed: 0.03,
             lookSensitivity: {
                 horizontal: 0.1,  // Multiplier for left/right look speed
-                vertical: 0.1     // Multiplier for up/down look speed (slightly slower)
+                vertical: 0.1     // Multiplier for up/down look speed
             },
+            rollSpeed: Math.PI, // Speed of A/D barrel roll (reduced from 2π to π)
+            rollDamping: 0.92,  // How quickly roll motion slows down
             verticalRotationLimit: Math.PI / 2.5,  // Limit vertical rotation to avoid over-rotation
             acceleration: 0.01,    // Acceleration rate
             deceleration: 10.0    // Increased deceleration rate for faster slowdown
@@ -424,8 +426,8 @@ class ExplorationAnimation {
             rollLeft: false,
             rollRight: false,
             rollAngle: 0,
-            rollSpeed: Math.PI * 2, // Full rotation speed
-            rollDamping: 0.92, // Smooth damping
+            rollSpeed: SCENE_CONFIG.camera.controls.rollSpeed, // Use config value
+            rollDamping: SCENE_CONFIG.camera.controls.rollDamping, // Use config value
             // Initialize rotation
             rotation: new THREE.Euler(0, 0, 0, 'YXZ'),
             rotationSpeed: SCENE_CONFIG.camera.controls.rotationSpeed,
