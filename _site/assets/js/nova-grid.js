@@ -1967,7 +1967,7 @@ class ExplorationAnimation {
                 border: none;
                 border-radius: 50%;
                 background: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)};
-                color: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.8)};
+                color: white;
                 font-size: 24px;
                 display: flex;
                 align-items: center;
