@@ -38,8 +38,8 @@ const SCENE_CONFIG = {
         waveSpeed: { x: 0.5, y: 0 },  // Sine wave movement speed
         controls: {
             enabled: true,
-            moveSpeed: 0.2,      // Base movement speed
-            boostSpeed: 2.5,     // Speed when holding shift
+            moveSpeed: 1.0,      // Base movement speed
+            boostSpeed: 50.0,    // Much higher boost speed to reach 5000 m/s
             turnSpeed: 0.02,     // How fast to turn left/right
             autoMove: true,      // Whether to automatically move forward
             keyMapping: {
@@ -47,7 +47,12 @@ const SCENE_CONFIG = {
                 backward: 'ArrowDown',
                 left: 'ArrowLeft',
                 right: 'ArrowRight'
-            }
+            },
+            // Look control parameters
+            rotationSpeed: 0.03,
+            verticalRotationLimit: Math.PI / 2.5,  // Limit vertical rotation to avoid over-rotation
+            acceleration: 0.05,    // Acceleration rate
+            deceleration: 10.0   // Increased deceleration rate for faster slowdown
         }
     },
     
@@ -88,13 +93,13 @@ const SCENE_CONFIG = {
     // City generation
     city: {
         size: 600,
-        buildingCount: 500,
-        neonStructureCount: 100,
+        buildingCount: 200,
+        neonStructureCount: 50,
         building: {
-            maxHeight: 200,
+            maxHeight: 1200,
             minHeight: 50,
-            maxWidth: 5,
-            minWidth: 0.5
+            maxWidth: 10,
+            minWidth: 5
         }
     },
     
@@ -133,9 +138,9 @@ const SCENE_CONFIG = {
         count: 2000,          // Number of cloud particles
         height: 200,          // Average height of clouds
         heightVariation: 100, // Variation in cloud height
-        size: 250,            // Size of cloud particles
+        size: 450,            // Size of cloud particles
         sizeVariation: 40,   // Variation in cloud size
-        color: 0x4422ff,     // Base color (blue/purple)
+        color: 0x9900ff,     // Base color (blue/purple)
         opacity: 0.05,        // Base opacity
         speed: 0.2,          // Movement speed
         area: {              // Area where clouds can appear
@@ -166,9 +171,9 @@ const SCENE_CONFIG = {
                 }
             },
             bloom: {
-                strength: 1.2,  // Increased normal bloom
+                strength: 0.5,  // Increased normal bloom
                 radius: 0.5,    // Increased normal radius
-                threshold: 0.2  // Lower threshold for more bloom
+                threshold: 0.5  // Lower threshold for more bloom
             }
         },
         warpDimension: {
@@ -187,9 +192,9 @@ const SCENE_CONFIG = {
                 }
             },
             bloom: {
-                strength: 1.5,    // Even stronger bloom in warp
-                radius: 0.8,      // Wider bloom radius
-                threshold: 0.2     // Even lower threshold
+                strength: 0.1,    // Even stronger bloom in warp
+                radius: 0.5,      // Wider bloom radius
+                threshold: 0.5     // Even lower threshold
             }
         }
     },
@@ -197,8 +202,8 @@ const SCENE_CONFIG = {
     // Marble configuration
     marbles: {
         count: 200,                // Number of marbles
-        minRadius: 0.8,           // Minimum marble radius
-        maxRadius: 1.0,           // Slightly smaller maximum radius for better grid alignment
+        minRadius: 2.8,           // Minimum marble radius
+        maxRadius: 4.0,           // Slightly smaller maximum radius for better grid alignment
         bounceHeight: 0.3,        // Reduced bounce height for smoother grid rolling
         bounceSpeed: 0.8,         // Increased bounce speed for more dynamic movement
         rollSpeed: 2.2,           // Increased roll speed
@@ -257,7 +262,120 @@ const SCENE_CONFIG = {
             glowMultiplier: 2.5,  // How much brighter marbles glow in warp
             colorShift: true      // Whether to shift colors in warp
         }
-    }
+    },
+    
+    // Root structure configuration
+    roots: {
+        structure: {
+            mainSegments: 100,          // Reduced from 225 for better performance
+            branchProbability: 0.6,    // Slightly reduced to limit total branches
+            maxBranchDepth: 3000,         // Drastically reduced from 300 to prevent exponential growth
+            minSegmentLength: 20,      // Slightly shorter segments
+            maxSegmentLength: 50,      // Reduced for more frequent regeneration
+            pointsPerSegment: 8,       // Reduced from 20 for smoother performance
+            startDepth: {              // Adjusted depth range for better visibility
+                min: 15,
+                max: 400
+            },
+            thickness: {
+                main: 0.2,             // Increased main thickness for better visibility
+                branchReduction: 0.6,  // Less aggressive reduction
+                min: 0.1              // Slightly smaller minimum
+            }
+        },
+        appearance: {
+            colors: {
+                primary: 0x000000,    // Base color black
+                pulse: 0x000000,      // Pulse color black
+                energy: 0x000000      // Energy flow color black
+            },
+            glow: {
+                intensity: 0.5,       // Base glow intensity
+                pulseIntensity: 0.8,  // Intensity during pulse
+                edgeIntensity: 1.2    // Intensity of edge glow
+            },
+            animation: {
+                pulseSpeed: 2.0,      // Speed of color pulse
+                energyFlowSpeed: 3.0,  // Speed of energy flow effect
+                movementSpeed: 0.5     // Speed of subtle movement
+            },
+            opacity: {
+                base: 0.8,           // Base opacity
+                edge: 0.2            // Additional opacity at edges
+            }
+        },
+        physics: {
+            regenerationDistance: 60,   // Reduced from 100 for more frequent regeneration
+            verticalMovement: {
+                amplitude: 0.02,       // Slightly increased for more visible movement
+                frequency: 0.8         // Increased for more dynamic movement
+            },
+            branchAngles: {
+                horizontal: 1.5,       // Reduced for less chaotic branching
+                vertical: 0.8         // Reduced for less vertical spread
+            }
+        }
+    },
+    
+    hud: {
+        colors: {
+            primary: 0x9900ff,     // Cyan for main elements
+            pulse: 0xffffff,       // Magenta for pulse effects
+        },
+        opacity: {
+            base: 0.3,            // Reduced base opacity for better visibility
+            active: 0.6,          // Reduced active opacity for better balance
+        },
+        animation: {
+            pulseSpeed: 2.0,      // Optimized pulse speed for smoother animation
+            reactionSpeed: 0.3    // Speed of movement reactions
+        },
+        layout: {
+            frameWidth: 0.15,     // Width of frame elements as % of screen
+            barThickness: 4,      // Thin bars for sleek look
+            curveRadius: 24,      // Radius for curved edges
+            margin: 24            // Margin from screen edges in pixels
+        },
+        bars: {                   // Moved to root of hud config to match code access
+            bottom: {
+                height: 120,      // Height of bottom bar
+                curve: 40         // Curve amount for bottom bar
+            },
+            side: {
+                width: 80,        // Width of side bars
+                stretch: 1.2      // Max stretch factor
+            }
+        }
+    },
+
+    // Add to SCENE_CONFIG
+    groundFog: {
+        particles: {
+            count: 5000,
+            size: {
+                min: 50,
+                max: 100
+            },
+            height: {
+                min: -50,
+                max: 0
+            },
+            speed: 1.2,
+            area: {
+                width: 2000,    // Increased area for better coverage
+                depth: 2000     // Increased area for better coverage
+            }
+        },
+        colors: {
+            primary: 0x00ffff,    // Cyan base
+            secondary: 0xff00ff,   // Magenta accent
+            mix: 0.3              // Color mix factor
+        },
+        opacity: {
+            base: 0.15,          // Slightly increased base opacity
+            pulse: 0.05          // Reduced pulse for stability
+        }
+    },
 };
 
 class ExplorationAnimation {
@@ -270,6 +388,7 @@ class ExplorationAnimation {
         this.citySize = SCENE_CONFIG.city.size;
         this.buildings = [];
         this.neonLights = [];
+        this.rootStructures = []; // Add root structures array
         this.cameraSpeed = SCENE_CONFIG.camera.movementSpeed;
         this.time = 0;
         this.stars = null;
@@ -279,6 +398,9 @@ class ExplorationAnimation {
         this.marbles = [];
         this.marbleCollisions = [];
         this.floatingArtifacts = [];
+        this.groundFog = null;
+        this.groundFogUniforms = null;
+        this.fogParticles = [];
         
         // Controls state
         this.controls = {
@@ -287,14 +409,31 @@ class ExplorationAnimation {
             moveLeft: false,
             moveRight: false,
             boost: false,
-            direction: new THREE.Vector3(0, 0, -1), // Forward direction vector
-            velocity: new THREE.Vector3()
+            direction: new THREE.Vector3(0, 0, -1),
+            velocity: new THREE.Vector3(),
+            // Look controls
+            lookUp: false,
+            lookDown: false,
+            lookLeft: false,
+            lookRight: false,
+            // Add barrel roll controls
+            rollLeft: false,
+            rollRight: false,
+            rollAngle: 0,
+            rollSpeed: Math.PI * 2, // Full rotation speed
+            rollDamping: 0.92, // Smooth damping
+            // Initialize rotation
+            rotation: new THREE.Euler(0, 0, 0, 'YXZ'),
+            rotationSpeed: SCENE_CONFIG.camera.controls.rotationSpeed,
+            verticalRotationLimit: SCENE_CONFIG.camera.controls.verticalRotationLimit
         };
         
         this.boostTimer = 0;
         this.isWarping = false;
         this.warpTransition = 0; // 0 = normal dimension, 1 = warp dimension
         this.currentDimension = 'normal';
+        this.hudElements = {};
+        this.lastGlitchTime = 0;
     }
 
     init() {
@@ -353,6 +492,9 @@ class ExplorationAnimation {
         // Create grid
         this.createGrid();
         
+        // Create root structure before the city
+        this.createRootStructure();
+        
         // Create procedural city
         this.createProceduralCity();
         
@@ -375,6 +517,11 @@ class ExplorationAnimation {
         
         // Handle window resize
         window.addEventListener('resize', this.onWindowResize.bind(this));
+        
+        // Create HUD after renderer setup
+        this.createHUD();
+
+        this.createGroundFog();  // Add after other scene elements
     }
 
     createStarfield() {
@@ -749,7 +896,7 @@ class ExplorationAnimation {
                     
                     // Calculate fresnel effect for edge glow
                     vec3 viewDirection = normalize(cameraPosition - vPosition);
-                    float fresnel = pow(1.0 - max(0.0, dot(viewDirection, normalize(vNormal))), 3.0);
+                    float fresnel = pow(1.0 - max(0.0, dot(viewDirection, normalize(vNormal))), 2.0);
                     
                     // Base color
                     vec3 color = baseColor;
@@ -772,7 +919,7 @@ class ExplorationAnimation {
                     float edge = max(edgeX, edgeY); // Use max instead of multiplication for stronger edges
                     
                     // Electric pulse on edges
-                    float electricPulse = sin(time * 5.0 + vPosition.y * 0.2) * 0.5 + 0.5;
+                    float electricPulse = sin(time * 5.0 + vPosition.y * 0.8) * 0.5 + 0.5;
                     
                     // Combine effects - brighter windows
                     color = mix(color, emissiveColor * 2.0, window * windowLight * flicker);
@@ -820,7 +967,7 @@ class ExplorationAnimation {
                     color *= scanline;
                     
                     // Final alpha - make buildings more solid
-                    float alpha = 0.95 + edge * 0.05;
+                    float alpha = 0.5 + edge * 0.05;
                     
                     gl_FragColor = vec4(color, alpha);
                 }
@@ -1230,18 +1377,34 @@ class ExplorationAnimation {
         const keyMapping = SCENE_CONFIG.camera.controls.keyMapping;
         
         switch (event.code) {
-            case keyMapping.forward:
+            // Movement controls
+            case 'ArrowUp':
                 this.controls.moveForward = true;
-                this.controls.boost = true; // Activate boost when moving forward
+                this.controls.boost = true;
                 break;
-            case keyMapping.backward:
+            case 'ArrowDown':
                 this.controls.moveBackward = true;
                 break;
-            case keyMapping.left:
-                this.controls.moveLeft = true;
+            // Look controls (arrow keys)
+            case 'ArrowLeft':
+                this.controls.lookLeft = true;
                 break;
-            case keyMapping.right:
-                this.controls.moveRight = true;
+            case 'ArrowRight':
+                this.controls.lookRight = true;
+                break;
+            // Barrel roll controls (A/D)
+            case 'KeyA':
+                this.controls.rollLeft = true;
+                break;
+            case 'KeyD':
+                this.controls.rollRight = true;
+                break;
+            // Inverted look up/down (W/S)
+            case 'KeyW':
+                this.controls.lookDown = true;  // Changed from lookUp
+                break;
+            case 'KeyS':
+                this.controls.lookUp = true;    // Changed from lookDown
                 break;
         }
     }
@@ -1250,29 +1413,66 @@ class ExplorationAnimation {
         const keyMapping = SCENE_CONFIG.camera.controls.keyMapping;
         
         switch (event.code) {
-            case keyMapping.forward:
+            case 'ArrowUp':
                 this.controls.moveForward = false;
-                this.controls.boost = false; // Deactivate boost when forward key is released
+                this.controls.boost = false;
                 break;
-            case keyMapping.backward:
+            case 'ArrowDown':
                 this.controls.moveBackward = false;
                 break;
-            case keyMapping.left:
-                this.controls.moveLeft = false;
+            // Look controls
+            case 'ArrowLeft':
+                this.controls.lookLeft = false;
                 break;
-            case keyMapping.right:
-                this.controls.moveRight = false;
+            case 'ArrowRight':
+                this.controls.lookRight = false;
+                break;
+            // Barrel roll controls
+            case 'KeyA':
+                this.controls.rollLeft = false;
+                break;
+            case 'KeyD':
+                this.controls.rollRight = false;
+                break;
+            // Inverted look up/down
+            case 'KeyW':
+                this.controls.lookDown = false;  // Changed from lookUp
+                break;
+            case 'KeyS':
+                this.controls.lookUp = false;    // Changed from lookDown
                 break;
         }
     }
     
     updateControls(delta) {
         // Get current speed based on boost state
-        let currentSpeed = SCENE_CONFIG.camera.controls.moveSpeed;
+        let targetSpeed = this.controls.boost ? 
+            SCENE_CONFIG.camera.controls.boostSpeed : 
+            SCENE_CONFIG.camera.controls.moveSpeed;
+        
+        // Initialize current speed if undefined
+        if (this.currentSpeed === undefined) this.currentSpeed = SCENE_CONFIG.camera.controls.moveSpeed;
+        
+        // Calculate acceleration and deceleration with easing
+        if (this.controls.boost) {
+            // Accelerate with easing for smoother ramp-up
+            const accelerationRate = SCENE_CONFIG.camera.controls.acceleration * delta;
+            const speedDiff = targetSpeed - this.currentSpeed;
+            this.currentSpeed += speedDiff * accelerationRate;
+        } else {
+            // Decelerate more quickly with easing
+            const decelerationRate = SCENE_CONFIG.camera.controls.deceleration * delta;
+            const speedDiff = this.currentSpeed - SCENE_CONFIG.camera.controls.moveSpeed;
+            this.currentSpeed -= speedDiff * decelerationRate;
+        }
+        
+        // Clamp speed to valid range
+        this.currentSpeed = Math.max(
+            SCENE_CONFIG.camera.controls.moveSpeed,
+            Math.min(SCENE_CONFIG.camera.controls.boostSpeed, this.currentSpeed)
+        );
         
         if (this.controls.boost) {
-            currentSpeed = SCENE_CONFIG.camera.controls.boostSpeed;
-            
             // Update boost timer and check for warp
             this.boostTimer += delta;
             if (this.boostTimer >= SCENE_CONFIG.warp.boostThreshold && !this.isWarping) {
@@ -1301,51 +1501,66 @@ class ExplorationAnimation {
             );
             this.camera.updateProjectionMatrix();
         }
-        
-        // Calculate movement based on current direction
-        const moveSpeed = currentSpeed * delta * 60; // Normalize by framerate
-        
-        // Update direction vector based on turning
-        if (this.controls.moveLeft) {
-            // Rotate direction vector around Y axis (left)
-            this.controls.direction.applyAxisAngle(
-                new THREE.Vector3(0, 1, 0), 
-                SCENE_CONFIG.camera.controls.turnSpeed
-            );
+
+        // Handle camera rotation
+        if (this.controls.lookUp) {
+            this.controls.rotation.x += this.controls.rotationSpeed;
         }
-        if (this.controls.moveRight) {
-            // Rotate direction vector around Y axis (right)
-            this.controls.direction.applyAxisAngle(
-                new THREE.Vector3(0, 1, 0), 
-                -SCENE_CONFIG.camera.controls.turnSpeed
-            );
+        if (this.controls.lookDown) {
+            this.controls.rotation.x -= this.controls.rotationSpeed;
+        }
+        if (this.controls.lookLeft) {
+            this.controls.rotation.y += this.controls.rotationSpeed;
+        }
+        if (this.controls.lookRight) {
+            this.controls.rotation.y -= this.controls.rotationSpeed;
+        }
+
+        // Handle barrel roll with delta time
+        if (this.controls.rollLeft) {
+            this.controls.rollAngle += this.controls.rollSpeed * delta;
+        }
+        if (this.controls.rollRight) {
+            this.controls.rollAngle -= this.controls.rollSpeed * delta;
         }
         
-        // Normalize direction vector
-        this.controls.direction.normalize();
+        // Apply damping to roll
+        this.controls.rollAngle *= Math.pow(this.controls.rollDamping, delta * 60);
+
+        // Clamp vertical rotation
+        this.controls.rotation.x = Math.max(
+            -this.controls.verticalRotationLimit,
+            Math.min(this.controls.verticalRotationLimit, this.controls.rotation.x)
+        );
+
+        // Create quaternions for look and roll
+        const lookQuaternion = new THREE.Quaternion().setFromEuler(this.controls.rotation);
+        const rollQuaternion = new THREE.Quaternion().setFromAxisAngle(
+            new THREE.Vector3(0, 0, 1),
+            this.controls.rollAngle
+        );
+
+        // Apply rotations to camera
+        this.camera.quaternion.copy(lookQuaternion).multiply(rollQuaternion);
+
+        // Update movement direction based on camera's look direction
+        const forward = new THREE.Vector3(0, 0, -1);
+        forward.applyQuaternion(lookQuaternion); // Use look quaternion only for movement
+        forward.normalize();
         
-        // Calculate velocity based on forward/backward movement
+        // Calculate velocity based on input
         this.controls.velocity.set(0, 0, 0);
         
+        // Handle forward/backward movement
         if (this.controls.moveForward || SCENE_CONFIG.camera.controls.autoMove) {
-            // Move in the direction we're facing
-            this.controls.velocity.add(
-                this.controls.direction.clone().multiplyScalar(moveSpeed)
-            );
+            this.controls.velocity.add(forward.clone().multiplyScalar(this.currentSpeed));
         }
         if (this.controls.moveBackward) {
-            // Move opposite to the direction we're facing
-            this.controls.velocity.add(
-                this.controls.direction.clone().multiplyScalar(-moveSpeed)
-            );
+            this.controls.velocity.add(forward.clone().multiplyScalar(-this.currentSpeed * 0.5));
         }
         
         // Apply velocity to camera position
         this.camera.position.add(this.controls.velocity);
-        
-        // Update camera look direction
-        const lookAtPosition = this.camera.position.clone().add(this.controls.direction);
-        this.camera.lookAt(lookAtPosition);
     }
 
     startWarp() {
@@ -1645,8 +1860,74 @@ class ExplorationAnimation {
             this.updateFloatingArtifacts(delta);
         }
         
+        // Create a container for roots if it doesn't exist
+        if (!this.rootContainer) {
+            this.rootContainer = new THREE.Object3D();
+            this.scene.add(this.rootContainer);
+            
+            // Move existing roots to the container
+            this.rootStructures.forEach(root => {
+                this.scene.remove(root.mesh);
+                this.rootContainer.add(root.mesh);
+            });
+        }
+        
+        // Always keep root container with camera
+        this.rootContainer.position.copy(this.camera.position);
+        
+        // Update individual root structures
+        this.rootStructures.forEach(root => {
+            // Update shader time
+            root.material.uniforms.time.value = this.time;
+            
+            // Calculate root's position relative to camera
+            const relativePos = root.mesh.position.clone().add(this.rootContainer.position);
+            const distanceFromCamera = relativePos.distanceTo(this.camera.position);
+            
+            // Check if root needs regeneration (either too far or behind camera)
+            const isTooFar = distanceFromCamera > this.citySize;
+            const isBehindCamera = root.mesh.position.z > 0; // Since container is at camera position
+            
+            if (isTooFar || isBehindCamera) {
+                // Calculate new position in front of camera
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * this.citySize * 0.8;
+                
+                // Position relative to container (which is at camera position)
+                root.mesh.position.x = Math.cos(angle) * radius;
+                root.mesh.position.z = -Math.random() * this.citySize; // Always in front
+                root.mesh.position.y = -SCENE_CONFIG.roots.structure.startDepth.min - 
+                    Math.random() * (SCENE_CONFIG.roots.structure.startDepth.max - SCENE_CONFIG.roots.structure.startDepth.min);
+                
+                root.initialZ = root.mesh.position.z;
+            }
+            
+            // Update visual effects based on boost/warp state
+            const boostIntensity = this.controls.boost ? 2.0 : 1.0;
+            
+            if (root.material.uniforms.glowIntensity) {
+                root.material.uniforms.glowIntensity.value = 
+                    SCENE_CONFIG.roots.appearance.glow.intensity * boostIntensity;
+            }
+            
+            if (root.material.uniforms.energyFlowSpeed) {
+                root.material.uniforms.energyFlowSpeed.value = 
+                    SCENE_CONFIG.roots.appearance.animation.energyFlowSpeed * boostIntensity;
+            }
+            
+            // Add subtle movement
+            root.mesh.position.y += Math.sin(
+                this.time * SCENE_CONFIG.roots.physics.verticalMovement.frequency + root.initialZ
+            ) * SCENE_CONFIG.roots.physics.verticalMovement.amplitude;
+        });
+        
         // Render scene with post-processing
         this.composer.render();
+        
+        // Update HUD
+        this.updateHUD();
+
+        this.updateGroundFog(delta);
     }
 
     onWindowResize() {
@@ -1660,28 +1941,24 @@ class ExplorationAnimation {
         const mobileControls = document.createElement('div');
         mobileControls.style.cssText = `
             position: fixed;
-            bottom: 0;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: none;
             z-index: 1000;
-            width: 180px;
-            height: 180px;
+            width: 240px;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         `;
 
-        // Only show on mobile
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            mobileControls.style.display = 'grid';
-            mobileControls.style.gridTemplateAreas = `
-                ". up ."
-                "left down right"
-                ". . ."
-            `;
-            mobileControls.style.gridTemplateColumns = '60px 60px 60px';
-            mobileControls.style.gridTemplateRows = '60px 60px 60px';
+        // Show on mobile devices or small screens
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768) {
+            mobileControls.style.display = 'flex';
         }
 
-        const createButton = (direction, symbol, gridArea) => {
+        const createButton = (direction, symbol) => {
             const button = document.createElement('button');
             button.innerHTML = symbol;
             button.style.cssText = `
@@ -1689,56 +1966,80 @@ class ExplorationAnimation {
                 height: 50px;
                 border: none;
                 border-radius: 50%;
-                background: rgba(0, 0, 0, 0.3);
-                color: white;
+                background: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)};
+                color: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.8)};
                 font-size: 24px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
                 outline: none;
-                grid-area: ${gridArea};
-                margin: auto;
+                margin: 0 5px;
                 padding: 0;
                 -webkit-tap-highlight-color: transparent;
                 touch-action: manipulation;
                 user-select: none;
                 -webkit-user-select: none;
+                backdrop-filter: blur(4px);
+                -webkit-backdrop-filter: blur(4px);
+                box-shadow: 0 0 10px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.3)};
+                transition: transform 0.1s ease, background-color 0.1s ease;
             `;
 
-            // Touch events for mobile
-            button.addEventListener('touchstart', (e) => {
+            const startControl = (e) => {
                 e.preventDefault();
                 this.onKeyDown({ code: `Arrow${direction}` });
-                button.style.background = 'rgba(255, 255, 255, 0.2)';
-            });
+                button.style.background = this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.4);
+                button.style.transform = 'scale(0.95)';
+            };
 
-            button.addEventListener('touchend', (e) => {
+            const endControl = (e) => {
                 e.preventDefault();
                 this.onKeyUp({ code: `Arrow${direction}` });
-                button.style.background = 'rgba(0, 0, 0, 0.3)';
-            });
+                button.style.background = this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2);
+                button.style.transform = 'scale(1)';
+            };
+
+            // Touch events for mobile devices
+            button.addEventListener('touchstart', startControl, { passive: false });
+            button.addEventListener('touchend', endControl);
+            button.addEventListener('touchcancel', endControl);
+
+            // Mouse events for mobile web
+            button.addEventListener('mousedown', startControl);
+            button.addEventListener('mouseup', endControl);
+            button.addEventListener('mouseleave', endControl);
+
+            // Prevent context menu on long press
+            button.addEventListener('contextmenu', (e) => e.preventDefault());
 
             // Prevent default touch behavior
-            button.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-            });
+            button.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
             return button;
         };
 
-        // Create directional buttons with arrow symbols
-        const upButton = createButton('Up', '↑', 'up');
-        const downButton = createButton('Down', '↓', 'down');
-        const leftButton = createButton('Left', '←', 'left');
-        const rightButton = createButton('Right', '→', 'right');
+        // Create directional buttons with arrow symbols in a row
+        const leftButton = createButton('Left', '←');
+        const downButton = createButton('Down', '↓');
+        const upButton = createButton('Up', '↑');
+        const rightButton = createButton('Right', '→');
 
-        mobileControls.appendChild(upButton);
         mobileControls.appendChild(leftButton);
         mobileControls.appendChild(downButton);
+        mobileControls.appendChild(upButton);
         mobileControls.appendChild(rightButton);
 
         document.body.appendChild(mobileControls);
+
+        // Update visibility on resize
+        window.addEventListener('resize', () => {
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768) {
+                mobileControls.style.display = 'flex';
+            } else {
+                mobileControls.style.display = 'none';
+            }
+        });
     }
 
     createMarbles() {
@@ -2582,6 +2883,646 @@ class ExplorationAnimation {
         
         // Reset opacity
         artifact.material.opacity = 0.8;
+    }
+
+    createRootStructure() {
+        const config = SCENE_CONFIG.roots;
+        const segmentCount = config.structure.mainSegments;
+        const branchProbability = config.structure.branchProbability;
+        const maxBranchDepth = config.structure.maxBranchDepth;
+        
+        const createRootSegment = (startPoint, direction, depth = 0, thickness = config.structure.thickness.main) => {
+            if (depth >= maxBranchDepth || thickness < config.structure.thickness.min) return null;
+            
+            // Create a curved path for this segment
+            const points = [];
+            const segmentLength = config.structure.minSegmentLength + 
+                Math.random() * (config.structure.maxSegmentLength - config.structure.minSegmentLength);
+            const pointCount = config.structure.pointsPerSegment;
+            
+            for (let i = 0; i < pointCount; i++) {
+                const t = i / (pointCount - 1);
+                const point = startPoint.clone();
+                
+                // Add some randomness to the path
+                const randomOffset = new THREE.Vector3(
+                    (Math.random() - 0.5) * 5,
+                    (Math.random() - 0.5) * 5,
+                    (Math.random() - 0.5) * 5
+                );
+                
+                point.add(direction.clone().multiplyScalar(t * segmentLength));
+                point.add(randomOffset);
+                points.push(point);
+            }
+            
+            // Create the curve
+            const curve = new THREE.CatmullRomCurve3(points);
+            
+            // Create tube geometry
+            const tubeGeometry = new THREE.TubeGeometry(
+                curve,
+                20, // tubular segments
+                thickness,
+                8, // radial segments
+                false // closed
+            );
+            
+            // Create material with glow effect
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: { value: 0 },
+                    baseColor: { value: new THREE.Color(config.appearance.colors.primary) },
+                    pulseColor: { value: new THREE.Color(config.appearance.colors.pulse) },
+                    energyColor: { value: new THREE.Color(config.appearance.colors.energy) },
+                    glowIntensity: { value: config.appearance.glow.intensity },
+                    pulseSpeed: { value: config.appearance.animation.pulseSpeed },
+                    energyFlowSpeed: { value: config.appearance.animation.energyFlowSpeed }
+                },
+                vertexShader: `
+                    varying vec3 vPosition;
+                    varying vec3 vNormal;
+                    
+                    void main() {
+                        vPosition = position;
+                        vNormal = normal;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform float time;
+                    uniform vec3 baseColor;
+                    uniform vec3 pulseColor;
+                    uniform vec3 energyColor;
+                    uniform float glowIntensity;
+                    uniform float pulseSpeed;
+                    uniform float energyFlowSpeed;
+                    
+                    varying vec3 vPosition;
+                    varying vec3 vNormal;
+                    
+                    void main() {
+                        // Create energy pulse effect
+                        float pulse = sin(vPosition.z * 0.1 + time * pulseSpeed) * 0.5 + 0.5;
+                        
+                        // Calculate fresnel effect for edge glow
+                        vec3 viewDirection = normalize(cameraPosition - vPosition);
+                        float fresnel = pow(1.0 - max(0.0, dot(viewDirection, normalize(vNormal))), 3.0);
+                        
+                        // Energy flow effect
+                        float energy = sin(vPosition.z * 0.05 + time * energyFlowSpeed) * 0.5 + 0.5;
+                        
+                        // Mix colors based on pulse and energy
+                        vec3 finalColor = mix(baseColor, pulseColor, pulse);
+                        finalColor = mix(finalColor, energyColor, energy * 0.3);
+                        
+                        // Add edge glow
+                        finalColor += vec3(1.0) * fresnel * glowIntensity;
+                        
+                        gl_FragColor = vec4(finalColor, ${config.appearance.opacity.base} + fresnel * ${config.appearance.opacity.edge});
+                    }
+                `,
+                transparent: true,
+                side: THREE.DoubleSide
+            });
+            
+            // Create mesh
+            const tube = new THREE.Mesh(tubeGeometry, material);
+            
+            // Store the root segment
+            this.rootStructures.push({
+                mesh: tube,
+                material: material,
+                initialZ: startPoint.z,
+                thickness: thickness
+            });
+            
+            this.scene.add(tube);
+            
+            // Create branches
+            if (depth < maxBranchDepth && Math.random() < branchProbability) {
+                const branchCount = 1 + Math.floor(Math.random() * 2);
+                for (let i = 0; i < branchCount; i++) {
+                    const branchPoint = points[Math.floor(points.length * 0.5)].clone();
+                    
+                    // Use configured branch angles
+                    const branchDirection = direction.clone()
+                        .add(new THREE.Vector3(
+                            (Math.random() - 0.5) * config.physics.branchAngles.horizontal,
+                            (Math.random() - 0.5) * config.physics.branchAngles.vertical,
+                            (Math.random() - 0.5) * config.physics.branchAngles.horizontal
+                        ))
+                        .normalize();
+                    
+                    createRootSegment(
+                        branchPoint,
+                        branchDirection,
+                        depth + 1,
+                        thickness * config.structure.thickness.branchReduction
+                    );
+                }
+            }
+        };
+        
+        // Create initial root segments
+        for (let i = 0; i < segmentCount; i++) {
+            const startX = (Math.random() - 0.5) * this.citySize;
+            const startY = -config.structure.startDepth.min - 
+                          Math.random() * (config.structure.startDepth.max - config.structure.startDepth.min);
+            const startZ = (Math.random() - 0.5) * this.citySize;
+            
+            const startPoint = new THREE.Vector3(startX, startY, startZ);
+            const direction = new THREE.Vector3(
+                (Math.random() - 0.5) * config.physics.branchAngles.horizontal,
+                (Math.random() - 0.5) * config.physics.branchAngles.vertical,
+                (Math.random() - 0.5) * config.physics.branchAngles.horizontal
+            ).normalize();
+            
+            createRootSegment(startPoint, direction);
+        }
+    }
+
+    createHUD() {
+        // Create HUD container
+        const hudContainer = document.createElement('div');
+        hudContainer.id = 'hudContainer';
+        hudContainer.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            perspective: 1000px;
+        `;
+
+        // Create speed indicator
+        const speedIndicator = document.createElement('div');
+        speedIndicator.className = 'speed-indicator';
+        speedIndicator.style.cssText = `
+            position: absolute;
+            bottom: ${SCENE_CONFIG.hud.bars.bottom.height + 20}px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 0 0 10px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.5)};
+            background: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.05)};
+            padding: 8px 12px;
+            border-radius: 12px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        `;
+
+        // Create boost meter container
+        const boostMeterContainer = document.createElement('div');
+        boostMeterContainer.className = 'boost-meter-container';
+        boostMeterContainer.style.cssText = `
+            position: absolute;
+            bottom: ${SCENE_CONFIG.hud.bars.bottom.height + 60}px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 4px;
+            background: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)};
+            border-radius: 2px;
+            overflow: hidden;
+        `;
+
+        // Create boost meter fill
+        const boostMeterFill = document.createElement('div');
+        boostMeterFill.className = 'boost-meter-fill';
+        boostMeterFill.style.cssText = `
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 1)},
+                ${this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 1)}
+            );
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        `;
+
+        // Assemble boost meter
+        boostMeterContainer.appendChild(boostMeterFill);
+
+        // Create enhanced cockpit frame bars
+        const createFrameBars = () => {
+            // Create container for bars
+            const barsContainer = document.createElement('div');
+            barsContainer.className = 'cockpit-bars-container';
+            barsContainer.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                overflow: hidden;
+                border: 12px solid rgba(0, 0, 255, 0.6);
+                border-radius: 80px;
+                box-shadow: 0 0 40px rgba(0, 0, 255, 1);
+            `;
+
+            // Bottom bar with curve
+            const bottomBar = document.createElement('div');
+            bottomBar.className = 'cockpit-bar bottom-bar';
+            bottomBar.style.cssText = `
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 70%;
+                height: ${SCENE_CONFIG.hud.bars.bottom.height}px;
+                background: linear-gradient(
+                    to bottom,
+                    transparent,
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.1)} 40%,
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)} 60%,
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.6)} 80%
+                );
+                border-top-left-radius: ${SCENE_CONFIG.hud.bars.bottom.curve}px;
+                border-top-right-radius: ${SCENE_CONFIG.hud.bars.bottom.curve}px;
+                transform-origin: bottom center;
+            `;
+
+            // Side bars with stretch effect
+            ['left', 'right'].forEach(side => {
+                const sideBar = document.createElement('div');
+                sideBar.className = `cockpit-bar side-bar ${side}-bar`;
+                sideBar.style.cssText = `
+                    position: absolute;
+                    top: 50%;
+                    ${side}: 0;
+                    width: ${SCENE_CONFIG.hud.bars.side.width}px;
+                    height: 60%;
+                    transform: translateY(-50%);
+                    background: linear-gradient(
+                        ${side === 'left' ? 'to right' : 'to left'},
+                        transparent,
+                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.1)} 40%,
+                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)} 60%,
+                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.6)} 80%
+                    );
+                    border-${side === 'left' ? 'right' : 'left'}-radius: ${SCENE_CONFIG.hud.layout.curveRadius}px;
+                    transform-origin: ${side} center;
+                `;
+                barsContainer.appendChild(sideBar);
+                this.hudElements[`${side}Bar`] = sideBar;
+            });
+
+            // Central directional bar
+            const centerBar = document.createElement('div');
+            centerBar.className = 'cockpit-bar center-bar';
+            centerBar.style.cssText = `
+                position: absolute;
+                bottom: ${SCENE_CONFIG.hud.bars.bottom.height - 20}px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 40%;
+                height: ${SCENE_CONFIG.hud.layout.barThickness}px;
+                background: linear-gradient(
+                    to right,
+                    transparent,
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.4)},
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 1)},
+                    ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.4)},
+                    transparent
+                );
+                border-radius: ${SCENE_CONFIG.hud.layout.barThickness}px;
+                box-shadow: 0 0 10px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.3)};
+            `;
+            
+            barsContainer.appendChild(bottomBar);
+            barsContainer.appendChild(centerBar);
+            hudContainer.appendChild(barsContainer);
+            
+            this.hudElements.bottomBar = bottomBar;
+            this.hudElements.centerBar = centerBar;
+        };
+
+        createFrameBars();
+
+        // Add new elements to HUD
+        hudContainer.appendChild(speedIndicator);
+        hudContainer.appendChild(boostMeterContainer);
+
+        // Store references to new elements
+        this.hudElements.speedIndicator = speedIndicator;
+        this.hudElements.boostMeterFill = boostMeterFill;
+
+        document.body.appendChild(hudContainer);
+        this.hudContainer = hudContainer;
+    }
+
+    updateHUD() {
+        // Update cockpit bars based on movement
+        if (this.hudElements.leftBar && this.hudElements.rightBar) {
+            const rollFactor = this.controls.rollAngle || 0;
+            const speedFactor = this.controls.boost ? 1.2 : 1;
+            const tiltFactor = Math.abs(this.camera.rotation.x) / Math.PI;
+
+            // Update side bars
+            this.hudElements.leftBar.style.transform = `
+                translateY(-50%) 
+                scaleY(${1 + tiltFactor * 0.2})
+                scaleX(${1 + (this.controls.boost ? 0.2 : 0)})
+                rotate(${rollFactor * 2}deg)
+            `;
+            this.hudElements.rightBar.style.transform = `
+                translateY(-50%) 
+                scaleY(${1 + tiltFactor * 0.2})
+                scaleX(${1 + (this.controls.boost ? 0.2 : 0)})
+                rotate(${rollFactor * 2}deg)
+            `;
+
+            // Update bottom bar
+            if (this.hudElements.bottomBar) {
+                this.hudElements.bottomBar.style.transform = `
+                    translateX(-50%)
+                    scaleX(${speedFactor})
+                    rotate(${rollFactor}deg)
+                `;
+            }
+
+            // Update center bar
+            if (this.hudElements.centerBar) {
+                const turnFactor = (this.controls.lookLeft ? -1 : 0) + (this.controls.lookRight ? 1 : 0);
+                this.hudElements.centerBar.style.transform = `
+                    translateX(-50%)
+                    scaleX(${1 + Math.abs(turnFactor) * 0.1})
+                    rotate(${turnFactor * 2}deg)
+                `;
+            }
+        }
+
+        // Update speed indicator
+        if (this.hudElements.speedIndicator) {
+            // Use the stored speed value and multiply by 100 for dramatic effect
+            const speedMS = this.currentSpeed * 100; // This will now reach 5000 m/s
+            
+            // Format speed with thousands separator
+            const formattedSpeed = Math.round(speedMS).toLocaleString();
+            this.hudElements.speedIndicator.textContent = `${formattedSpeed} m/s`;
+
+            // Enhanced visual effects based on speed
+            const speedFactor = Math.min(1, speedMS / 5000); // Normalize speed for effects
+            const glowIntensity = 10 + (speedFactor * 30); // Increased glow effect range
+            const pulseEffect = this.controls.boost ? 
+                `0 0 ${glowIntensity}px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 0.8)}, 0 0 ${glowIntensity * 2}px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.pulse, 0.4)}` :
+                `0 0 ${glowIntensity}px ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.5)}`;
+
+            // Apply enhanced visual effects
+            this.hudElements.speedIndicator.style.cssText = `
+                position: absolute;
+                bottom: ${SCENE_CONFIG.hud.bars.bottom.height + 20}px;
+                left: 50%;
+                transform: translateX(-50%) scale(${1 + speedFactor * 0.3});
+                color: white;
+                font-family: 'Courier New', monospace;
+                font-size: 24px;
+                font-weight: bold;
+                text-shadow: ${pulseEffect};
+                background: ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.05 + speedFactor * 0.15)};
+                padding: 5px 15px;
+                border-radius: 10px;
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                transition: transform 0.2s ease;
+                letter-spacing: ${speedFactor * 3}px;
+            `;
+        }
+
+        // Update boost meter
+        if (this.hudElements.boostMeterFill) {
+            // Calculate boost percentage based on boost timer
+            const maxBoostTime = SCENE_CONFIG.warp.boostThreshold;
+            const boostPercentage = (this.boostTimer / maxBoostTime) * 100;
+            
+            // Update boost meter fill
+            this.hudElements.boostMeterFill.style.transform = `scaleX(${this.controls.boost ? 1 - (boostPercentage / 100) : 1})`;
+            
+            // Add pulse effect when close to warp
+            if (boostPercentage > 80) {
+                this.hudElements.boostMeterFill.style.filter = `brightness(${1 + Math.sin(Date.now() * 0.01) * 0.5})`;
+            } else {
+                this.hudElements.boostMeterFill.style.filter = 'none';
+            }
+        }
+    }
+
+    applyGlitchEffect() {
+        const glitchDuration = 100; // milliseconds
+        this.hudContainer.style.transform = `translate(${Math.random() * 4 - 2}px, ${Math.random() * 4 - 2}px)`;
+        setTimeout(() => {
+            this.hudContainer.style.transform = 'none';
+        }, glitchDuration);
+    }
+
+    colorToRGBA(hex, alpha) {
+        const r = (hex >> 16) & 255;
+        const g = (hex >> 8) & 255;
+        const b = hex & 255;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    createGroundFog() {
+        const fogGeometry = new THREE.BufferGeometry();
+        const fogVertices = [];
+        const fogSizes = [];
+        const fogColors = [];
+        const fogOpacities = [];
+        
+        const config = SCENE_CONFIG.groundFog;
+        const color1 = new THREE.Color(config.colors.primary);
+        const color2 = new THREE.Color(config.colors.secondary);
+
+        // Create fog particles
+        for (let i = 0; i < config.particles.count; i++) {
+            // Random position within area
+            const x = (Math.random() - 0.5) * config.particles.area.width;
+            const z = (Math.random() - 0.5) * config.particles.area.depth;
+            const y = config.particles.height.min + 
+                     Math.random() * (config.particles.height.max - config.particles.height.min);
+
+            fogVertices.push(x, y, z);
+
+            // Random size
+            const size = config.particles.size.min + 
+                Math.random() * (config.particles.size.max - config.particles.size.min);
+            fogSizes.push(size);
+
+            // Mix colors
+            const mixFactor = Math.random() * config.colors.mix;
+            const color = new THREE.Color().lerpColors(color1, color2, mixFactor);
+            fogColors.push(color.r, color.g, color.b);
+
+            // Initial opacity
+            fogOpacities.push(config.opacity.base + Math.random() * config.opacity.pulse);
+
+            // Store particle data for animation
+            this.fogParticles.push({
+                baseY: y,
+                phase: Math.random() * Math.PI * 2,
+                speed: config.particles.speed * (0.8 + Math.random() * 0.4)
+            });
+        }
+
+        fogGeometry.setAttribute('position', new THREE.Float32BufferAttribute(fogVertices, 3));
+        fogGeometry.setAttribute('size', new THREE.Float32BufferAttribute(fogSizes, 1));
+        fogGeometry.setAttribute('color', new THREE.Float32BufferAttribute(fogColors, 3));
+        fogGeometry.setAttribute('opacity', new THREE.Float32BufferAttribute(fogOpacities, 1));
+
+        // Custom shader material for fog
+        this.groundFogUniforms = {
+            time: { value: 0 },
+            fogTexture: { value: this.createFogTexture() }
+        };
+
+        const fogMaterial = new THREE.ShaderMaterial({
+            uniforms: this.groundFogUniforms,
+            vertexShader: `
+                attribute float size;
+                attribute vec3 color;
+                attribute float opacity;
+                
+                varying vec3 vColor;
+                varying float vOpacity;
+                
+                void main() {
+                    vColor = color;
+                    vOpacity = opacity;
+                    
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    gl_PointSize = size * (300.0 / -mvPosition.z);
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D fogTexture;
+                uniform float time;
+                
+                varying vec3 vColor;
+                varying float vOpacity;
+                
+                void main() {
+                    vec2 uv = gl_PointCoord;
+                    
+                    // Sample fog texture
+                    vec4 tex = texture2D(fogTexture, uv);
+                    
+                    // Apply color and opacity
+                    gl_FragColor = vec4(vColor, vOpacity * tex.a);
+                    
+                    // Add subtle pulse
+                    float pulse = sin(time * 2.0 + gl_FragCoord.x * 0.01 + gl_FragCoord.y * 0.01) * 0.1 + 0.9;
+                    gl_FragColor.a *= pulse;
+                }
+            `,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+        });
+
+        this.groundFog = new THREE.Points(fogGeometry, fogMaterial);
+        this.scene.add(this.groundFog);
+    }
+
+    createFogTexture() {
+        const size = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        // Create radial gradient for fog particle
+        const gradient = ctx.createRadialGradient(
+            size/2, size/2, 0,
+            size/2, size/2, size/2
+        );
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+        gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.2)');
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, size, size);
+
+        const texture = new THREE.Texture(canvas);
+        texture.needsUpdate = true;
+        return texture;
+    }
+
+    updateGroundFog(delta) {
+        if (!this.groundFog || !this.groundFogUniforms) return;
+
+        const positions = this.groundFog.geometry.attributes.position;
+        const opacities = this.groundFog.geometry.attributes.opacity;
+        const config = SCENE_CONFIG.groundFog;
+
+        // Update time uniform for shader animation
+        this.groundFogUniforms.time.value += delta;
+
+        // Get camera position
+        const cameraX = this.camera.position.x;
+        const cameraZ = this.camera.position.z;
+
+        // Fixed coverage radius regardless of speed
+        const coverageRadius = config.particles.area.width * 0.5;
+        
+        // Update each particle
+        for (let i = 0; i < this.fogParticles.length; i++) {
+            const particle = this.fogParticles[i];
+            const idx = i * 3;
+            
+            // Get current particle position
+            let x = positions.array[idx];
+            let z = positions.array[idx + 2];
+
+            // Calculate distance from camera
+            const distanceX = x - cameraX;
+            const distanceZ = z - cameraZ;
+            const distance = Math.sqrt(distanceX * distanceX + distanceZ * distanceZ);
+
+            // Check if particle needs regeneration
+            if (distance > coverageRadius) {
+                // Generate new position in a circle around camera
+                const angle = Math.random() * Math.PI * 2;
+                const radius = coverageRadius * (0.3 + Math.random() * 0.7); // Between 30% and 100% of coverage
+                
+                x = cameraX + Math.cos(angle) * radius;
+                z = cameraZ + Math.sin(angle) * radius;
+
+                // Reset particle properties
+                particle.baseY = config.particles.height.min + 
+                    Math.random() * (config.particles.height.max - config.particles.height.min);
+                particle.phase = Math.random() * Math.PI * 2;
+                
+                // Update position
+                positions.array[idx] = x;
+                positions.array[idx + 2] = z;
+            }
+
+            // Vertical movement
+            const y = particle.baseY + 
+                Math.sin(this.groundFogUniforms.time.value * particle.speed + particle.phase) * 2;
+            positions.array[idx + 1] = y;
+
+            // Smooth distance-based opacity falloff
+            const normalizedDistance = distance / coverageRadius;
+            const distanceOpacity = Math.max(0, 1 - Math.pow(normalizedDistance, 1.5));
+            
+            // Combine with base opacity and subtle pulse
+            opacities.array[i] = (config.opacity.base + 
+                Math.sin(this.groundFogUniforms.time.value * 0.3 + particle.phase) * 
+                config.opacity.pulse) * distanceOpacity;
+        }
+
+        positions.needsUpdate = true;
+        opacities.needsUpdate = true;
     }
 }
 

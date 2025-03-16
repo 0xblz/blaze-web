@@ -92,11 +92,19 @@ figure {
 
 .keyboard-icon {
     width: auto;
-    height: 2rem;
+    height: 4rem;
     position: fixed;
     bottom: 1.5rem;
     left: 1.5rem;
     z-index: 9999;
+    backdrop-filter: blur(1rem);
+    -webkit-backdrop-filter: blur(1rem);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    &.full {
+        height: 8rem;
+        width: auto;
+    }
     @media (max-width: 800px) {
         display: none;
     }
