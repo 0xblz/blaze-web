@@ -3297,38 +3297,33 @@ class ExplorationAnimation {
         if (this.hudElements.leftBar && this.hudElements.rightBar) {
             const speedFactor = this.controls.boost ? 1.2 : 1;
             const tiltFactor = Math.abs(this.camera.rotation.x) / Math.PI;
-            const degrees = (this.controls.rollAngle * 180 / Math.PI);
 
-            // Update side bars
+            // Update side bars without roll rotation
             this.hudElements.leftBar.style.transform = `
                 translateY(-50%) 
                 scaleY(${1 + tiltFactor * 0.2})
                 scaleX(${1 + (this.controls.boost ? 0.2 : 0)})
-                rotate(${degrees}deg)
             `;
             this.hudElements.rightBar.style.transform = `
                 translateY(-50%) 
                 scaleY(${1 + tiltFactor * 0.2})
                 scaleX(${1 + (this.controls.boost ? 0.2 : 0)})
-                rotate(${degrees}deg)
             `;
 
-            // Update bottom bar
+            // Update bottom bar without roll rotation
             if (this.hudElements.bottomBar) {
                 this.hudElements.bottomBar.style.transform = `
                     translateX(-50%)
                     scaleX(${speedFactor})
-                    rotate(${degrees}deg)
                 `;
             }
 
-            // Update center bar
+            // Update center bar without roll rotation
             if (this.hudElements.centerBar) {
                 const turnFactor = (this.controls.lookLeft ? -1 : 0) + (this.controls.lookRight ? 1 : 0);
                 this.hudElements.centerBar.style.transform = `
                     translateX(-50%)
                     scaleX(${1 + Math.abs(turnFactor) * 0.1})
-                    rotate(${degrees}deg)
                 `;
             }
         }
