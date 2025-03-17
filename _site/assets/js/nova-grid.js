@@ -54,7 +54,7 @@ const SCENE_CONFIG = {
                 horizontal: 0.1,  // Multiplier for left/right look speed
                 vertical: 0.1     // Multiplier for up/down look speed
             },
-            rollSpeed: Math.PI, // Speed of A/D barrel roll (reduced from 2π to π)
+            rollSpeed: Math.PI * 0.1, // Reduced roll speed (was Math.PI)
             rollDamping: 0.92,  // How quickly roll motion slows down
             verticalRotationLimit: Math.PI / 2.5,  // Limit vertical rotation to avoid over-rotation
             acceleration: 0.01,    // Acceleration rate
@@ -434,7 +434,8 @@ class ExplorationAnimation {
             verticalRotationLimit: SCENE_CONFIG.camera.controls.verticalRotationLimit,
             // Add look damping
             lookVelocity: new THREE.Vector2(0, 0),
-            lookDamping: 0.92 // Same as roll damping
+            lookDamping: 0.92, // Same as roll damping
+            rollVelocity: 0, // Add roll velocity
         };
         
         this.boostTimer = 0;
@@ -1538,15 +1539,19 @@ class ExplorationAnimation {
             Math.min(this.controls.verticalRotationLimit, this.controls.rotation.x)
         );
 
-        // Handle barrel roll with delta time
+        // Handle barrel roll with velocity and easing
         if (this.controls.rollLeft) {
-            this.controls.rollAngle += this.controls.rollSpeed * delta;
+            this.controls.rollVelocity += this.controls.rollSpeed * delta * 0.8; // Reduced from 2 to 0.8
         }
         if (this.controls.rollRight) {
-            this.controls.rollAngle -= this.controls.rollSpeed * delta;
+            this.controls.rollVelocity -= this.controls.rollSpeed * delta * 0.8; // Reduced from 2 to 0.8
         }
         
-        // Remove all auto-centering code to maintain roll angle when keys are released
+        // Apply velocity damping (but not centering)
+        this.controls.rollVelocity *= Math.pow(0.93, delta * 60); // Slightly increased damping from 0.95 to 0.93
+        
+        // Apply roll velocity
+        this.controls.rollAngle += this.controls.rollVelocity;
         
         // Create quaternions for look and roll
         const lookQuaternion = new THREE.Quaternion().setFromEuler(this.controls.rotation);
