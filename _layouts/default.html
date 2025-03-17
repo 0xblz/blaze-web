@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/assets/css/main.css">
     <script src="https://kit.fontawesome.com/53df3a2a07.js" crossorigin="anonymous"></script>
 </head>
-<body{% if page.is_experiment %} class="experiment"{% endif %}>
+<body{% if page.is_experiment %} class="experiment {% if page.custom_css %}{{ page.custom_css }}{% endif %}"{% endif %}>
     <main>
         {% include header.html %}
         <section>

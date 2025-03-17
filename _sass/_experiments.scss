@@ -1,3 +1,4 @@
+// three.js canvas
 .background-canvas {
     position: fixed;
     top: 0;
@@ -10,23 +11,54 @@
 
 body.experiment {
     cursor: auto;
-    section {
-        padding: 1rem;
-        padding-top: 2rem;
-        padding-bottom: 2rem;
+} 
 
-        & > div {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2rem;
+// custom page styles
+body.marble-maker {
+    overflow: hidden;
+    
+    canvas {
+        display: block;
+    }
+    
+    .dg.ac {
+        z-index: 1000;
+    }
 
-            & > svg {
-                max-width: 240px;
-                width: 100%;
-                height: auto;
+    .marble-maker-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    // Mobile styles for dat.GUI
+    @media (max-width: 768px) {
+        .dg.main {
+            position: fixed !important;
+            top: auto !important;
+            bottom: 1rem !important;
+            right: 0 !important;
+            height: auto !important; // Limit height to half the viewport
+            overflow-y: auto !important;
+            margin-right: 0 !important;
+            
+            // Make the controls more touch-friendly
+            .close-button {
+                width: 100% !important;
+                height: 2.5rem !important;
+                line-height: 2.5rem !important;
             }
+        }
+        
+        // Add some padding at the bottom for iOS Safari
+        .dg.main.a {
+            margin-bottom: env(safe-area-inset-bottom, 0);
+            background: rgba(0, 0, 0, 0.8) !important; // Semi-transparent background
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
     }
 } 
