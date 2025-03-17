@@ -20,10 +20,6 @@ body.marble-maker {
     canvas {
         display: block;
     }
-    
-    .dg.ac {
-        z-index: 1000;
-    }
 
     .marble-maker-container {
         position: fixed;
@@ -33,32 +29,31 @@ body.marble-maker {
         height: 100vh;
         overflow: hidden;
     }
-
-    // Mobile styles for dat.GUI
-    @media (max-width: 768px) {
-        .dg.main {
-            position: fixed !important;
-            top: auto !important;
-            bottom: 1rem !important;
-            right: 0 !important;
-            height: auto !important; // Limit height to half the viewport
-            overflow-y: auto !important;
-            margin-right: 0 !important;
-            
-            // Make the controls more touch-friendly
-            .close-button {
-                width: 100% !important;
-                height: 2.5rem !important;
-                line-height: 2.5rem !important;
-            }
-        }
-        
-        // Add some padding at the bottom for iOS Safari
-        .dg.main.a {
-            margin-bottom: env(safe-area-inset-bottom, 0);
-            background: rgba(0, 0, 0, 0.8) !important; // Semi-transparent background
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-    }
 } 
+
+// custom dat.gui styles
+.dg {
+    & > * {
+        font-family: 'DM Sans', sans-serif !important;
+        font-weight: 700 !important;
+    }
+
+    &.a {
+        box-shadow: 0 2rem 2rem var(--primary-color) !important;
+    }
+
+    &.ac {
+        z-index: 9999 !important;
+    }
+
+    .close-button {
+        height: 2.5rem !important;
+        line-height: 2.5rem !important;
+        background-color: var(--primary-color) !important;
+        color: #fff !important;
+        border-bottom-left-radius: 0.75rem !important;
+        border-bottom-right-radius: 0.75rem !important;
+        font-size: 12px;
+        text-shadow: none !important;
+    }
+}
