@@ -46,7 +46,11 @@ const SCENE_CONFIG = {
                 forward: 'ArrowUp',
                 backward: 'ArrowDown',
                 left: 'ArrowLeft',
-                right: 'ArrowRight'
+                right: 'ArrowRight',
+                pitchUp: 'KeyW',
+                pitchDown: 'KeyS',
+                yawLeft: 'KeyA',
+                yawRight: 'KeyD'
             },
             // Look control parameters
             rotationSpeed: 0.03,
@@ -54,11 +58,11 @@ const SCENE_CONFIG = {
                 horizontal: 0.1,  // Multiplier for left/right look speed
                 vertical: 0.1     // Multiplier for up/down look speed
             },
-            rollSpeed: Math.PI, // Speed of A/D barrel roll (reduced from 2π to π)
+            rollSpeed: Math.PI * 0.1, // Reduced roll speed (was Math.PI)
             rollDamping: 0.92,  // How quickly roll motion slows down
             verticalRotationLimit: Math.PI / 2.5,  // Limit vertical rotation to avoid over-rotation
             acceleration: 0.01,    // Acceleration rate
-            deceleration: 10.0    // Increased deceleration rate for faster slowdown
+            deceleration: 0.05    // Increased deceleration rate for faster slowdown
         }
     },
     
@@ -80,13 +84,13 @@ const SCENE_CONFIG = {
     // Grid settings
     grid: {
         size: 800,
-        divisions: 400,
+        divisions: 200,
         mainColor: 0xff00ff,    // Changed to pink
         secondaryColor: 0x00ffff, // Cyan as secondary
         shader: {
             color1: [1.0, 0.2, 0.8], // Pink/magenta
             color2: [0.2, 0.8, 1.0], // Cyan/blue
-            gridLines: 2,          // More grid lines
+            gridLines: 0.1,          // More grid lines
             pulseSpeed: 3.0,        // Faster pulse
             pathWidth: 20,          // Width of the glowing path
             pathIntensity: 2.0,     // Intensity of the path glow
@@ -142,10 +146,10 @@ const SCENE_CONFIG = {
     // Cloud configuration
     clouds: {
         count: 2000,          // Number of cloud particles
-        height: 200,          // Average height of clouds
+        height: 300,          // Average height of clouds
         heightVariation: 100, // Variation in cloud height
         size: 450,            // Size of cloud particles
-        sizeVariation: 40,   // Variation in cloud size
+        sizeVariation: 200,   // Variation in cloud size
         color: 0x9900ff,     // Base color (blue/purple)
         opacity: 0.05,        // Base opacity
         speed: 0.2,          // Movement speed
@@ -357,10 +361,10 @@ const SCENE_CONFIG = {
     // Add to SCENE_CONFIG
     groundFog: {
         particles: {
-            count: 5000,
+            count: 2000,
             size: {
-                min: 50,
-                max: 100
+                min: 150,
+                max: 300
             },
             height: {
                 min: -50,
@@ -368,8 +372,8 @@ const SCENE_CONFIG = {
             },
             speed: 1.2,
             area: {
-                width: 2000,    // Increased area for better coverage
-                depth: 2000     // Increased area for better coverage
+                width: 800,    // Increased area for better coverage
+                depth: 800     // Increased area for better coverage
             }
         },
         colors: {
@@ -378,8 +382,8 @@ const SCENE_CONFIG = {
             mix: 0.3              // Color mix factor
         },
         opacity: {
-            base: 0.15,          // Slightly increased base opacity
-            pulse: 0.05          // Reduced pulse for stability
+            base: 0.04,          // Slightly increased base opacity
+            pulse: 0.1          // Reduced pulse for stability
         }
     },
 };
@@ -434,7 +438,14 @@ class ExplorationAnimation {
             verticalRotationLimit: SCENE_CONFIG.camera.controls.verticalRotationLimit,
             // Add look damping
             lookVelocity: new THREE.Vector2(0, 0),
-            lookDamping: 0.92 // Same as roll damping
+            lookDamping: 0.92, // Same as roll damping
+            rollVelocity: 0, // Add roll velocity
+            moveUp: false,  // Changed from lookDown
+            moveDown: false,  // Changed from lookUp
+            pitchUp: false,
+            pitchDown: false,
+            yawLeft: false,
+            yawRight: false,
         };
         
         this.boostTimer = 0;
@@ -1394,26 +1405,26 @@ class ExplorationAnimation {
             case 'ArrowDown':
                 this.controls.moveBackward = true;
                 break;
-            // Roll controls (arrow keys)
+            // Yaw controls (arrow keys)
             case 'ArrowLeft':
-                this.controls.rollLeft = true;
+                this.controls.yawLeft = true;
                 break;
             case 'ArrowRight':
-                this.controls.rollRight = true;
+                this.controls.yawRight = true;
                 break;
-            // Look controls (A/D)
+            // Roll controls (A/D)
             case 'KeyA':
-                this.controls.lookLeft = true;
+                this.controls.rollLeft = true;
                 break;
             case 'KeyD':
-                this.controls.lookRight = true;
+                this.controls.rollRight = true;
                 break;
-            // Inverted look up/down (W/S)
+            // Pitch controls (W/S)
             case 'KeyW':
-                this.controls.lookDown = true;  // Changed from lookUp
+                this.controls.pitchUp = true;
                 break;
             case 'KeyS':
-                this.controls.lookUp = true;    // Changed from lookDown
+                this.controls.pitchDown = true;
                 break;
         }
     }
@@ -1429,26 +1440,26 @@ class ExplorationAnimation {
             case 'ArrowDown':
                 this.controls.moveBackward = false;
                 break;
-            // Roll controls
+            // Yaw controls
             case 'ArrowLeft':
-                this.controls.rollLeft = false;
+                this.controls.yawLeft = false;
                 break;
             case 'ArrowRight':
-                this.controls.rollRight = false;
+                this.controls.yawRight = false;
                 break;
-            // Look controls
+            // Roll controls
             case 'KeyA':
-                this.controls.lookLeft = false;
+                this.controls.rollLeft = false;
                 break;
             case 'KeyD':
-                this.controls.lookRight = false;
+                this.controls.rollRight = false;
                 break;
-            // Inverted look up/down
+            // Pitch controls
             case 'KeyW':
-                this.controls.lookDown = false;  // Changed from lookUp
+                this.controls.pitchUp = false;
                 break;
             case 'KeyS':
-                this.controls.lookUp = false;    // Changed from lookDown
+                this.controls.pitchDown = false;
                 break;
         }
     }
@@ -1538,42 +1549,76 @@ class ExplorationAnimation {
             Math.min(this.controls.verticalRotationLimit, this.controls.rotation.x)
         );
 
-        // Handle barrel roll with delta time
-        if (this.controls.rollLeft) {
-            this.controls.rollAngle += this.controls.rollSpeed * delta;
-        }
-        if (this.controls.rollRight) {
-            this.controls.rollAngle -= this.controls.rollSpeed * delta;
-        }
-        
-        // Restore damping to return to level position when keys are released
-        // but normalize the angle first to allow full rolls
-        if (!this.controls.rollLeft && !this.controls.rollRight) {
-            // Normalize roll angle to -PI to PI range for smooth return to level
-            this.controls.rollAngle = this.controls.rollAngle % (Math.PI * 2);
-            if (this.controls.rollAngle > Math.PI) {
-                this.controls.rollAngle -= Math.PI * 2;
-            } else if (this.controls.rollAngle < -Math.PI) {
-                this.controls.rollAngle += Math.PI * 2;
-            }
-            
-            // Apply damping only when not actively rolling
-            this.controls.rollAngle *= Math.pow(this.controls.rollDamping, delta * 60);
-        }
-
-        // Create quaternions for look and roll
+        // Create rotation quaternions
         const lookQuaternion = new THREE.Quaternion().setFromEuler(this.controls.rotation);
         const rollQuaternion = new THREE.Quaternion().setFromAxisAngle(
             new THREE.Vector3(0, 0, 1),
             this.controls.rollAngle
         );
 
-        // Apply rotations to camera
+        // Calculate local axes based on current roll
+        const localRight = new THREE.Vector3(1, 0, 0).applyQuaternion(rollQuaternion);
+        const localUp = new THREE.Vector3(0, 1, 0).applyQuaternion(rollQuaternion);
+        
+        // Calculate local forward direction (for yaw)
+        const localForward = new THREE.Vector3(0, 0, 1);
+        localForward.applyQuaternion(rollQuaternion);
+
+        // Handle plane controls relative to roll orientation
+        if (this.controls.pitchUp) {
+            // Rotate around the rolled right axis for pitch
+            const pitchQuat = new THREE.Quaternion().setFromAxisAngle(
+                localRight,
+                -this.controls.rotationSpeed
+            );
+            lookQuaternion.multiply(pitchQuat);
+        }
+        if (this.controls.pitchDown) {
+            const pitchQuat = new THREE.Quaternion().setFromAxisAngle(
+                localRight,
+                this.controls.rotationSpeed
+            );
+            lookQuaternion.multiply(pitchQuat);
+        }
+        if (this.controls.yawLeft) {
+            // Yaw around the rolled up axis (not world up)
+            const yawQuat = new THREE.Quaternion().setFromAxisAngle(
+                localUp,
+                this.controls.rotationSpeed
+            );
+            lookQuaternion.multiply(yawQuat);
+        }
+        if (this.controls.yawRight) {
+            const yawQuat = new THREE.Quaternion().setFromAxisAngle(
+                localUp,
+                -this.controls.rotationSpeed
+            );
+            lookQuaternion.multiply(yawQuat);
+        }
+
+        // Handle barrel roll
+        if (this.controls.rollLeft) {
+            this.controls.rollVelocity += this.controls.rollSpeed * delta * 0.8;
+        }
+        if (this.controls.rollRight) {
+            this.controls.rollVelocity -= this.controls.rollSpeed * delta * 0.8;
+        }
+        
+        // Apply velocity damping (but not centering)
+        this.controls.rollVelocity *= Math.pow(0.93, delta * 60);
+        
+        // Apply roll velocity
+        this.controls.rollAngle += this.controls.rollVelocity;
+
+        // Update the camera's orientation
         this.camera.quaternion.copy(lookQuaternion).multiply(rollQuaternion);
 
-        // Update movement direction based on camera's look direction
+        // Extract euler angles from quaternion for HUD and other uses
+        this.controls.rotation.setFromQuaternion(lookQuaternion);
+
+        // Calculate movement direction
         const forward = new THREE.Vector3(0, 0, -1);
-        forward.applyQuaternion(lookQuaternion); // Use look quaternion only for movement
+        forward.applyQuaternion(this.camera.quaternion);
         forward.normalize();
         
         // Calculate velocity based on input
@@ -1584,7 +1629,10 @@ class ExplorationAnimation {
             this.controls.velocity.add(forward.clone().multiplyScalar(this.currentSpeed));
         }
         if (this.controls.moveBackward) {
-            this.controls.velocity.add(forward.clone().multiplyScalar(-this.currentSpeed * 0.5));
+            // Increased deceleration when moving backward (down arrow)
+            this.controls.velocity.add(forward.clone().multiplyScalar(-this.currentSpeed * 2.0));
+            // Apply additional speed reduction when moving backward
+            this.currentSpeed *= 0.92; // Aggressive speed reduction
         }
         
         // Apply velocity to camera position
@@ -3187,14 +3235,14 @@ class ExplorationAnimation {
                     top: 50%;
                     ${side}: 0;
                     width: ${SCENE_CONFIG.hud.bars.side.width}px;
-                    height: 60%;
+                    height: 80%;
                     transform: translateY(-50%);
                     background: linear-gradient(
                         ${side === 'left' ? 'to right' : 'to left'},
                         transparent,
-                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.1)} 40%,
-                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)} 60%,
-                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.6)} 80%
+                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.6)} 0%,
+                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.4)} 40%,
+                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0)} 100%
                     );
                     border-${side === 'left' ? 'right' : 'left'}-radius: ${SCENE_CONFIG.hud.layout.curveRadius}px;
                     transform-origin: ${side} center;
@@ -3250,40 +3298,35 @@ class ExplorationAnimation {
     updateHUD() {
         // Update cockpit bars based on movement
         if (this.hudElements.leftBar && this.hudElements.rightBar) {
-            const rollFactor = this.controls.rollAngle || 0;
             const speedFactor = this.controls.boost ? 1.2 : 1;
             const tiltFactor = Math.abs(this.camera.rotation.x) / Math.PI;
 
-            // Update side bars
+            // Update side bars without roll rotation
             this.hudElements.leftBar.style.transform = `
                 translateY(-50%) 
                 scaleY(${1 + tiltFactor * 0.2})
                 scaleX(${1 + (this.controls.boost ? 0.2 : 0)})
-                rotate(${rollFactor * 2}deg)
             `;
             this.hudElements.rightBar.style.transform = `
                 translateY(-50%) 
                 scaleY(${1 + tiltFactor * 0.2})
                 scaleX(${1 + (this.controls.boost ? 0.2 : 0)})
-                rotate(${rollFactor * 2}deg)
             `;
 
-            // Update bottom bar
+            // Update bottom bar without roll rotation
             if (this.hudElements.bottomBar) {
                 this.hudElements.bottomBar.style.transform = `
                     translateX(-50%)
                     scaleX(${speedFactor})
-                    rotate(${rollFactor}deg)
                 `;
             }
 
-            // Update center bar
+            // Update center bar without roll rotation
             if (this.hudElements.centerBar) {
                 const turnFactor = (this.controls.lookLeft ? -1 : 0) + (this.controls.lookRight ? 1 : 0);
                 this.hudElements.centerBar.style.transform = `
                     translateX(-50%)
                     scaleX(${1 + Math.abs(turnFactor) * 0.1})
-                    rotate(${turnFactor * 2}deg)
                 `;
             }
         }
