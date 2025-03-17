@@ -20,29 +20,6 @@ body.marble-maker {
     canvas {
         display: block;
     }
-    
-    .dg.a {
-        box-shadow: 0 2rem 2rem var(--primary-color) !important;
-    }
-    .dg.ac {
-        z-index: 9999;
-
-        & > * {
-            font-family: 'DM Sans', sans-serif !important;
-            font-weight: 700 !important;
-            text-shadow: none !important;
-        }
-    }
-
-    .close-button {
-        height: 2.5rem !important;
-        line-height: 2.5rem !important;
-        background-color: var(--primary-color) !important;
-        color: #fff !important;
-        border-bottom-left-radius: 0.75rem !important;
-        border-bottom-right-radius: 0.75rem !important;
-        font-size: 14px;
-    }
 
     .marble-maker-container {
         position: fixed;
@@ -53,3 +30,30 @@ body.marble-maker {
         overflow: hidden;
     }
 } 
+
+// custom dat.gui styles
+.dg {
+    & > * {
+        font-family: 'DM Sans', sans-serif !important;
+        font-weight: 700 !important;
+    }
+
+    &.a {
+        box-shadow: 0 2rem 2rem var(--primary-color) !important;
+    }
+
+    &.ac {
+        z-index: 9999 !important;
+    }
+
+    .close-button {
+        height: 2.5rem !important;
+        line-height: 2.5rem !important;
+        background-color: var(--primary-color) !important;
+        color: #fff !important;
+        border-bottom-left-radius: 0.75rem !important;
+        border-bottom-right-radius: 0.75rem !important;
+        font-size: 12px;
+        text-shadow: none !important;
+    }
+}
