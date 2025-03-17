@@ -84,13 +84,13 @@ const SCENE_CONFIG = {
     // Grid settings
     grid: {
         size: 800,
-        divisions: 400,
+        divisions: 200,
         mainColor: 0xff00ff,    // Changed to pink
         secondaryColor: 0x00ffff, // Cyan as secondary
         shader: {
             color1: [1.0, 0.2, 0.8], // Pink/magenta
             color2: [0.2, 0.8, 1.0], // Cyan/blue
-            gridLines: 2,          // More grid lines
+            gridLines: 0.1,          // More grid lines
             pulseSpeed: 3.0,        // Faster pulse
             pathWidth: 20,          // Width of the glowing path
             pathIntensity: 2.0,     // Intensity of the path glow
@@ -146,10 +146,10 @@ const SCENE_CONFIG = {
     // Cloud configuration
     clouds: {
         count: 2000,          // Number of cloud particles
-        height: 200,          // Average height of clouds
+        height: 300,          // Average height of clouds
         heightVariation: 100, // Variation in cloud height
         size: 450,            // Size of cloud particles
-        sizeVariation: 40,   // Variation in cloud size
+        sizeVariation: 200,   // Variation in cloud size
         color: 0x9900ff,     // Base color (blue/purple)
         opacity: 0.05,        // Base opacity
         speed: 0.2,          // Movement speed
@@ -361,10 +361,10 @@ const SCENE_CONFIG = {
     // Add to SCENE_CONFIG
     groundFog: {
         particles: {
-            count: 5000,
+            count: 2000,
             size: {
-                min: 50,
-                max: 100
+                min: 150,
+                max: 300
             },
             height: {
                 min: -50,
@@ -372,8 +372,8 @@ const SCENE_CONFIG = {
             },
             speed: 1.2,
             area: {
-                width: 2000,    // Increased area for better coverage
-                depth: 2000     // Increased area for better coverage
+                width: 800,    // Increased area for better coverage
+                depth: 800     // Increased area for better coverage
             }
         },
         colors: {
@@ -382,8 +382,8 @@ const SCENE_CONFIG = {
             mix: 0.3              // Color mix factor
         },
         opacity: {
-            base: 0.15,          // Slightly increased base opacity
-            pulse: 0.05          // Reduced pulse for stability
+            base: 0.04,          // Slightly increased base opacity
+            pulse: 0.1          // Reduced pulse for stability
         }
     },
 };
