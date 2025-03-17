@@ -46,7 +46,11 @@ const SCENE_CONFIG = {
                 forward: 'ArrowUp',
                 backward: 'ArrowDown',
                 left: 'ArrowLeft',
-                right: 'ArrowRight'
+                right: 'ArrowRight',
+                pitchUp: 'KeyW',
+                pitchDown: 'KeyS',
+                yawLeft: 'KeyA',
+                yawRight: 'KeyD'
             },
             // Look control parameters
             rotationSpeed: 0.03,
@@ -436,6 +440,12 @@ class ExplorationAnimation {
             lookVelocity: new THREE.Vector2(0, 0),
             lookDamping: 0.92, // Same as roll damping
             rollVelocity: 0, // Add roll velocity
+            moveUp: false,  // Changed from lookDown
+            moveDown: false,  // Changed from lookUp
+            pitchUp: false,
+            pitchDown: false,
+            yawLeft: false,
+            yawRight: false,
         };
         
         this.boostTimer = 0;
@@ -1395,26 +1405,26 @@ class ExplorationAnimation {
             case 'ArrowDown':
                 this.controls.moveBackward = true;
                 break;
-            // Roll controls (arrow keys)
+            // Yaw controls (arrow keys)
             case 'ArrowLeft':
-                this.controls.rollLeft = true;
+                this.controls.yawLeft = true;
                 break;
             case 'ArrowRight':
-                this.controls.rollRight = true;
+                this.controls.yawRight = true;
                 break;
-            // Look controls (A/D)
+            // Roll controls (A/D)
             case 'KeyA':
-                this.controls.lookLeft = true;
+                this.controls.rollLeft = true;
                 break;
             case 'KeyD':
-                this.controls.lookRight = true;
+                this.controls.rollRight = true;
                 break;
-            // Inverted look up/down (W/S)
+            // Pitch controls (W/S)
             case 'KeyW':
-                this.controls.lookDown = true;  // Changed from lookUp
+                this.controls.pitchUp = true;
                 break;
             case 'KeyS':
-                this.controls.lookUp = true;    // Changed from lookDown
+                this.controls.pitchDown = true;
                 break;
         }
     }
@@ -1430,26 +1440,26 @@ class ExplorationAnimation {
             case 'ArrowDown':
                 this.controls.moveBackward = false;
                 break;
-            // Roll controls
+            // Yaw controls
             case 'ArrowLeft':
-                this.controls.rollLeft = false;
+                this.controls.yawLeft = false;
                 break;
             case 'ArrowRight':
-                this.controls.rollRight = false;
+                this.controls.yawRight = false;
                 break;
-            // Look controls
+            // Roll controls
             case 'KeyA':
-                this.controls.lookLeft = false;
+                this.controls.rollLeft = false;
                 break;
             case 'KeyD':
-                this.controls.lookRight = false;
+                this.controls.rollRight = false;
                 break;
-            // Inverted look up/down
+            // Pitch controls
             case 'KeyW':
-                this.controls.lookDown = false;  // Changed from lookUp
+                this.controls.pitchUp = false;
                 break;
             case 'KeyS':
-                this.controls.lookUp = false;    // Changed from lookDown
+                this.controls.pitchDown = false;
                 break;
         }
     }
@@ -1539,33 +1549,76 @@ class ExplorationAnimation {
             Math.min(this.controls.verticalRotationLimit, this.controls.rotation.x)
         );
 
-        // Handle barrel roll with velocity and easing
-        if (this.controls.rollLeft) {
-            this.controls.rollVelocity += this.controls.rollSpeed * delta * 0.8; // Reduced from 2 to 0.8
-        }
-        if (this.controls.rollRight) {
-            this.controls.rollVelocity -= this.controls.rollSpeed * delta * 0.8; // Reduced from 2 to 0.8
-        }
-        
-        // Apply velocity damping (but not centering)
-        this.controls.rollVelocity *= Math.pow(0.93, delta * 60); // Slightly increased damping from 0.95 to 0.93
-        
-        // Apply roll velocity
-        this.controls.rollAngle += this.controls.rollVelocity;
-        
-        // Create quaternions for look and roll
+        // Create rotation quaternions
         const lookQuaternion = new THREE.Quaternion().setFromEuler(this.controls.rotation);
         const rollQuaternion = new THREE.Quaternion().setFromAxisAngle(
             new THREE.Vector3(0, 0, 1),
             this.controls.rollAngle
         );
 
-        // Apply rotations to camera
+        // Calculate local axes based on current roll
+        const localRight = new THREE.Vector3(1, 0, 0).applyQuaternion(rollQuaternion);
+        const localUp = new THREE.Vector3(0, 1, 0).applyQuaternion(rollQuaternion);
+        
+        // Calculate local forward direction (for yaw)
+        const localForward = new THREE.Vector3(0, 0, 1);
+        localForward.applyQuaternion(rollQuaternion);
+
+        // Handle plane controls relative to roll orientation
+        if (this.controls.pitchUp) {
+            // Rotate around the rolled right axis for pitch
+            const pitchQuat = new THREE.Quaternion().setFromAxisAngle(
+                localRight,
+                -this.controls.rotationSpeed
+            );
+            lookQuaternion.multiply(pitchQuat);
+        }
+        if (this.controls.pitchDown) {
+            const pitchQuat = new THREE.Quaternion().setFromAxisAngle(
+                localRight,
+                this.controls.rotationSpeed
+            );
+            lookQuaternion.multiply(pitchQuat);
+        }
+        if (this.controls.yawLeft) {
+            // Yaw around the rolled up axis (not world up)
+            const yawQuat = new THREE.Quaternion().setFromAxisAngle(
+                localUp,
+                this.controls.rotationSpeed
+            );
+            lookQuaternion.multiply(yawQuat);
+        }
+        if (this.controls.yawRight) {
+            const yawQuat = new THREE.Quaternion().setFromAxisAngle(
+                localUp,
+                -this.controls.rotationSpeed
+            );
+            lookQuaternion.multiply(yawQuat);
+        }
+
+        // Handle barrel roll
+        if (this.controls.rollLeft) {
+            this.controls.rollVelocity += this.controls.rollSpeed * delta * 0.8;
+        }
+        if (this.controls.rollRight) {
+            this.controls.rollVelocity -= this.controls.rollSpeed * delta * 0.8;
+        }
+        
+        // Apply velocity damping (but not centering)
+        this.controls.rollVelocity *= Math.pow(0.93, delta * 60);
+        
+        // Apply roll velocity
+        this.controls.rollAngle += this.controls.rollVelocity;
+
+        // Update the camera's orientation
         this.camera.quaternion.copy(lookQuaternion).multiply(rollQuaternion);
 
-        // Update movement direction based on camera's look direction
+        // Extract euler angles from quaternion for HUD and other uses
+        this.controls.rotation.setFromQuaternion(lookQuaternion);
+
+        // Calculate movement direction
         const forward = new THREE.Vector3(0, 0, -1);
-        forward.applyQuaternion(lookQuaternion); // Use look quaternion only for movement
+        forward.applyQuaternion(this.camera.quaternion);
         forward.normalize();
         
         // Calculate velocity based on input
@@ -3242,22 +3295,22 @@ class ExplorationAnimation {
     updateHUD() {
         // Update cockpit bars based on movement
         if (this.hudElements.leftBar && this.hudElements.rightBar) {
-            const rollFactor = this.controls.rollAngle || 0;
             const speedFactor = this.controls.boost ? 1.2 : 1;
             const tiltFactor = Math.abs(this.camera.rotation.x) / Math.PI;
+            const degrees = (this.controls.rollAngle * 180 / Math.PI);
 
             // Update side bars
             this.hudElements.leftBar.style.transform = `
                 translateY(-50%) 
                 scaleY(${1 + tiltFactor * 0.2})
                 scaleX(${1 + (this.controls.boost ? 0.2 : 0)})
-                rotate(${rollFactor * 2}deg)
+                rotate(${degrees}deg)
             `;
             this.hudElements.rightBar.style.transform = `
                 translateY(-50%) 
                 scaleY(${1 + tiltFactor * 0.2})
                 scaleX(${1 + (this.controls.boost ? 0.2 : 0)})
-                rotate(${rollFactor * 2}deg)
+                rotate(${degrees}deg)
             `;
 
             // Update bottom bar
@@ -3265,7 +3318,7 @@ class ExplorationAnimation {
                 this.hudElements.bottomBar.style.transform = `
                     translateX(-50%)
                     scaleX(${speedFactor})
-                    rotate(${rollFactor}deg)
+                    rotate(${degrees}deg)
                 `;
             }
 
@@ -3275,7 +3328,7 @@ class ExplorationAnimation {
                 this.hudElements.centerBar.style.transform = `
                     translateX(-50%)
                     scaleX(${1 + Math.abs(turnFactor) * 0.1})
-                    rotate(${turnFactor * 2}deg)
+                    rotate(${degrees}deg)
                 `;
             }
         }
