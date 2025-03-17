@@ -23,14 +23,16 @@ let scene, camera, renderer, marble, controls, gui;
 
 // Marble parameters
 const params = {
-    baseColor: '#baffd5',
-    accentColor: '#0074e0',
-    patternComplexity: 1.2,
+    baseColor: '#6363ff',
+    accentColor: '#ff78cc',
+    patternComplexity: 0.9,
     patternScale: 0.8,
     transparency: 0.9,
     refractionIntensity: 1.2,
     glossiness: 0.3,
-    lightIntensity: 0.6,
+    lightIntensity: 0.4,
+    displacementStrength: 0.7,
+    displacementSpeed: 0.3,
     randomizeMarble: function() {
         // Generate random colors
         const randomColor1 = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
@@ -45,6 +47,8 @@ const params = {
         params.refractionIntensity = Math.random() * 1.5 + 0.5; // Range: 0.5 to 2.0
         params.glossiness = Math.random() * 0.6 + 0.4;        // Range: 0.4 to 1.0
         params.lightIntensity = Math.random() * 1.2 + 0.4;    // Range: 0.4 to 1.6
+        params.displacementStrength = Math.random() * 0.7 + 0.3; // Range: 0.3 to 1.0
+        params.displacementSpeed = Math.random() * 1.5 + 0.5;    // Range: 0.5 to 2.0
         
         // Update material uniforms
         marble.material.uniforms.baseColor.value.set(params.baseColor);
@@ -55,6 +59,8 @@ const params = {
         marble.material.uniforms.refractionIntensity.value = params.refractionIntensity;
         marble.material.uniforms.glossiness.value = params.glossiness;
         marble.material.uniforms.lightIntensity.value = params.lightIntensity;
+        marble.material.uniforms.displacementStrength.value = params.displacementStrength;
+        marble.material.uniforms.displacementSpeed.value = params.displacementSpeed;
         
         // Update lights
         scene.children.forEach(child => {
@@ -122,7 +128,9 @@ function init() {
             glossiness: { value: params.glossiness },
             lightIntensity: { value: params.lightIntensity },
             time: { value: 0 },
-            cameraPos: { value: new THREE.Vector3() }
+            cameraPos: { value: new THREE.Vector3() },
+            displacementStrength: { value: params.displacementStrength },
+            displacementSpeed: { value: params.displacementSpeed }
         },
         vertexShader: `
             varying vec3 vPosition;
@@ -149,6 +157,8 @@ function init() {
             uniform float lightIntensity;
             uniform float time;
             uniform vec3 cameraPos;
+            uniform float displacementStrength;
+            uniform float displacementSpeed;
             
             varying vec3 vPosition;
             varying vec3 vNormal;
@@ -204,49 +214,56 @@ function init() {
                 return vec2(-b - h, -b + h);
             }
             
+            // Add displacement noise function
+            vec3 displacementNoise(vec3 p) {
+                vec3 noise = vec3(
+                    fbm(p + vec3(0.0, time * displacementSpeed, 0.0)),
+                    fbm(p + vec3(time * displacementSpeed, 0.0, 0.0)),
+                    fbm(p + vec3(0.0, 0.0, time * displacementSpeed))
+                );
+                return noise * 2.0 - 1.0;
+            }
+            
             void main() {
-                // Calculate view ray
                 vec3 viewDir = normalize(vWorldPosition - cameraPos);
                 vec3 normal = normalize(vNormal);
                 
-                // Calculate refraction
-                float ior = 1.45; // Glass IOR
+                float ior = 1.45;
                 vec3 refractDir = refract(viewDir, normal, 1.0 / ior);
                 
-                // If no refraction (total internal reflection), use reflection
                 if(dot(refractDir, refractDir) == 0.0) {
                     refractDir = reflect(viewDir, normal);
                 }
                 
-                // Ray march through the sphere to accumulate internal patterns
                 vec3 ro = vPosition;
                 vec3 rd = refractDir;
                 
-                // Get sphere intersection points
                 vec2 intersect = sphereIntersection(ro, rd, 0.99);
                 
-                // Initialize color accumulation
                 vec3 color = baseColor;
                 float density = 0.0;
                 
-                // Sample points inside the sphere
-                float stepSize = (intersect.y - intersect.x) / 8.0;
+                float stepSize = (intersect.y - intersect.x) / 12.0; // Increased steps for better quality
+                
                 for(float t = intersect.x; t < intersect.y; t += stepSize) {
                     vec3 pos = ro + rd * t;
                     
-                    // Create swirling pattern
-                    vec3 swirl = pos * patternScale;
-                    swirl.x += sin(pos.y * 2.0 + time * 0.2) * 0.5;
-                    swirl.z += cos(pos.y * 2.0 + time * 0.2) * 0.5;
+                    // Add displacement to sampling position
+                    vec3 displacement = displacementNoise(pos * patternScale) * displacementStrength;
+                    vec3 samplePos = pos + displacement;
                     
-                    // Accumulate pattern density
+                    // Create swirling pattern with displacement
+                    vec3 swirl = samplePos * patternScale;
+                    swirl.x += sin(samplePos.y * 2.0 + time * 0.2) * 0.5;
+                    swirl.z += cos(samplePos.y * 2.0 + time * 0.2) * 0.5;
+                    
                     float pattern = fbm(swirl * patternComplexity);
                     pattern = smoothstep(0.4, 0.6, pattern);
                     
                     density += pattern * stepSize;
                 }
                 
-                // Mix colors based on accumulated density
+                // Enhanced color mixing with displacement influence
                 color = mix(baseColor, accentColor, density * 2.0);
                 
                 // Add fresnel effect
@@ -259,7 +276,6 @@ function init() {
                 float specular = pow(max(dot(normal, halfDir), 0.0), 32.0 * glossiness);
                 color += vec3(specular * lightIntensity);
                 
-                // Final color with transparency
                 gl_FragColor = vec4(color, transparency);
             }
         `,
@@ -329,6 +345,14 @@ function setupGUI() {
             }
         });
         marble.material.uniforms.lightIntensity.value = value;
+    });
+    
+    gui.add(params, 'displacementStrength', 0, 1).onChange(value => {
+        marble.material.uniforms.displacementStrength.value = value;
+    });
+    
+    gui.add(params, 'displacementSpeed', 0, 2).onChange(value => {
+        marble.material.uniforms.displacementSpeed.value = value;
     });
     
     gui.add(params, 'randomizeMarble').name('Randomize');
