@@ -25,6 +25,87 @@ window.avatarState = {
     config: null
 };
 
+// Make downloadAvatar function globally available
+window.downloadAvatar = function() {
+    const { scene, camera, material, config } = window.avatarState;
+
+    if (!scene || !camera) {
+        console.error('Scene or camera not initialized');
+        return;
+    }
+
+    // Create a temporary renderer at 1024x1024
+    const tempRenderer = new THREE.WebGLRenderer({ 
+        antialias: true,
+        preserveDrawingBuffer: true,
+        alpha: true
+    });
+    tempRenderer.setSize(1024, 1024);
+
+    // Create a temporary orthographic camera
+    const tempCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+    // Create a new mesh at high resolution
+    const geometry = new THREE.PlaneGeometry(2, 2);
+
+    // Clone material and copy all uniforms
+    const tempMaterial = material.clone();
+    tempMaterial.uniforms = {};
+    for (const key in material.uniforms) {
+        if (key === 'resolution') {
+            tempMaterial.uniforms[key] = { value: new THREE.Vector2(1024, 1024) };
+        } else if (key === 'config') {
+            // Deep clone the config uniform
+            tempMaterial.uniforms[key] = {
+                value: JSON.parse(JSON.stringify(material.uniforms[key].value))
+            };
+        } else {
+            // Clone other uniforms
+            tempMaterial.uniforms[key] = {
+                value: material.uniforms[key].value
+            };
+        }
+    }
+
+    const mesh = new THREE.Mesh(geometry, tempMaterial);
+
+    // Create a temporary scene
+    const tempScene = new THREE.Scene();
+    tempScene.add(mesh);
+
+    // Render at high resolution
+    tempRenderer.render(tempScene, tempCamera);
+
+    // Create a temporary canvas to handle the circular mask
+    const maskCanvas = document.createElement('canvas');
+    maskCanvas.width = 1024;
+    maskCanvas.height = 1024;
+    const ctx = maskCanvas.getContext('2d');
+
+    // Draw the rendered image
+    ctx.drawImage(tempRenderer.domElement, 0, 0, 1024, 1024);
+
+    // Create circular mask
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.beginPath();
+    ctx.arc(512, 512, 512, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Convert to data URL and trigger download
+    const link = document.createElement('a');
+    link.download = 'marble.png';
+    link.href = maskCanvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Cleanup
+    tempRenderer.dispose();
+    geometry.dispose();
+    tempMaterial.dispose();
+    tempScene.remove(mesh);
+};
+
 // Initialize the marble maker once dependencies are loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Only initialize if the canvas element exists
@@ -394,86 +475,6 @@ function initializeMarbleMaker() {
     function render() {
         uniforms.time.value += config.animation.timeScale;
         renderer.render(scene, camera);
-    }
-
-    function downloadAvatar() {
-        const { scene, camera, material, config } = window.avatarState;
-
-        if (!scene || !camera) {
-            console.error('Scene or camera not initialized');
-            return;
-        }
-
-        // Create a temporary renderer at 1024x1024
-        const tempRenderer = new THREE.WebGLRenderer({ 
-            antialias: true,
-            preserveDrawingBuffer: true,
-            alpha: true
-        });
-        tempRenderer.setSize(1024, 1024);
-
-        // Create a temporary orthographic camera
-        const tempCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-
-        // Create a new mesh at high resolution
-        const geometry = new THREE.PlaneGeometry(2, 2);
-
-        // Clone material and copy all uniforms
-        const tempMaterial = material.clone();
-        tempMaterial.uniforms = {};
-        for (const key in material.uniforms) {
-            if (key === 'resolution') {
-                tempMaterial.uniforms[key] = { value: new THREE.Vector2(1024, 1024) };
-            } else if (key === 'config') {
-                // Deep clone the config uniform
-                tempMaterial.uniforms[key] = {
-                    value: JSON.parse(JSON.stringify(material.uniforms[key].value))
-                };
-            } else {
-                // Clone other uniforms
-                tempMaterial.uniforms[key] = {
-                    value: material.uniforms[key].value
-                };
-            }
-        }
-
-        const mesh = new THREE.Mesh(geometry, tempMaterial);
-
-        // Create a temporary scene
-        const tempScene = new THREE.Scene();
-        tempScene.add(mesh);
-
-        // Render at high resolution
-        tempRenderer.render(tempScene, tempCamera);
-
-        // Create a temporary canvas to handle the circular mask
-        const maskCanvas = document.createElement('canvas');
-        maskCanvas.width = 1024;
-        maskCanvas.height = 1024;
-        const ctx = maskCanvas.getContext('2d');
-
-        // Draw the rendered image
-        ctx.drawImage(tempRenderer.domElement, 0, 0, 1024, 1024);
-
-        // Create circular mask
-        ctx.globalCompositeOperation = 'destination-in';
-        ctx.beginPath();
-        ctx.arc(512, 512, 512, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Convert to data URL and trigger download
-        const link = document.createElement('a');
-        link.download = 'marble.png';
-        link.href = maskCanvas.toDataURL('image/png');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // Cleanup
-        tempRenderer.dispose();
-        geometry.dispose();
-        tempMaterial.dispose();
-        tempScene.remove(mesh);
     }
 
     // Function to update uniforms when config changes
