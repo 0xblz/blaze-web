@@ -31,6 +31,45 @@ const params = {
     refractionIntensity: 1.2,
     glossiness: 0.8,
     lightIntensity: 0.6,
+    randomizeMarble: function() {
+        // Generate random colors
+        const randomColor1 = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        const randomColor2 = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        
+        // Update parameters
+        params.baseColor = randomColor1;
+        params.accentColor = randomColor2;
+        params.patternComplexity = Math.random() * 1.5 + 0.2; // Range: 0.2 to 1.7
+        params.patternScale = Math.random() * 2.5 + 0.3;      // Range: 0.3 to 2.8
+        params.transparency = Math.random() * 0.3 + 0.7;      // Range: 0.7 to 1.0
+        params.refractionIntensity = Math.random() * 1.5 + 0.5; // Range: 0.5 to 2.0
+        params.glossiness = Math.random() * 0.6 + 0.4;        // Range: 0.4 to 1.0
+        params.lightIntensity = Math.random() * 1.2 + 0.4;    // Range: 0.4 to 1.6
+        
+        // Update material uniforms
+        marble.material.uniforms.baseColor.value.set(params.baseColor);
+        marble.material.uniforms.accentColor.value.set(params.accentColor);
+        marble.material.uniforms.patternComplexity.value = params.patternComplexity;
+        marble.material.uniforms.patternScale.value = params.patternScale;
+        marble.material.uniforms.transparency.value = params.transparency;
+        marble.material.uniforms.refractionIntensity.value = params.refractionIntensity;
+        marble.material.uniforms.glossiness.value = params.glossiness;
+        marble.material.uniforms.lightIntensity.value = params.lightIntensity;
+        
+        // Update lights
+        scene.children.forEach(child => {
+            if (child instanceof THREE.AmbientLight) {
+                child.intensity = params.lightIntensity * 0.5;
+            } else if (child instanceof THREE.DirectionalLight) {
+                child.intensity = params.lightIntensity * 0.8;
+            }
+        });
+        
+        // Update all GUI controllers
+        for (let i in gui.__controllers) {
+            gui.__controllers[i].updateDisplay();
+        }
+    },
     exportMarble: function() {
         saveAsImage();
     }
@@ -236,6 +275,9 @@ function init() {
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
+    controls.enableZoom = false;  // Disable zooming
+    controls.minDistance = 3;     // Keep these as fallbacks
+    controls.maxDistance = 3;     // Keep these as fallbacks
 
     // Setup GUI
     setupGUI();
@@ -289,6 +331,7 @@ function setupGUI() {
         marble.material.uniforms.lightIntensity.value = value;
     });
     
+    gui.add(params, 'randomizeMarble').name('Randomize');
     gui.add(params, 'exportMarble').name('Export as PNG');
 }
 
