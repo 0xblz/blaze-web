@@ -47,19 +47,20 @@ function init() {
 
     // Create scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a1a);
 
     // Setup camera
     camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
     camera.position.z = 3;
 
-    // Setup renderer
+    // Setup renderer with alpha
     renderer = new THREE.WebGLRenderer({ 
         antialias: true, 
-        preserveDrawingBuffer: true 
+        preserveDrawingBuffer: true,
+        alpha: true  // Enable alpha
     });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setClearColor(0x000000, 0); // Set clear color with 0 alpha
     container.appendChild(renderer.domElement);
 
     // Add lights
@@ -348,11 +349,12 @@ function saveAsImage() {
     const renderTarget = new THREE.WebGLRenderTarget(1024, 1024);
     
     // Store current renderer settings
-    const currentClearColor = renderer.getClearColor().clone();
+    const currentRenderTarget = renderer.getRenderTarget();
+    const currentAlpha = renderer.getClearAlpha();
     
-    // Setup renderer for black background
-    renderer.setClearColor(0x000000, 1);
+    // Setup renderer for export
     renderer.setRenderTarget(renderTarget);
+    renderer.setClearColor(0x000000, 1);
     renderer.clear();
     renderer.render(exportScene, exportCamera);
     
@@ -387,8 +389,8 @@ function saveAsImage() {
     link.click();
     
     // Restore renderer settings
-    renderer.setClearColor(currentClearColor);
-    renderer.setRenderTarget(null);
+    renderer.setRenderTarget(currentRenderTarget);
+    renderer.setClearColor(0x000000, 0); // Restore transparent background
     
     // Clean up
     renderTarget.dispose();
