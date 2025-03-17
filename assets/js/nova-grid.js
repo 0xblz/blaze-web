@@ -1629,7 +1629,10 @@ class ExplorationAnimation {
             this.controls.velocity.add(forward.clone().multiplyScalar(this.currentSpeed));
         }
         if (this.controls.moveBackward) {
-            this.controls.velocity.add(forward.clone().multiplyScalar(-this.currentSpeed * 0.5));
+            // Increased deceleration when moving backward (down arrow)
+            this.controls.velocity.add(forward.clone().multiplyScalar(-this.currentSpeed * 2.0));
+            // Apply additional speed reduction when moving backward
+            this.currentSpeed *= 0.92; // Aggressive speed reduction
         }
         
         // Apply velocity to camera position
