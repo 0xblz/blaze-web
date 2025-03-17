@@ -23,13 +23,13 @@ let scene, camera, renderer, marble, controls, gui;
 
 // Marble parameters
 const params = {
-    baseColor: '#ff4fed',
-    accentColor: '#61c1ff',
-    patternComplexity: 0.5,
+    baseColor: '#dc50ff',
+    accentColor: '#7350ff',
+    patternComplexity: 0.4,
     patternScale: 2.0,
     transparency: 0.9,
     refractionIntensity: 1.2,
-    glossiness: 0.8,
+    glossiness: 0.5,
     exportMarble: function() {
         saveAsImage();
     }
