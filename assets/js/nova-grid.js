@@ -1546,21 +1546,8 @@ class ExplorationAnimation {
             this.controls.rollAngle -= this.controls.rollSpeed * delta;
         }
         
-        // Restore damping to return to level position when keys are released
-        // but normalize the angle first to allow full rolls
-        if (!this.controls.rollLeft && !this.controls.rollRight) {
-            // Normalize roll angle to -PI to PI range for smooth return to level
-            this.controls.rollAngle = this.controls.rollAngle % (Math.PI * 2);
-            if (this.controls.rollAngle > Math.PI) {
-                this.controls.rollAngle -= Math.PI * 2;
-            } else if (this.controls.rollAngle < -Math.PI) {
-                this.controls.rollAngle += Math.PI * 2;
-            }
-            
-            // Apply damping only when not actively rolling
-            this.controls.rollAngle *= Math.pow(this.controls.rollDamping, delta * 60);
-        }
-
+        // Remove all auto-centering code to maintain roll angle when keys are released
+        
         // Create quaternions for look and roll
         const lookQuaternion = new THREE.Quaternion().setFromEuler(this.controls.rotation);
         const rollQuaternion = new THREE.Quaternion().setFromAxisAngle(
