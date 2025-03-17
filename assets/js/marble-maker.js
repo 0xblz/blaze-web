@@ -25,7 +25,7 @@ let scene, camera, renderer, marble, controls, gui;
 const params = {
     baseColor: '#ff4fed',
     accentColor: '#61c1ff',
-    patternComplexity: 1,
+    patternComplexity: 0.5,
     patternScale: 2.0,
     transparency: 0.9,
     refractionIntensity: 1.2,
@@ -303,28 +303,68 @@ function onWindowResize() {
 }
 
 function saveAsImage() {
+    // Create a new scene for rendering just the marble
+    const exportScene = new THREE.Scene();
+    // Set black background
+    exportScene.background = new THREE.Color(0x000000);
+    
+    // Clone the marble and its material for the export scene
+    const exportMarble = marble.clone();
+    exportMarble.material = marble.material.clone();
+    exportScene.add(exportMarble);
+    
+    // Add the same lights as main scene
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    exportScene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(1, 1, 1);
+    exportScene.add(directionalLight);
+    
+    // Setup camera specifically for export
+    const exportCamera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
+    // Position camera further back for better framing
+    exportCamera.position.z = 3.5;
+    
+    // Create temporary render target
     const renderTarget = new THREE.WebGLRenderTarget(1024, 1024);
-    const originalAspect = camera.aspect;
     
-    // Temporarily set camera aspect to 1:1
-    camera.aspect = 1;
-    camera.updateProjectionMatrix();
+    // Store current renderer settings
+    const currentClearColor = renderer.getClearColor().clone();
     
-    // Render to target
+    // Setup renderer for black background
+    renderer.setClearColor(0x000000, 1);
     renderer.setRenderTarget(renderTarget);
-    renderer.render(scene, camera);
+    renderer.clear();
+    renderer.render(exportScene, exportCamera);
+    
+    // Create a new canvas for the final image
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 1024;
+    const context = canvas.getContext('2d');
+    
+    // Read pixels from render target
+    const pixels = new Uint8Array(1024 * 1024 * 4);
+    renderer.readRenderTargetPixels(renderTarget, 0, 0, 1024, 1024, pixels);
+    
+    // Create ImageData and put it on canvas
+    const imageData = new ImageData(new Uint8ClampedArray(pixels), 1024, 1024);
+    context.putImageData(imageData, 0, 0);
     
     // Create download link
-    const image = renderer.domElement.toDataURL('image/png');
     const link = document.createElement('a');
     link.download = 'marble.png';
-    link.href = image;
+    link.href = canvas.toDataURL('image/png');
     link.click();
     
-    // Restore original settings
-    camera.aspect = originalAspect;
-    camera.updateProjectionMatrix();
+    // Restore renderer settings
+    renderer.setClearColor(currentClearColor);
     renderer.setRenderTarget(null);
+    
+    // Clean up
+    renderTarget.dispose();
+    exportMarble.geometry.dispose();
+    exportMarble.material.dispose();
 }
 
 // Initialize when DOM is ready and dependencies are loaded
