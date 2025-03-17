@@ -29,7 +29,8 @@ const params = {
     patternScale: 2.0,
     transparency: 0.9,
     refractionIntensity: 1.2,
-    glossiness: 0.5,
+    glossiness: 0.8,
+    lightIntensity: 0.6,
     exportMarble: function() {
         saveAsImage();
     }
@@ -79,6 +80,7 @@ function init() {
             transparency: { value: params.transparency },
             refractionIntensity: { value: params.refractionIntensity },
             glossiness: { value: params.glossiness },
+            lightIntensity: { value: params.lightIntensity },
             time: { value: 0 },
             cameraPos: { value: new THREE.Vector3() }
         },
@@ -104,6 +106,7 @@ function init() {
             uniform float transparency;
             uniform float refractionIntensity;
             uniform float glossiness;
+            uniform float lightIntensity;
             uniform float time;
             uniform vec3 cameraPos;
             
@@ -214,7 +217,7 @@ function init() {
                 vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
                 vec3 halfDir = normalize(lightDir - viewDir);
                 float specular = pow(max(dot(normal, halfDir), 0.0), 32.0 * glossiness);
-                color += vec3(specular);
+                color += vec3(specular * lightIntensity);
                 
                 // Final color with transparency
                 gl_FragColor = vec4(color, transparency);
@@ -274,6 +277,17 @@ function setupGUI() {
         marble.material.uniforms.glossiness.value = value;
     });
     
+    gui.add(params, 'lightIntensity', 0.1, 2).onChange(value => {
+        scene.children.forEach(child => {
+            if (child instanceof THREE.AmbientLight) {
+                child.intensity = value * 0.5;  // Keep ambient light slightly dimmer
+            } else if (child instanceof THREE.DirectionalLight) {
+                child.intensity = value * 0.8;
+            }
+        });
+        marble.material.uniforms.lightIntensity.value = value;
+    });
+    
     gui.add(params, 'exportMarble').name('Export as PNG');
 }
 
@@ -305,25 +319,30 @@ function onWindowResize() {
 function saveAsImage() {
     // Create a new scene for rendering just the marble
     const exportScene = new THREE.Scene();
-    // Set black background
     exportScene.background = new THREE.Color(0x000000);
     
     // Clone the marble and its material for the export scene
     const exportMarble = marble.clone();
     exportMarble.material = marble.material.clone();
+    // Copy the current rotation and position
+    exportMarble.rotation.copy(marble.rotation);
+    exportMarble.position.copy(marble.position);
     exportScene.add(exportMarble);
     
     // Add the same lights as main scene
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5 * params.lightIntensity);
     exportScene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8 * params.lightIntensity);
     directionalLight.position.set(1, 1, 1);
     exportScene.add(directionalLight);
     
-    // Setup camera specifically for export
-    const exportCamera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
-    // Position camera further back for better framing
-    exportCamera.position.z = 3.5;
+    // Setup camera for export
+    const exportCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+    // Calculate camera position to match current view direction but ensure marble fills frame
+    const direction = new THREE.Vector3().subVectors(camera.position, new THREE.Vector3(0, 0, 0)).normalize();
+    exportCamera.position.copy(direction.multiplyScalar(2.8)); // Closer camera position to fill frame
+    exportCamera.lookAt(0, 0, 0);
+    exportCamera.updateProjectionMatrix();
     
     // Create temporary render target
     const renderTarget = new THREE.WebGLRenderTarget(1024, 1024);
@@ -347,8 +366,18 @@ function saveAsImage() {
     const pixels = new Uint8Array(1024 * 1024 * 4);
     renderer.readRenderTargetPixels(renderTarget, 0, 0, 1024, 1024, pixels);
     
-    // Create ImageData and put it on canvas
-    const imageData = new ImageData(new Uint8ClampedArray(pixels), 1024, 1024);
+    // Create ImageData and flip it vertically
+    const imageData = new ImageData(1024, 1024);
+    for (let y = 0; y < 1024; y++) {
+        for (let x = 0; x < 1024; x++) {
+            const sourceIndex = (y * 1024 + x) * 4;
+            const targetIndex = ((1023 - y) * 1024 + x) * 4;
+            imageData.data[targetIndex] = pixels[sourceIndex];
+            imageData.data[targetIndex + 1] = pixels[sourceIndex + 1];
+            imageData.data[targetIndex + 2] = pixels[sourceIndex + 2];
+            imageData.data[targetIndex + 3] = pixels[sourceIndex + 3];
+        }
+    }
     context.putImageData(imageData, 0, 0);
     
     // Create download link
