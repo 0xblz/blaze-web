@@ -58,7 +58,7 @@ const SCENE_CONFIG = {
             rollDamping: 0.92,  // How quickly roll motion slows down
             verticalRotationLimit: Math.PI / 2.5,  // Limit vertical rotation to avoid over-rotation
             acceleration: 0.01,    // Acceleration rate
-            deceleration: 10.0    // Increased deceleration rate for faster slowdown
+            deceleration: 0.05    // Increased deceleration rate for faster slowdown
         }
     },
     
