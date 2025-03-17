@@ -3232,14 +3232,14 @@ class ExplorationAnimation {
                     top: 50%;
                     ${side}: 0;
                     width: ${SCENE_CONFIG.hud.bars.side.width}px;
-                    height: 60%;
+                    height: 80%;
                     transform: translateY(-50%);
                     background: linear-gradient(
                         ${side === 'left' ? 'to right' : 'to left'},
                         transparent,
-                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.1)} 40%,
-                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.2)} 60%,
-                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.6)} 80%
+                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.6)} 0%,
+                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0.4)} 40%,
+                        ${this.colorToRGBA(SCENE_CONFIG.hud.colors.primary, 0)} 100%
                     );
                     border-${side === 'left' ? 'right' : 'left'}-radius: ${SCENE_CONFIG.hud.layout.curveRadius}px;
                     transform-origin: ${side} center;
