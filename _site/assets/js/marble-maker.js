@@ -23,13 +23,13 @@ let scene, camera, renderer, marble, controls, gui;
 
 // Marble parameters
 const params = {
-    baseColor: '#dc50ff',
-    accentColor: '#7350ff',
-    patternComplexity: 0.4,
-    patternScale: 2.0,
+    baseColor: '#baffd5',
+    accentColor: '#0074e0',
+    patternComplexity: 1.2,
+    patternScale: 0.8,
     transparency: 0.9,
     refractionIntensity: 1.2,
-    glossiness: 0.8,
+    glossiness: 0.3,
     lightIntensity: 0.6,
     randomizeMarble: function() {
         // Generate random colors
