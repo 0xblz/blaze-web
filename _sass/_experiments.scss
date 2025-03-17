@@ -1,3 +1,4 @@
+// three.js canvas
 .background-canvas {
     position: fixed;
     top: 0;
@@ -10,11 +11,14 @@
 
 body.experiment {
     cursor: auto;
+} 
+
+// custom page styles
+body.marble-maker {
     section {
         padding: 1rem;
         padding-top: 2rem;
         padding-bottom: 2rem;
-
         & > div {
             display: flex;
             flex-direction: column;
