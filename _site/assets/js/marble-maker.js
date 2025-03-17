@@ -3,8 +3,9 @@ const loadDependencies = async () => {
     // First load Three.js core
     await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
     
-    // Then load dat.gui
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js');
+    // Then load dependencies in order - using updated OrbitControls URL
+    await loadScript('https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js');
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js');
 };
 
 const loadScript = (src) => {
@@ -17,570 +18,321 @@ const loadScript = (src) => {
     });
 };
 
-// Store references globally
-window.avatarState = {
-    scene: null,
-    camera: null,
-    material: null,
-    config: null
+// Scene setup
+let scene, camera, renderer, marble, controls, gui;
+
+// Marble parameters
+const params = {
+    baseColor: '#ff4fed',
+    accentColor: '#61c1ff',
+    patternComplexity: 1,
+    patternScale: 2.0,
+    transparency: 0.9,
+    refractionIntensity: 1.2,
+    glossiness: 0.8,
+    exportMarble: function() {
+        saveAsImage();
+    }
 };
 
-// Make downloadAvatar function globally available
-window.downloadAvatar = function() {
-    const { scene, camera, material, config } = window.avatarState;
-
-    if (!scene || !camera) {
-        console.error('Scene or camera not initialized');
+// Initialize the scene
+function init() {
+    // Find the container
+    const container = document.querySelector('.marble-maker-container');
+    if (!container) {
+        console.error('Could not find marble-maker-container');
         return;
     }
 
-    // Create a temporary renderer at 1024x1024
-    const tempRenderer = new THREE.WebGLRenderer({ 
-        antialias: true,
-        preserveDrawingBuffer: true,
-        alpha: true
+    // Create scene
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a1a1a);
+
+    // Setup camera
+    camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.z = 3;
+
+    // Setup renderer
+    renderer = new THREE.WebGLRenderer({ 
+        antialias: true, 
+        preserveDrawingBuffer: true 
     });
-    tempRenderer.setSize(1024, 1024);
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
 
-    // Create a temporary orthographic camera
-    const tempCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    // Add lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
 
-    // Create a new mesh at high resolution
-    const geometry = new THREE.PlaneGeometry(2, 2);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(1, 1, 1);
+    scene.add(directionalLight);
 
-    // Clone material and copy all uniforms
-    const tempMaterial = material.clone();
-    tempMaterial.uniforms = {};
-    for (const key in material.uniforms) {
-        if (key === 'resolution') {
-            tempMaterial.uniforms[key] = { value: new THREE.Vector2(1024, 1024) };
-        } else if (key === 'config') {
-            // Deep clone the config uniform
-            tempMaterial.uniforms[key] = {
-                value: JSON.parse(JSON.stringify(material.uniforms[key].value))
-            };
-        } else {
-            // Clone other uniforms
-            tempMaterial.uniforms[key] = {
-                value: material.uniforms[key].value
-            };
-        }
-    }
-
-    const mesh = new THREE.Mesh(geometry, tempMaterial);
-
-    // Create a temporary scene
-    const tempScene = new THREE.Scene();
-    tempScene.add(mesh);
-
-    // Render at high resolution
-    tempRenderer.render(tempScene, tempCamera);
-
-    // Create a temporary canvas to handle the circular mask
-    const maskCanvas = document.createElement('canvas');
-    maskCanvas.width = 1024;
-    maskCanvas.height = 1024;
-    const ctx = maskCanvas.getContext('2d');
-
-    // Draw the rendered image
-    ctx.drawImage(tempRenderer.domElement, 0, 0, 1024, 1024);
-
-    // Create circular mask
-    ctx.globalCompositeOperation = 'destination-in';
-    ctx.beginPath();
-    ctx.arc(512, 512, 512, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Convert to data URL and trigger download
-    const link = document.createElement('a');
-    link.download = 'marble.png';
-    link.href = maskCanvas.toDataURL('image/png');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    // Cleanup
-    tempRenderer.dispose();
-    geometry.dispose();
-    tempMaterial.dispose();
-    tempScene.remove(mesh);
-};
-
-// Initialize the marble maker once dependencies are loaded
-document.addEventListener('DOMContentLoaded', () => {
-    // Only initialize if the canvas element exists
-    const canvas = document.getElementById('shader-container');
-    if (canvas) {
-        loadDependencies().then(() => {
-            // Initialize the configuration and start the animation
-            initializeMarbleMaker();
-        }).catch(error => {
-            console.error('Error initializing marble maker:', error);
-        });
-    }
-});
-
-// Move all the initialization code into a function
-function initializeMarbleMaker() {
-    // Configuration object for all adjustable parameters
-    const config = {
-        animation: {
-            timeScale: 0.013,
-            noiseSpeed: 0,      // Speed of noise movement
-            waveSpeed: 0        // Speed of wave movement
+    // Create marble material with custom shader
+    const marbleMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            baseColor: { value: new THREE.Color(params.baseColor) },
+            accentColor: { value: new THREE.Color(params.accentColor) },
+            patternComplexity: { value: params.patternComplexity },
+            patternScale: { value: params.patternScale },
+            transparency: { value: params.transparency },
+            refractionIntensity: { value: params.refractionIntensity },
+            glossiness: { value: params.glossiness },
+            time: { value: 0 },
+            cameraPos: { value: new THREE.Vector3() }
         },
-        glitch: {
-            enabled: true,
-            intensity: 1,        // Overall glitch strength
-            frequency: 0.83,        // How often glitches occur
-            snapDuration: 0.59,     // How long each glitch lasts
-            rgbShift: 2,        // Amount of RGB channel separation
-            blockiness: 50,      // Size of glitch blocks
-            scanlines: 0.3       // Intensity of scanline effect
-        },
-        colors: {
-            primary: new THREE.Vector3(1, 0.7, 0.8),
-            secondary: new THREE.Vector3(0.57, 0.5, 1.0),  // Secondary color for mixing
-            range: {
-                min: 0.2,
-                max: 1.0
-            },
-            adjustment: {
-                saturation: 1,
-                brightness: 1,
-                contrast: 2.0,
-                colorMix: 0.5       // Mix between primary and secondary colors
-            },
-            iridescent: {
-                strength: 0.7,
-                speed: 0.2,
-                density: 3.1,
-                spiral: 3.0
-            }
-        },
-        effect: {
-            iterations: 100,
-            rotationSpeed: 2.4,
-            intensity: 1,
-            noiseScale: 0,      // Scale of the noise pattern
-            waveScale: 2.0,       // Scale of the wave pattern
-            turbulence: 0.5,      // Amount of turbulence in the flow
-            distribution: {
-                x: 0,
-                y: 11
-            },
-            layers: {
-                count: 3,           // Number of effect layers
-                spacing: 0.5,       // Spacing between layers
-                blend: 0.7          // Blend factor between layers
-            }
-        }
-    };
-
-    let container;
-    let camera, scene, renderer;
-    let uniforms;
-
-    init();
-    animate();
-
-    function init() {
-        container = document.getElementById('shader-container');
-
-        camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-        scene = new THREE.Scene();
-
-        // Store references globally
-        window.avatarState.scene = scene;
-        window.avatarState.camera = camera;
-        window.avatarState.config = config;
-
-        const geometry = new THREE.PlaneGeometry(2, 2);
-
-        uniforms = {
-            time: { value: 1.0 },
-            resolution: { value: new THREE.Vector2() },
-            config: { 
-                value: {
-                    colorMin: config.colors.range.min,
-                    colorMax: config.colors.range.max,
-                    primaryColor: config.colors.primary,
-                    secondaryColor: config.colors.secondary,
-                    saturation: config.colors.adjustment.saturation,
-                    brightness: config.colors.adjustment.brightness,
-                    contrast: config.colors.adjustment.contrast,
-                    colorMix: config.colors.adjustment.colorMix,
-                    effectIntensity: config.effect.intensity,
-                    iridStrength: config.colors.iridescent.strength,
-                    iridSpeed: config.colors.iridescent.speed,
-                    iridDensity: config.colors.iridescent.density,
-                    iridSpiral: config.colors.iridescent.spiral,
-                    noiseScale: config.effect.noiseScale,
-                    waveScale: config.effect.waveScale,
-                    turbulence: config.effect.turbulence,
-                    layerCount: config.effect.layers.count,
-                    layerSpacing: config.effect.layers.spacing,
-                    layerBlend: config.effect.layers.blend,
-                    noiseSpeed: config.animation.noiseSpeed,
-                    waveSpeed: config.animation.waveSpeed,
-                    glitchEnabled: config.glitch.enabled,
-                    glitchIntensity: config.glitch.intensity,
-                    glitchFrequency: config.glitch.frequency,
-                    glitchSnapDuration: config.glitch.snapDuration,
-                    glitchRGBShift: config.glitch.rgbShift,
-                    glitchBlockiness: config.glitch.blockiness,
-                    glitchScanlines: config.glitch.scanlines
-                }
-            }
-        };
-
-        const material = new THREE.ShaderMaterial({
-            uniforms: uniforms,
-            vertexShader: `
+        vertexShader: `
+            varying vec3 vPosition;
+            varying vec3 vNormal;
+            varying vec2 vUv;
+            varying vec3 vWorldPosition;
+            
             void main() {
-                gl_Position = vec4(position, 1.0);
+                vPosition = position;
+                vNormal = normal;
+                vUv = uv;
+                vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
             }
-            `,
-            fragmentShader: `
+        `,
+        fragmentShader: `
+            uniform vec3 baseColor;
+            uniform vec3 accentColor;
+            uniform float patternComplexity;
+            uniform float patternScale;
+            uniform float transparency;
+            uniform float refractionIntensity;
+            uniform float glossiness;
             uniform float time;
-            uniform vec2 resolution;
-            uniform struct Config {
-                float colorMin;
-                float colorMax;
-                vec3 primaryColor;
-                vec3 secondaryColor;
-                float saturation;
-                float brightness;
-                float contrast;
-                float colorMix;
-                float effectIntensity;
-                float iridStrength;
-                float iridSpeed;
-                float iridDensity;
-                float iridSpiral;
-                float noiseScale;
-                float waveScale;
-                float turbulence;
-                float layerCount;
-                float layerSpacing;
-                float layerBlend;
-                float noiseSpeed;
-                float waveSpeed;
-                bool glitchEnabled;
-                float glitchIntensity;
-                float glitchFrequency;
-                float glitchSnapDuration;
-                float glitchRGBShift;
-                float glitchBlockiness;
-                float glitchScanlines;
-            } config;
-
-            // Hash function for noise
-            float hash(vec2 p) {
-                float h = dot(p, vec2(127.1, 311.7));
-                return fract(sin(h) * 43758.5453123);
+            uniform vec3 cameraPos;
+            
+            varying vec3 vPosition;
+            varying vec3 vNormal;
+            varying vec2 vUv;
+            varying vec3 vWorldPosition;
+            
+            // Improved noise function for better marble patterns
+            float hash(float n) {
+                return fract(sin(n) * 43758.5453123);
             }
-
-            // 2D Noise
-            float noise(vec2 p) {
-                vec2 i = floor(p);
-                vec2 f = fract(p);
+            
+            float noise(vec3 p) {
+                vec3 i = floor(p);
+                vec3 f = fract(p);
                 f = f * f * (3.0 - 2.0 * f);
                 
-                float a = hash(i);
-                float b = hash(i + vec2(1.0, 0.0));
-                float c = hash(i + vec2(0.0, 1.0));
-                float d = hash(i + vec2(1.0, 1.0));
-                
-                return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
-            }
-
-            vec3 adjustColor(vec3 color) {
-                float luminance = dot(color, vec3(0.299, 0.587, 0.114));
-                vec3 saturated = mix(vec3(luminance), color, config.saturation);
-                vec3 contrasted = (saturated - 0.5) * config.contrast + 0.5;
-                return contrasted * config.brightness;
-            }
-
-            vec3 iridescent(float t) {
-                return 0.5 + 0.5 * cos(6.28318 * (vec3(1.0, 0.7, 0.4) * t + vec3(0.0, 0.333, 0.667)));
-            }
-
-            float flowEffect(vec2 p, float layer) {
-                vec4 o = vec4(0.0);
-                float N = ${config.effect.iterations}.0;
-                float rotSpeed = ${config.effect.rotationSpeed};
-                vec2 dist = vec2(${config.effect.distribution.x}, ${config.effect.distribution.y});
-                
-                // Add noise-based displacement
-                float noiseTime = time * config.noiseSpeed;
-                vec2 noisePos = p * config.noiseScale + vec2(noiseTime * 0.5, noiseTime * 0.3);
-                vec2 displacement = vec2(noise(noisePos), noise(noisePos + 5.0)) * config.turbulence;
-                p += displacement;
-
-                // Add wave displacement
-                float waveTime = time * config.waveSpeed;
-                float wave = sin(length(p) * config.waveScale - waveTime) * 0.1;
-                p += p * wave;
-
-                // Layer offset
-                float layerOffset = layer * config.layerSpacing;
-                vec3 v;
-                
-                for(float i = -1.; i < 1.; i += 2. / N) {
-                v = vec3(cos(N * i * rotSpeed + time + dist + layerOffset) * sqrt(1. - i * i), i);
-                float pLength = length(p);
-                float factor = 1.0 / (pLength + 0.2) - v.y;
-                vec2 disp = v.xz * factor;
-                float d = length(p - disp) + 0.05;
-                o += (cos(i * 4. + vec4(6, 1, 2, 3)) + 1.) / N / d;
-                }
-                
-                return tanh(config.effectIntensity * length(o));
-            }
-
-            // Additional noise functions for glitch effect
-            float random(float x) {
-                return fract(sin(x * 12.9898) * 43758.5453);
-            }
-
-            float random(vec2 st) {
-                return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
-            }
-
-            vec2 quantize(vec2 v, float steps) {
-                return floor(v * steps) / steps;
-            }
-
-            float generateGlitch(float t) {
-                float snapTime = floor(t / config.glitchSnapDuration) * config.glitchSnapDuration;
-                return step(1.0 - config.glitchFrequency, random(snapTime));
-            }
-
-            vec4 applyGlitch(vec2 uv, vec4 color) {
-                if (!config.glitchEnabled) return color;
-
-                float glitchTime = time * 10.0;
-                float glitchActive = generateGlitch(glitchTime);
-                
-                // Block glitch
-                vec2 blockUV = quantize(uv, config.glitchBlockiness);
-                float blockNoise = random(blockUV + floor(glitchTime));
-                vec2 glitchOffset = vec2(
-                    blockNoise * 0.1 * config.glitchIntensity * glitchActive,
-                    random(blockUV + 1.0) * 0.1 * config.glitchIntensity * glitchActive
+                float n = i.x + i.y * 157.0 + 113.0 * i.z;
+                return mix(
+                    mix(
+                        mix(hash(n), hash(n + 1.0), f.x),
+                        mix(hash(n + 157.0), hash(n + 158.0), f.x),
+                        f.y
+                    ),
+                    mix(
+                        mix(hash(n + 113.0), hash(n + 114.0), f.x),
+                        mix(hash(n + 270.0), hash(n + 271.0), f.x),
+                        f.y
+                    ),
+                    f.z
                 );
-                
-                // RGB shift
-                float rgbShift = config.glitchRGBShift * glitchActive;
-                vec4 shiftedColor = color;
-                
-                // Offset red and blue channels
-                vec2 redOffset = uv + glitchOffset + vec2(rgbShift, 0.0);
-                vec2 blueOffset = uv + glitchOffset - vec2(rgbShift, 0.0);
-                
-                // Create color shifts based on position
-                shiftedColor.r = color.r * (1.0 + sin(redOffset.x * 20.0) * 0.2);
-                shiftedColor.b = color.b * (1.0 + sin(blueOffset.x * 20.0) * 0.2);
-                
-                // Scanlines
-                float scanline = sin(uv.y * 400.0) * 0.5 + 0.5;
-                float scanlineIntensity = config.glitchScanlines * glitchActive;
-                
-                // Mix effects
-                vec4 glitchedColor = mix(color, shiftedColor, glitchActive);
-                glitchedColor *= mix(1.0, scanline, scanlineIntensity);
-                
-                // Add random color noise
-                float noise = random(uv + time) * 0.1 * glitchActive;
-                glitchedColor.rgb += vec3(noise);
-                
-                return glitchedColor;
             }
-
+            
+            float fbm(vec3 p) {
+                float value = 0.0;
+                float amplitude = 0.5;
+                float frequency = 1.0;
+                // More octaves for better detail
+                for(float i = 0.0; i < 6.0; i++) {
+                    value += amplitude * noise(p * frequency);
+                    frequency *= 2.0;
+                    amplitude *= 0.5;
+                }
+                return value;
+            }
+            
+            // Sphere intersection for internal ray marching
+            vec2 sphereIntersection(vec3 ro, vec3 rd, float r) {
+                float b = dot(ro, rd);
+                float c = dot(ro, ro) - r * r;
+                float h = b * b - c;
+                if(h < 0.0) return vec2(-1.0);
+                h = sqrt(h);
+                return vec2(-b - h, -b + h);
+            }
+            
             void main() {
-                vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / resolution.y;
+                // Calculate view ray
+                vec3 viewDir = normalize(vWorldPosition - cameraPos);
+                vec3 normal = normalize(vNormal);
                 
-                float finalEffect = 0.0;
+                // Calculate refraction
+                float ior = 1.45; // Glass IOR
+                vec3 refractDir = refract(viewDir, normal, 1.0 / ior);
                 
-                // Layer accumulation
-                for(float i = 0.0; i < 5.0; i++) {
-                if(i >= config.layerCount) break;
-                float layer = flowEffect(p, i);
-                finalEffect = mix(finalEffect, layer, config.layerBlend);
+                // If no refraction (total internal reflection), use reflection
+                if(dot(refractDir, refractDir) == 0.0) {
+                    refractDir = reflect(viewDir, normal);
                 }
-
-                // Base color
-                vec3 baseColor = mix(config.primaryColor, config.secondaryColor, config.colorMix);
                 
-                // Iridescent effect
-                float wave = sin(length(p) * config.iridDensity - time * 2.0) * 0.5 + 0.5;
-                float angle = atan(p.y, p.x);
-                float spiral = sin(angle * config.iridSpiral + length(p) * 8.0 - time * 3.0) * 0.5 + 0.5;
-                vec3 iridColor = iridescent(wave * spiral + time * config.iridSpeed);
+                // Ray march through the sphere to accumulate internal patterns
+                vec3 ro = vPosition;
+                vec3 rd = refractDir;
                 
-                // Final color mixing
-                vec3 color = mix(
-                baseColor * finalEffect,
-                iridColor,
-                finalEffect * config.iridStrength
-                );
+                // Get sphere intersection points
+                vec2 intersect = sphereIntersection(ro, rd, 0.99);
                 
-                color = adjustColor(color);
-
-                // Apply glitch effect to final color
-                vec4 finalColor = vec4(color, 1.0);
-                finalColor = applyGlitch(gl_FragCoord.xy / resolution, finalColor);
+                // Initialize color accumulation
+                vec3 color = baseColor;
+                float density = 0.0;
                 
-                gl_FragColor = finalColor;
+                // Sample points inside the sphere
+                float stepSize = (intersect.y - intersect.x) / 8.0;
+                for(float t = intersect.x; t < intersect.y; t += stepSize) {
+                    vec3 pos = ro + rd * t;
+                    
+                    // Create swirling pattern
+                    vec3 swirl = pos * patternScale;
+                    swirl.x += sin(pos.y * 2.0 + time * 0.2) * 0.5;
+                    swirl.z += cos(pos.y * 2.0 + time * 0.2) * 0.5;
+                    
+                    // Accumulate pattern density
+                    float pattern = fbm(swirl * patternComplexity);
+                    pattern = smoothstep(0.4, 0.6, pattern);
+                    
+                    density += pattern * stepSize;
+                }
+                
+                // Mix colors based on accumulated density
+                color = mix(baseColor, accentColor, density * 2.0);
+                
+                // Add fresnel effect
+                float fresnel = pow(1.0 - abs(dot(normal, -viewDir)), 5.0) * refractionIntensity;
+                color = mix(color, vec3(1.0), fresnel);
+                
+                // Add specular highlight
+                vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
+                vec3 halfDir = normalize(lightDir - viewDir);
+                float specular = pow(max(dot(normal, halfDir), 0.0), 32.0 * glossiness);
+                color += vec3(specular);
+                
+                // Final color with transparency
+                gl_FragColor = vec4(color, transparency);
             }
-            `
-        });
+        `,
+        transparent: true
+    });
 
-        window.avatarState.material = material;
+    // Create marble geometry
+    const geometry = new THREE.SphereGeometry(1, 64, 64);
+    marble = new THREE.Mesh(geometry, marbleMaterial);
+    scene.add(marble);
 
-        const mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
+    // Setup controls - note the updated OrbitControls reference
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
 
-        renderer = new THREE.WebGLRenderer({
-            alpha: true,
-            antialias: true
-        });
+    // Setup GUI
+    setupGUI();
 
-        function updateSize() {
-            const rect = container.getBoundingClientRect();
-            const width = rect.width;
-            const height = rect.width; // Keep it square
-            renderer.setSize(width, height, false);
-            uniforms.resolution.value.set(width, height);
-        }
+    // Handle window resize
+    window.addEventListener('resize', onWindowResize, false);
 
-        // Initial size setup
-        container.appendChild(renderer.domElement);
-        updateSize();
-
-        // Add resize listener
-        const resizeObserver = new ResizeObserver(updateSize);
-        resizeObserver.observe(container);
-
-        // Setup GUI controls
-        setupGUI();
-    }
-
-    function animate() {
-        requestAnimationFrame(animate);
-        render();
-    }
-
-    function render() {
-        uniforms.time.value += config.animation.timeScale;
-        renderer.render(scene, camera);
-    }
-
-    // Function to update uniforms when config changes
-    function updateUniforms() {
-        if (uniforms) {
-            Object.assign(uniforms.config.value, {
-                colorMin: config.colors.range.min,
-                colorMax: config.colors.range.max,
-                primaryColor: config.colors.primary,
-                secondaryColor: config.colors.secondary,
-                saturation: config.colors.adjustment.saturation,
-                brightness: config.colors.adjustment.brightness,
-                contrast: config.colors.adjustment.contrast,
-                colorMix: config.colors.adjustment.colorMix,
-                effectIntensity: config.effect.intensity,
-                iridStrength: config.colors.iridescent.strength,
-                iridSpeed: config.colors.iridescent.speed,
-                iridDensity: config.colors.iridescent.density,
-                iridSpiral: config.colors.iridescent.spiral,
-                noiseScale: config.effect.noiseScale,
-                waveScale: config.effect.waveScale,
-                turbulence: config.effect.turbulence,
-                layerCount: config.effect.layers.count,
-                layerSpacing: config.effect.layers.spacing,
-                layerBlend: config.effect.layers.blend,
-                noiseSpeed: config.animation.noiseSpeed,
-                waveSpeed: config.animation.waveSpeed,
-                glitchEnabled: config.glitch.enabled,
-                glitchIntensity: config.glitch.intensity,
-                glitchFrequency: config.glitch.frequency,
-                glitchSnapDuration: config.glitch.snapDuration,
-                glitchRGBShift: config.glitch.rgbShift,
-                glitchBlockiness: config.glitch.blockiness,
-                glitchScanlines: config.glitch.scanlines
-            });
-        }
-    }
-
-    // Setup GUI controls
-    function setupGUI() {
-        const gui = new dat.GUI();
-
-        // Glitch folder
-        const glitchFolder = gui.addFolder('Glitch');
-        glitchFolder.add(config.glitch, 'enabled').onChange(updateUniforms);
-        glitchFolder.add(config.glitch, 'intensity', 0, 1).onChange(updateUniforms);
-        glitchFolder.add(config.glitch, 'frequency', 0, 1).onChange(updateUniforms);
-        glitchFolder.add(config.glitch, 'snapDuration', 0, 1).onChange(updateUniforms);
-        glitchFolder.add(config.glitch, 'rgbShift', 0, 1).onChange(updateUniforms);
-        glitchFolder.add(config.glitch, 'blockiness', 0, 10).onChange(updateUniforms);
-        glitchFolder.add(config.glitch, 'scanlines', 0, 1).onChange(updateUniforms);
-        glitchFolder.open();
-
-        // Colors folder
-        const colorsFolder = gui.addFolder('Colors');
-
-        // Primary Color
-        const primaryFolder = colorsFolder.addFolder('Primary Color');
-        primaryFolder.add(config.colors.primary, 'x', 0, 1).name('R').onChange(updateUniforms);
-        primaryFolder.add(config.colors.primary, 'y', 0, 1).name('G').onChange(updateUniforms);
-        primaryFolder.add(config.colors.primary, 'z', 0, 1).name('B').onChange(updateUniforms);
-
-        // Secondary Color
-        const secondaryFolder = colorsFolder.addFolder('Secondary Color');
-        secondaryFolder.add(config.colors.secondary, 'x', 0, 1).name('R').onChange(updateUniforms);
-        secondaryFolder.add(config.colors.secondary, 'y', 0, 1).name('G').onChange(updateUniforms);
-        secondaryFolder.add(config.colors.secondary, 'z', 0, 1).name('B').onChange(updateUniforms);
-
-        // Color Adjustments
-        const adjustmentFolder = colorsFolder.addFolder('Adjustments');
-        adjustmentFolder.add(config.colors.adjustment, 'colorMix', 0, 1).name('Color Mix').onChange(updateUniforms);
-        adjustmentFolder.add(config.colors.adjustment, 'saturation', 0, 2).onChange(updateUniforms);
-        adjustmentFolder.add(config.colors.adjustment, 'brightness', 0, 2).onChange(updateUniforms);
-        adjustmentFolder.add(config.colors.adjustment, 'contrast', 0, 2).onChange(updateUniforms);
-
-        // Iridescent Controls
-        const iridFolder = colorsFolder.addFolder('Iridescent');
-        iridFolder.add(config.colors.iridescent, 'strength', 0, 1).onChange(updateUniforms);
-        iridFolder.add(config.colors.iridescent, 'speed', 0, 1).onChange(updateUniforms);
-        iridFolder.add(config.colors.iridescent, 'density', 1, 10).onChange(updateUniforms);
-        iridFolder.add(config.colors.iridescent, 'spiral', 1, 6).onChange(updateUniforms);
-
-        // Animation folder
-        const animationFolder = gui.addFolder('Animation');
-        animationFolder.add(config.animation, 'timeScale', 0, 0.05).name('Main Speed').onChange(updateUniforms);
-        animationFolder.add(config.animation, 'noiseSpeed', 0, 2).onChange(updateUniforms);
-        animationFolder.add(config.animation, 'waveSpeed', 0, 2).onChange(updateUniforms);
-
-        // Effect folder
-        const effectFolder = gui.addFolder('Effect');
-        effectFolder.add(config.effect, 'intensity', 0, 1).onChange(updateUniforms);
-        effectFolder.add(config.effect, 'rotationSpeed', 0, 5).onChange(updateUniforms);
-        effectFolder.add(config.effect, 'noiseScale', 0, 10).onChange(updateUniforms);
-        effectFolder.add(config.effect, 'waveScale', 0, 5).onChange(updateUniforms);
-        effectFolder.add(config.effect, 'turbulence', 0, 1).onChange(updateUniforms);
-
-        // Layers folder
-        const layersFolder = effectFolder.addFolder('Layers');
-        layersFolder.add(config.effect.layers, 'count', 1, 5).step(1).onChange(updateUniforms);
-        layersFolder.add(config.effect.layers, 'spacing', 0, 1).onChange(updateUniforms);
-        layersFolder.add(config.effect.layers, 'blend', 0, 1).onChange(updateUniforms);
-
-        // Open folders
-        colorsFolder.open();
-        animationFolder.open();
-        effectFolder.open();
-        layersFolder.open();
-    }
+    // Start animation loop
+    animate();
 }
+
+function setupGUI() {
+    gui = new dat.GUI();
+    
+    gui.addColor(params, 'baseColor').onChange(value => {
+        marble.material.uniforms.baseColor.value.set(value);
+    });
+    
+    gui.addColor(params, 'accentColor').onChange(value => {
+        marble.material.uniforms.accentColor.value.set(value);
+    });
+    
+    gui.add(params, 'patternComplexity', 0, 2).onChange(value => {
+        marble.material.uniforms.patternComplexity.value = value;
+    });
+    
+    gui.add(params, 'patternScale', 0.1, 3).onChange(value => {
+        marble.material.uniforms.patternScale.value = value;
+    });
+    
+    gui.add(params, 'transparency', 0, 1).onChange(value => {
+        marble.material.uniforms.transparency.value = value;
+    });
+    
+    gui.add(params, 'refractionIntensity', 0, 2).onChange(value => {
+        marble.material.uniforms.refractionIntensity.value = value;
+    });
+    
+    gui.add(params, 'glossiness', 0, 1).onChange(value => {
+        marble.material.uniforms.glossiness.value = value;
+    });
+    
+    gui.add(params, 'exportMarble').name('Export as PNG');
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    
+    // Update controls
+    controls.update();
+    
+    // Update uniforms
+    if (marble.material.uniforms.time) {
+        marble.material.uniforms.time.value += 0.01;
+    }
+    marble.material.uniforms.cameraPos.value.copy(camera.position);
+    
+    // Render scene
+    renderer.render(scene, camera);
+}
+
+function onWindowResize() {
+    const container = document.querySelector('.marble-maker-container');
+    if (!container) return;
+
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+}
+
+function saveAsImage() {
+    const renderTarget = new THREE.WebGLRenderTarget(1024, 1024);
+    const originalAspect = camera.aspect;
+    
+    // Temporarily set camera aspect to 1:1
+    camera.aspect = 1;
+    camera.updateProjectionMatrix();
+    
+    // Render to target
+    renderer.setRenderTarget(renderTarget);
+    renderer.render(scene, camera);
+    
+    // Create download link
+    const image = renderer.domElement.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = 'marble.png';
+    link.href = image;
+    link.click();
+    
+    // Restore original settings
+    camera.aspect = originalAspect;
+    camera.updateProjectionMatrix();
+    renderer.setRenderTarget(null);
+}
+
+// Initialize when DOM is ready and dependencies are loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Load dependencies and initialize
+    loadDependencies().then(() => {
+        init();
+    }).catch(error => {
+        console.error('Error loading dependencies:', error);
+    });
+});

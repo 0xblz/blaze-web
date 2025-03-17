@@ -15,51 +15,23 @@ body.experiment {
 
 // custom page styles
 body.marble-maker {
-    #shader-container {
-        width: 100%; 
-        max-width: 600px;
-        margin: 0 auto; 
-        aspect-ratio: 1; 
-        overflow: hidden; 
-        border-radius: 50%; 
-        position: relative;
+    background-color: #1a1a1a;
+    overflow: hidden;
+    
+    canvas {
+        display: block;
     }
-    #shader-container canvas {
-        width: 100% !important;
-        height: 100% !important;
-        border-radius: 50%;
-    }
+    
     .dg.ac {
-        z-index: 1000 !important;
-        position: fixed !important;
-        top: 0 !important;
-        right: 0 !important;
+        z-index: 1000;
     }
-    @media (max-width: 768px) {
-        .dg.ac {
-            display: none !important;
-        }
-    }
-    button {
-        display: flex; 
-        align-items: center; 
-        width: 100%; 
-        justify-content: center; 
-        gap: 0.25rem; 
-        padding: 0.75rem 1.5rem; 
-        font-size: 1rem; 
-        font-family: 'DM Sans', sans-serif; 
-        font-weight: 600; 
-        background-color: rgba(255, 255, 255, 0.1); 
-        color: white; 
-        border: none; 
-        border-radius: 9999px; 
-        cursor: pointer; 
-    }
-    section {
-        padding: 1rem;
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        gap: 1rem;
+
+    .marble-maker-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
     }
 } 
