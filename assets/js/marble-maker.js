@@ -4,7 +4,7 @@ const loadDependencies = async () => {
     await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
     
     // Then load dependencies in order - using updated OrbitControls URL
-    await loadScript('https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js');
+    await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js');
     await loadScript('https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js');
 };
 
