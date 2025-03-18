@@ -114,6 +114,26 @@ function init() {
     renderer.setClearColor(0x000000, 0); // Set clear color with 0 alpha
     container.appendChild(renderer.domElement);
 
+    // Add cursor style handling
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    
+    renderer.domElement.addEventListener('mousemove', (event) => {
+        // Calculate mouse position in normalized device coordinates
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        // Update the picking ray with the camera and mouse position
+        raycaster.setFromCamera(mouse, camera);
+        
+        // Calculate objects intersecting the picking ray
+        const intersects = raycaster.intersectObject(marble);
+        
+        // Change cursor style based on intersection
+        renderer.domElement.style.cursor = intersects.length > 0 ? 'move' : 'default';
+    });
+
     // Add lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
