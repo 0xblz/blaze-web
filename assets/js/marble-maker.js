@@ -117,21 +117,23 @@ function init() {
     scene.add(directionalLight);
 
     // Create marble material with custom shader
+    const marbleUniforms = {
+        baseColor: { value: new THREE.Color(params.baseColor) },
+        accentColor: { value: new THREE.Color(params.accentColor) },
+        patternComplexity: { value: params.patternComplexity },
+        patternScale: { value: params.patternScale },
+        transparency: { value: params.transparency },
+        refractionIntensity: { value: params.refractionIntensity },
+        glossiness: { value: params.glossiness },
+        lightIntensity: { value: params.lightIntensity },
+        time: { value: 0 },
+        cameraPos: { value: new THREE.Vector3() },
+        displacementStrength: { value: params.displacementStrength },
+        displacementSpeed: { value: params.displacementSpeed }
+    };
+
     const marbleMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-            baseColor: { value: new THREE.Color(params.baseColor) },
-            accentColor: { value: new THREE.Color(params.accentColor) },
-            patternComplexity: { value: params.patternComplexity },
-            patternScale: { value: params.patternScale },
-            transparency: { value: params.transparency },
-            refractionIntensity: { value: params.refractionIntensity },
-            glossiness: { value: params.glossiness },
-            lightIntensity: { value: params.lightIntensity },
-            time: { value: 0 },
-            cameraPos: { value: new THREE.Vector3() },
-            displacementStrength: { value: params.displacementStrength },
-            displacementSpeed: { value: params.displacementSpeed }
-        },
+        uniforms: marbleUniforms,
         vertexShader: `
             varying vec3 vPosition;
             varying vec3 vNormal;
@@ -359,97 +361,120 @@ function setupGUI() {
     gui.add(params, 'exportMarble').name('Export as PNG');
 }
 
+let animationFrameId;
+const TIME_DELTA = 0.01;
+
 function animate() {
-    requestAnimationFrame(animate);
+    animationFrameId = requestAnimationFrame(animate);
     
-    // Update controls
     controls.update();
     
-    // Update uniforms
-    if (marble.material.uniforms.time) {
-        marble.material.uniforms.time.value += 0.01;
+    // Update time uniform only if it exists
+    const timeUniform = marble.material.uniforms.time;
+    if (timeUniform) {
+        timeUniform.value += TIME_DELTA;
     }
-    marble.material.uniforms.cameraPos.value.copy(camera.position);
     
-    // Render scene
+    // Update camera position only if it changed
+    const cameraPosUniform = marble.material.uniforms.cameraPos;
+    if (!cameraPosUniform.value.equals(camera.position)) {
+        cameraPosUniform.value.copy(camera.position);
+    }
+    
     renderer.render(scene, camera);
 }
 
-function onWindowResize() {
-    const container = document.querySelector('.marble-maker-container');
-    if (!container) return;
+// Cache container element
+let containerElement;
 
-    camera.aspect = container.clientWidth / container.clientHeight;
+function onWindowResize() {
+    if (!containerElement) {
+        containerElement = document.querySelector('.marble-maker-container');
+        if (!containerElement) return;
+    }
+
+    const width = containerElement.clientWidth;
+    const height = containerElement.clientHeight;
+    
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(width, height);
 }
 
+// Reusable objects for export
+const exportObjects = {
+    scene: null,
+    camera: null,
+    renderTarget: null,
+    canvas: null
+};
+
 function saveAsImage() {
-    // Create a new scene for rendering just the marble
-    const exportScene = new THREE.Scene();
+    // Initialize export objects if they don't exist
+    if (!exportObjects.scene) {
+        exportObjects.scene = new THREE.Scene();
+        exportObjects.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+        exportObjects.renderTarget = new THREE.WebGLRenderTarget(1024, 1024);
+        exportObjects.canvas = document.createElement('canvas');
+        exportObjects.canvas.width = 1024;
+        exportObjects.canvas.height = 1024;
+    }
+    
+    const { scene: exportScene, camera: exportCamera, renderTarget, canvas } = exportObjects;
+    
+    // Clear previous contents
+    while(exportScene.children.length > 0) { 
+        exportScene.remove(exportScene.children[0]); 
+    }
+    
+    // Setup scene
     exportScene.background = new THREE.Color(0x000000);
     
-    // Clone the marble and its material for the export scene
+    // Clone marble with current state
     const exportMarble = marble.clone();
     exportMarble.material = marble.material.clone();
-    // Copy the current rotation and position
     exportMarble.rotation.copy(marble.rotation);
     exportMarble.position.copy(marble.position);
     exportScene.add(exportMarble);
     
-    // Add the same lights as main scene
+    // Add lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5 * params.lightIntensity);
-    exportScene.add(ambientLight);
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8 * params.lightIntensity);
     directionalLight.position.set(1, 1, 1);
-    exportScene.add(directionalLight);
+    exportScene.add(ambientLight, directionalLight);
     
-    // Setup camera for export
-    const exportCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    // Calculate camera position to match current view direction but ensure marble fills frame
+    // Setup camera
     const direction = new THREE.Vector3().subVectors(camera.position, new THREE.Vector3(0, 0, 0)).normalize();
-    exportCamera.position.copy(direction.multiplyScalar(2.8)); // Closer camera position to fill frame
+    exportCamera.position.copy(direction.multiplyScalar(2.8));
     exportCamera.lookAt(0, 0, 0);
     exportCamera.updateProjectionMatrix();
     
-    // Create temporary render target
-    const renderTarget = new THREE.WebGLRenderTarget(1024, 1024);
-    
-    // Store current renderer settings
+    // Store and update renderer settings
     const currentRenderTarget = renderer.getRenderTarget();
     const currentAlpha = renderer.getClearAlpha();
     
-    // Setup renderer for export
     renderer.setRenderTarget(renderTarget);
     renderer.setClearColor(0x000000, 1);
     renderer.clear();
     renderer.render(exportScene, exportCamera);
     
-    // Create a new canvas for the final image
-    const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 1024;
+    // Process image
     const context = canvas.getContext('2d');
-    
-    // Read pixels from render target
     const pixels = new Uint8Array(1024 * 1024 * 4);
     renderer.readRenderTargetPixels(renderTarget, 0, 0, 1024, 1024, pixels);
     
-    // Create ImageData and flip it vertically
     const imageData = new ImageData(1024, 1024);
-    for (let y = 0; y < 1024; y++) {
-        for (let x = 0; x < 1024; x++) {
-            const sourceIndex = (y * 1024 + x) * 4;
-            const targetIndex = ((1023 - y) * 1024 + x) * 4;
-            imageData.data[targetIndex] = pixels[sourceIndex];
-            imageData.data[targetIndex + 1] = pixels[sourceIndex + 1];
-            imageData.data[targetIndex + 2] = pixels[sourceIndex + 2];
-            imageData.data[targetIndex + 3] = pixels[sourceIndex + 3];
+    for (let i = 0; i < 1024; i++) {
+        const invI = 1023 - i;
+        for (let j = 0; j < 1024; j++) {
+            const sourceIdx = (i * 1024 + j) * 4;
+            const targetIdx = (invI * 1024 + j) * 4;
+            imageData.data.set(pixels.subarray(sourceIdx, sourceIdx + 4), targetIdx);
         }
     }
     context.putImageData(imageData, 0, 0);
     
-    // Create download link
+    // Download image
     const link = document.createElement('a');
     link.download = 'marble.png';
     link.href = canvas.toDataURL('image/png');
@@ -457,12 +482,33 @@ function saveAsImage() {
     
     // Restore renderer settings
     renderer.setRenderTarget(currentRenderTarget);
-    renderer.setClearColor(0x000000, 0); // Restore transparent background
+    renderer.setClearColor(0x000000, 0);
     
-    // Clean up
-    renderTarget.dispose();
+    // Cleanup cloned objects
     exportMarble.geometry.dispose();
     exportMarble.material.dispose();
+}
+
+// Cleanup function for proper disposal
+function cleanup() {
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+    }
+    
+    if (gui) {
+        gui.destroy();
+    }
+    
+    if (marble) {
+        marble.geometry.dispose();
+        marble.material.dispose();
+    }
+    
+    if (renderer) {
+        renderer.dispose();
+    }
+    
+    window.removeEventListener('resize', onWindowResize);
 }
 
 // Initialize when DOM is ready and dependencies are loaded
