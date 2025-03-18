@@ -272,16 +272,8 @@ function init() {
             }
             
             float fbm(vec3 p) {
-                float value = 0.0;
-                float amplitude = 0.5;
-                float frequency = 1.0;
-                // Reduced octaves for better performance while maintaining quality
-                for(float i = 0.0; i < 2.0; i++) {
-                    value += amplitude * noise(p * frequency);
-                    frequency *= 3.0;
-                    amplitude *= 0.5;
-                }
-                return value;
+                // Simplified to just one noise sample instead of multiple octaves
+                return noise(p);
             }
             
             // Sphere intersection for internal ray marching
