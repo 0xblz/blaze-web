@@ -1,13 +1,13 @@
 - title: "Nova Grid"
   link: "experiments/nova-grid"
-  platform: "three.js, webgl"
+  platform: "three.js"
   
 - title: "Marble Maker"
   link: "experiments/marble-maker"
-  platform: "three.js, webgl"
+  platform: "three.js"
 
 - title: "Ethereal Sky"
   link: "experiments/ethereal"
-  platform: "three.js, webgl"
+  platform: "three.js"
   
   
