@@ -26,11 +26,11 @@ const params = {
     baseColor: '#6363ff',
     accentColor: '#ff78cc',
     patternComplexity: 0.9,
-    patternScale: 0.8,
+    patternScale: 1.2,
     transparency: 0.9,
     refractionIntensity: 0.9,
-    glossiness: 0.5,
-    lightIntensity: 0.5,
+    glossiness: 0.7,
+    lightIntensity: 0.6,
     displacementStrength: 0.7,
     displacementSpeed: 0.3,
     grainStrength: 0.02,     // Added grain strength parameter
@@ -227,10 +227,10 @@ function init() {
                 float value = 0.0;
                 float amplitude = 0.5;
                 float frequency = 1.0;
-                // More octaves for better detail
-                for(float i = 0.0; i < 6.0; i++) {
+                // Reduced octaves for better performance while maintaining quality
+                for(float i = 0.0; i < 2.0; i++) {
                     value += amplitude * noise(p * frequency);
-                    frequency *= 2.0;
+                    frequency *= 3.0;
                     amplitude *= 0.5;
                 }
                 return value;
