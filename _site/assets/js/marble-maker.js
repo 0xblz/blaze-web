@@ -417,7 +417,6 @@ function setupGUI() {
     colorFolder.addColor(params, 'accentColor').onChange(value => {
         marble.material.uniforms.accentColor.value.set(value);
     });
-    colorFolder.open();
     
     // Lighting
     lightingFolder.add(params, 'lightIntensity', 0.1, 1).onChange(value => {
@@ -433,7 +432,6 @@ function setupGUI() {
         window.lights.directional.color.set(value);
         marble.material.uniforms.directionalLightColor.value.set(value);
     });
-    lightingFolder.open();
     
     // Pattern
     patternFolder.add(params, 'patternComplexity', 0, 2).onChange(value => {
@@ -451,7 +449,6 @@ function setupGUI() {
     patternFolder.add(params, 'swirlFrequency', 0.5, 5).name('Swirl Frequency').onChange(value => {
         marble.material.uniforms.swirlFrequency.value = value;
     });
-    patternFolder.open();
     
     // Effects
     effectsFolder.add(params, 'transparency', 0, 1).onChange(value => {
@@ -463,7 +460,6 @@ function setupGUI() {
     effectsFolder.add(params, 'glossiness', 0, 1).onChange(value => {
         marble.material.uniforms.glossiness.value = value;
     });
-    effectsFolder.open();
     
     // Details
     detailsFolder.add(params, 'displacementStrength', 0, 1).onChange(value => {
@@ -478,7 +474,6 @@ function setupGUI() {
     detailsFolder.add(params, 'grainScale', 10, 100).onChange(value => {
         marble.material.uniforms.grainScale.value = value;
     });
-    detailsFolder.open();
     
     // Main controls
     gui.add(params, 'randomizeMarble').name('Randomize');
