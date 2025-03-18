@@ -487,7 +487,7 @@ function saveAsImage() {
     
     // Setup camera
     const direction = new THREE.Vector3().subVectors(camera.position, new THREE.Vector3(0, 0, 0)).normalize();
-    exportCamera.position.copy(direction.multiplyScalar(2.8));
+    exportCamera.position.copy(direction.multiplyScalar(2.62));
     exportCamera.lookAt(0, 0, 0);
     exportCamera.updateProjectionMatrix();
     
