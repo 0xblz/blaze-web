@@ -24,11 +24,11 @@ let scene, camera, renderer, marble, controls, gui;
 // Marble parameters
 const params = {
     baseColor: '#6363ff',
-    accentColor: '#ff78cc',
+    accentColor: '#ffbed9',
     patternComplexity: 0.9,
     patternScale: 1.2,
     swirlSpeed: 0.3,      // Added swirl parameters
-    swirlIntensity: 0.8,
+    swirlIntensity: 0.25,
     swirlFrequency: 5.0,
     transparency: 0.9,
     refractionIntensity: 0.9,
@@ -387,8 +387,8 @@ function init() {
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.enableZoom = false;  // Disable zooming
-    controls.minDistance = 3;     // Keep these as fallbacks
-    controls.maxDistance = 3;     // Keep these as fallbacks
+    controls.minDistance = 2.5;     // Keep these as fallbacks
+    controls.maxDistance = 2.5;     // Keep these as fallbacks
 
     // Setup GUI
     setupGUI();
