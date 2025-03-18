@@ -27,10 +27,15 @@ const params = {
     accentColor: '#ff78cc',
     patternComplexity: 0.9,
     patternScale: 1.2,
+    swirlSpeed: 0.3,      // Added swirl parameters
+    swirlIntensity: 0.8,
+    swirlFrequency: 5.0,
     transparency: 0.9,
     refractionIntensity: 0.9,
     glossiness: 0.7,
     lightIntensity: 0.6,
+    ambientLightColor: '#dbcaff',    // Added ambient light color
+    directionalLightColor: '#ffdaf6', // Added directional light color
     displacementStrength: 0.7,
     displacementSpeed: 0.3,
     grainStrength: 0.02,     // Added grain strength parameter
@@ -40,46 +45,73 @@ const params = {
         const randomColor1 = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
         const randomColor2 = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
         
+        // Store old values
+        const oldParams = { ...params };
+        
         // Update parameters
         params.baseColor = randomColor1;
         params.accentColor = randomColor2;
-        params.patternComplexity = Math.random() * 1.5 + 0.2; // Range: 0.2 to 1.7
-        params.patternScale = Math.random() * 2.5 + 0.3;      // Range: 0.3 to 2.8
-        params.transparency = Math.random() * 0.3 + 0.7;      // Range: 0.7 to 1.0
-        params.refractionIntensity = Math.random() * 1.5 + 0.5; // Range: 0.5 to 2.0
-        params.glossiness = Math.random() * 0.6 + 0.4;        // Range: 0.4 to 1.0
-        params.lightIntensity = Math.random() * 1.2 + 0.4;    // Range: 0.4 to 1.6
-        params.displacementStrength = Math.random() * 0.7 + 0.3; // Range: 0.3 to 1.0
-        params.displacementSpeed = Math.random() * 1.5 + 0.5;    // Range: 0.5 to 2.0
-        params.grainStrength = Math.random() * 0.04 + 0.01;    // Random grain strength
-        params.grainScale = Math.random() * 30.0 + 40.0;       // Random grain scale
+        params.patternComplexity = Math.random() * 0.7 + 0.8;  // Range: 0.8 to 1.5
+        params.patternScale = Math.random() * 0.7 + 0.8;      // Range: 0.8 to 1.5
+        params.swirlSpeed = Math.random() * 0.3 + 0.1;        // Range: 0.1 to 0.4
+        params.swirlIntensity = Math.random() * 0.6 + 0.2;    // Range: 0.2 to 0.8
+        params.swirlFrequency = Math.random() * 2.0 + 1.0;    // Range: 1.0 to 3.0
+        params.transparency = Math.random() * 0.3 + 0.7;
+        params.refractionIntensity = Math.random() * 0.6 + 0.4;
+        params.glossiness = Math.random() * 0.6 + 0.4;
+        params.lightIntensity = Math.random() * 0.6 + 0.4;
+        params.ambientLightColor = '#ffffff';
+        params.directionalLightColor = '#ffffff';
+        params.displacementStrength = Math.random() * 0.7 + 0.3;
+        params.displacementSpeed = Math.random() * 0.4 + 0.4;    // Range: 0.4 to 0.8
+        params.grainStrength = Math.random() * 0.04 + 0.01;
+        params.grainScale = Math.random() * 30.0 + 40.0;
         
         // Update material uniforms
         marble.material.uniforms.baseColor.value.set(params.baseColor);
         marble.material.uniforms.accentColor.value.set(params.accentColor);
         marble.material.uniforms.patternComplexity.value = params.patternComplexity;
         marble.material.uniforms.patternScale.value = params.patternScale;
+        marble.material.uniforms.swirlSpeed.value = params.swirlSpeed;
+        marble.material.uniforms.swirlIntensity.value = params.swirlIntensity;
+        marble.material.uniforms.swirlFrequency.value = params.swirlFrequency;
         marble.material.uniforms.transparency.value = params.transparency;
         marble.material.uniforms.refractionIntensity.value = params.refractionIntensity;
         marble.material.uniforms.glossiness.value = params.glossiness;
         marble.material.uniforms.lightIntensity.value = params.lightIntensity;
+        marble.material.uniforms.ambientLightColor.value.set(params.ambientLightColor);
+        marble.material.uniforms.directionalLightColor.value.set(params.directionalLightColor);
         marble.material.uniforms.displacementStrength.value = params.displacementStrength;
         marble.material.uniforms.displacementSpeed.value = params.displacementSpeed;
-        marble.material.uniforms.grainStrength.value = params.grainStrength;        // Added grain strength uniform
-        marble.material.uniforms.grainScale.value = params.grainScale;               // Added grain scale uniform
+        marble.material.uniforms.grainStrength.value = params.grainStrength;
+        marble.material.uniforms.grainScale.value = params.grainScale;
         
         // Update lights
         scene.children.forEach(child => {
             if (child instanceof THREE.AmbientLight) {
-                child.intensity = params.lightIntensity * 0.5;
+                child.color.set(params.ambientLightColor);
             } else if (child instanceof THREE.DirectionalLight) {
-                child.intensity = params.lightIntensity * 0.8;
+                child.color.set(params.directionalLightColor);
             }
         });
         
-        // Update all GUI controllers
+        // Update GUI controllers
         for (let i in gui.__controllers) {
-            gui.__controllers[i].updateDisplay();
+            const controller = gui.__controllers[i];
+            if (controller.property in params && params[controller.property] !== oldParams[controller.property]) {
+                controller.setValue(params[controller.property]);
+            }
+        }
+        
+        // Update folder controllers
+        for (let folder in gui.__folders) {
+            const controllers = gui.__folders[folder].__controllers;
+            for (let i in controllers) {
+                const controller = controllers[i];
+                if (controller.property in params && params[controller.property] !== oldParams[controller.property]) {
+                    controller.setValue(params[controller.property]);
+                }
+            }
         }
     },
     exportMarble: function() {
@@ -134,13 +166,19 @@ function init() {
         renderer.domElement.style.cursor = intersects.length > 0 ? 'move' : 'default';
     });
 
-    // Add lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    // Add lights with color support
+    const ambientLight = new THREE.AmbientLight(params.ambientLightColor, 0.5);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    const directionalLight = new THREE.DirectionalLight(params.directionalLightColor, 0.8);
     directionalLight.position.set(1, 1, 1);
     scene.add(directionalLight);
+
+    // Store light references for later updates
+    window.lights = {
+        ambient: ambientLight,
+        directional: directionalLight
+    };
 
     // Create marble material with custom shader
     const marbleUniforms = {
@@ -148,10 +186,15 @@ function init() {
         accentColor: { value: new THREE.Color(params.accentColor) },
         patternComplexity: { value: params.patternComplexity },
         patternScale: { value: params.patternScale },
+        swirlSpeed: { value: params.swirlSpeed },           // Added swirl uniforms
+        swirlIntensity: { value: params.swirlIntensity },
+        swirlFrequency: { value: params.swirlFrequency },
         transparency: { value: params.transparency },
         refractionIntensity: { value: params.refractionIntensity },
         glossiness: { value: params.glossiness },
         lightIntensity: { value: params.lightIntensity },
+        ambientLightColor: { value: new THREE.Color(params.ambientLightColor) },    // Add ambient light color
+        directionalLightColor: { value: new THREE.Color(params.directionalLightColor) }, // Add directional light color
         time: { value: 0 },
         cameraPos: { value: new THREE.Vector3() },
         displacementStrength: { value: params.displacementStrength },
@@ -181,10 +224,15 @@ function init() {
             uniform vec3 accentColor;
             uniform float patternComplexity;
             uniform float patternScale;
+            uniform float swirlSpeed;      // Added swirl uniforms
+            uniform float swirlIntensity;
+            uniform float swirlFrequency;
             uniform float transparency;
             uniform float refractionIntensity;
             uniform float glossiness;
             uniform float lightIntensity;
+            uniform vec3 ambientLightColor;     // Add ambient light color uniform
+            uniform vec3 directionalLightColor; // Add directional light color uniform
             uniform float time;
             uniform vec3 cameraPos;
             uniform float displacementStrength;
@@ -299,8 +347,8 @@ function init() {
                     
                     // Create swirling pattern with displacement
                     vec3 swirl = samplePos * patternScale;
-                    swirl.x += sin(samplePos.y * 2.0 + time * 0.2) * 0.5;
-                    swirl.z += cos(samplePos.y * 2.0 + time * 0.2) * 0.5;
+                    swirl.x += sin(samplePos.y * swirlFrequency + time * swirlSpeed) * swirlIntensity;
+                    swirl.z += cos(samplePos.y * swirlFrequency + time * swirlSpeed) * swirlIntensity;
                     
                     float pattern = fbm(swirl * patternComplexity);
                     pattern = smoothstep(0.4, 0.6, pattern);
@@ -315,11 +363,17 @@ function init() {
                 float fresnel = pow(1.0 - abs(dot(normal, -viewDir)), 2.0) * refractionIntensity;
                 color = mix(color, vec3(1.0), fresnel);
                 
-                // Add specular highlight
+                // Add colored lighting with more even distribution
                 vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
                 vec3 halfDir = normalize(lightDir - viewDir);
                 float specular = pow(max(dot(normal, halfDir), 0.0), 32.0 * glossiness);
-                color += vec3(specular * lightIntensity);
+                
+                // Increase ambient contribution and reduce directional contrast
+                vec3 ambient = ambientLightColor * color * 0.7;  // Increased from 0.5 to 0.7
+                vec3 diffuse = directionalLightColor * color * (max(dot(normal, lightDir), 0.0) * 0.5 + 0.5);  // Added bias to reduce contrast
+                vec3 spec = directionalLightColor * specular * 0.8;  // Reduced specular intensity
+                
+                color = (ambient + diffuse) * lightIntensity + spec;
                 
                 // Apply grain effect
                 float grainNoise = grain(vWorldPosition);
@@ -359,6 +413,7 @@ function setupGUI() {
     
     // Create folders for better organization
     const colorFolder = gui.addFolder('Colors');
+    const lightingFolder = gui.addFolder('Lighting');
     const patternFolder = gui.addFolder('Pattern');
     const effectsFolder = gui.addFolder('Effects');
     const detailsFolder = gui.addFolder('Details');
@@ -372,6 +427,22 @@ function setupGUI() {
     });
     colorFolder.open();
     
+    // Lighting
+    lightingFolder.add(params, 'lightIntensity', 0.1, 1).onChange(value => {
+        window.lights.ambient.intensity = value * 0.5;
+        window.lights.directional.intensity = value * 0.8;
+        marble.material.uniforms.lightIntensity.value = value;
+    });
+    lightingFolder.addColor(params, 'ambientLightColor').onChange(value => {
+        window.lights.ambient.color.set(value);
+        marble.material.uniforms.ambientLightColor.value.set(value);
+    });
+    lightingFolder.addColor(params, 'directionalLightColor').onChange(value => {
+        window.lights.directional.color.set(value);
+        marble.material.uniforms.directionalLightColor.value.set(value);
+    });
+    lightingFolder.open();
+    
     // Pattern
     patternFolder.add(params, 'patternComplexity', 0, 2).onChange(value => {
         marble.material.uniforms.patternComplexity.value = value;
@@ -379,27 +450,26 @@ function setupGUI() {
     patternFolder.add(params, 'patternScale', 0.1, 3).onChange(value => {
         marble.material.uniforms.patternScale.value = value;
     });
+    patternFolder.add(params, 'swirlSpeed', 0, 1).name('Swirl Speed').onChange(value => {
+        marble.material.uniforms.swirlSpeed.value = value;
+    });
+    patternFolder.add(params, 'swirlIntensity', 0, 1).name('Swirl Intensity').onChange(value => {
+        marble.material.uniforms.swirlIntensity.value = value;
+    });
+    patternFolder.add(params, 'swirlFrequency', 0.5, 5).name('Swirl Frequency').onChange(value => {
+        marble.material.uniforms.swirlFrequency.value = value;
+    });
     patternFolder.open();
     
     // Effects
     effectsFolder.add(params, 'transparency', 0, 1).onChange(value => {
         marble.material.uniforms.transparency.value = value;
     });
-    effectsFolder.add(params, 'refractionIntensity', 0, 2).onChange(value => {
+    effectsFolder.add(params, 'refractionIntensity', 0, 1).onChange(value => {
         marble.material.uniforms.refractionIntensity.value = value;
     });
     effectsFolder.add(params, 'glossiness', 0, 1).onChange(value => {
         marble.material.uniforms.glossiness.value = value;
-    });
-    effectsFolder.add(params, 'lightIntensity', 0.1, 2).onChange(value => {
-        scene.children.forEach(child => {
-            if (child instanceof THREE.AmbientLight) {
-                child.intensity = value * 0.5;
-            } else if (child instanceof THREE.DirectionalLight) {
-                child.intensity = value * 0.8;
-            }
-        });
-        marble.material.uniforms.lightIntensity.value = value;
     });
     effectsFolder.open();
     
@@ -500,8 +570,8 @@ function saveAsImage() {
     exportScene.add(exportMarble);
     
     // Add lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5 * params.lightIntensity);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8 * params.lightIntensity);
+    const ambientLight = new THREE.AmbientLight(params.ambientLightColor, 0.5 * params.lightIntensity);
+    const directionalLight = new THREE.DirectionalLight(params.directionalLightColor, 0.8 * params.lightIntensity);
     directionalLight.position.set(1, 1, 1);
     exportScene.add(ambientLight, directionalLight);
     
