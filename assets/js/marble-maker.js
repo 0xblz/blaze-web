@@ -33,6 +33,8 @@ const params = {
     lightIntensity: 0.4,
     displacementStrength: 0.7,
     displacementSpeed: 0.3,
+    grainStrength: 0.03,     // Added grain strength parameter
+    grainScale: 50.0,        // Added grain scale parameter
     randomizeMarble: function() {
         // Generate random colors
         const randomColor1 = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
@@ -49,6 +51,8 @@ const params = {
         params.lightIntensity = Math.random() * 1.2 + 0.4;    // Range: 0.4 to 1.6
         params.displacementStrength = Math.random() * 0.7 + 0.3; // Range: 0.3 to 1.0
         params.displacementSpeed = Math.random() * 1.5 + 0.5;    // Range: 0.5 to 2.0
+        params.grainStrength = Math.random() * 0.04 + 0.01;    // Random grain strength
+        params.grainScale = Math.random() * 30.0 + 40.0;       // Random grain scale
         
         // Update material uniforms
         marble.material.uniforms.baseColor.value.set(params.baseColor);
@@ -61,6 +65,8 @@ const params = {
         marble.material.uniforms.lightIntensity.value = params.lightIntensity;
         marble.material.uniforms.displacementStrength.value = params.displacementStrength;
         marble.material.uniforms.displacementSpeed.value = params.displacementSpeed;
+        marble.material.uniforms.grainStrength.value = params.grainStrength;        // Added grain strength uniform
+        marble.material.uniforms.grainScale.value = params.grainScale;               // Added grain scale uniform
         
         // Update lights
         scene.children.forEach(child => {
@@ -129,7 +135,9 @@ function init() {
         time: { value: 0 },
         cameraPos: { value: new THREE.Vector3() },
         displacementStrength: { value: params.displacementStrength },
-        displacementSpeed: { value: params.displacementSpeed }
+        displacementSpeed: { value: params.displacementSpeed },
+        grainStrength: { value: params.grainStrength },        // Added grain strength uniform
+        grainScale: { value: params.grainScale }               // Added grain scale uniform
     };
 
     const marbleMaterial = new THREE.ShaderMaterial({
@@ -161,6 +169,8 @@ function init() {
             uniform vec3 cameraPos;
             uniform float displacementStrength;
             uniform float displacementSpeed;
+            uniform float grainStrength;
+            uniform float grainScale;
             
             varying vec3 vPosition;
             varying vec3 vNormal;
@@ -226,6 +236,19 @@ function init() {
                 return noise * 2.0 - 1.0;
             }
             
+            // Fast hash function for grain effect
+            float hash13(vec3 p3) {
+                p3 = fract(p3 * .1031);
+                p3 += dot(p3, p3.yzx + 33.33);
+                return fract((p3.x + p3.y) * p3.z);
+            }
+            
+            // Grain noise function
+            float grain(vec3 pos) {
+                vec3 p = pos * grainScale + vec3(time * 10.0);
+                return hash13(p) * 2.0 - 1.0;
+            }
+            
             void main() {
                 vec3 viewDir = normalize(vWorldPosition - cameraPos);
                 vec3 normal = normalize(vNormal);
@@ -278,6 +301,10 @@ function init() {
                 float specular = pow(max(dot(normal, halfDir), 0.0), 32.0 * glossiness);
                 color += vec3(specular * lightIntensity);
                 
+                // Apply grain effect
+                float grainNoise = grain(vWorldPosition);
+                color += vec3(grainNoise * grainStrength);
+                
                 gl_FragColor = vec4(color, transparency);
             }
         `,
@@ -310,53 +337,68 @@ function init() {
 function setupGUI() {
     gui = new dat.GUI();
     
-    gui.addColor(params, 'baseColor').onChange(value => {
+    // Create folders for better organization
+    const colorFolder = gui.addFolder('Colors');
+    const patternFolder = gui.addFolder('Pattern');
+    const effectsFolder = gui.addFolder('Effects');
+    const detailsFolder = gui.addFolder('Details');
+    
+    // Colors
+    colorFolder.addColor(params, 'baseColor').onChange(value => {
         marble.material.uniforms.baseColor.value.set(value);
     });
-    
-    gui.addColor(params, 'accentColor').onChange(value => {
+    colorFolder.addColor(params, 'accentColor').onChange(value => {
         marble.material.uniforms.accentColor.value.set(value);
     });
+    colorFolder.open();
     
-    gui.add(params, 'patternComplexity', 0, 2).onChange(value => {
+    // Pattern
+    patternFolder.add(params, 'patternComplexity', 0, 2).onChange(value => {
         marble.material.uniforms.patternComplexity.value = value;
     });
-    
-    gui.add(params, 'patternScale', 0.1, 3).onChange(value => {
+    patternFolder.add(params, 'patternScale', 0.1, 3).onChange(value => {
         marble.material.uniforms.patternScale.value = value;
     });
+    patternFolder.open();
     
-    gui.add(params, 'transparency', 0, 1).onChange(value => {
+    // Effects
+    effectsFolder.add(params, 'transparency', 0, 1).onChange(value => {
         marble.material.uniforms.transparency.value = value;
     });
-    
-    gui.add(params, 'refractionIntensity', 0, 2).onChange(value => {
+    effectsFolder.add(params, 'refractionIntensity', 0, 2).onChange(value => {
         marble.material.uniforms.refractionIntensity.value = value;
     });
-    
-    gui.add(params, 'glossiness', 0, 1).onChange(value => {
+    effectsFolder.add(params, 'glossiness', 0, 1).onChange(value => {
         marble.material.uniforms.glossiness.value = value;
     });
-    
-    gui.add(params, 'lightIntensity', 0.1, 2).onChange(value => {
+    effectsFolder.add(params, 'lightIntensity', 0.1, 2).onChange(value => {
         scene.children.forEach(child => {
             if (child instanceof THREE.AmbientLight) {
-                child.intensity = value * 0.5;  // Keep ambient light slightly dimmer
+                child.intensity = value * 0.5;
             } else if (child instanceof THREE.DirectionalLight) {
                 child.intensity = value * 0.8;
             }
         });
         marble.material.uniforms.lightIntensity.value = value;
     });
+    effectsFolder.open();
     
-    gui.add(params, 'displacementStrength', 0, 1).onChange(value => {
+    // Details
+    detailsFolder.add(params, 'displacementStrength', 0, 1).onChange(value => {
         marble.material.uniforms.displacementStrength.value = value;
     });
-    
-    gui.add(params, 'displacementSpeed', 0, 2).onChange(value => {
+    detailsFolder.add(params, 'displacementSpeed', 0, 2).onChange(value => {
         marble.material.uniforms.displacementSpeed.value = value;
     });
+    detailsFolder.add(params, 'grainStrength', 0, 0.1).onChange(value => {
+        marble.material.uniforms.grainStrength.value = value;
+    });
+    detailsFolder.add(params, 'grainScale', 10, 100).onChange(value => {
+        marble.material.uniforms.grainScale.value = value;
+    });
+    detailsFolder.open();
     
+    // Main controls
     gui.add(params, 'randomizeMarble').name('Randomize');
     gui.add(params, 'exportMarble').name('Export as PNG');
 }
