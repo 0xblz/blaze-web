@@ -28,12 +28,12 @@ const params = {
     patternComplexity: 0.9,
     patternScale: 0.8,
     transparency: 0.9,
-    refractionIntensity: 1.2,
-    glossiness: 0.3,
-    lightIntensity: 0.4,
+    refractionIntensity: 0.9,
+    glossiness: 0.5,
+    lightIntensity: 0.5,
     displacementStrength: 0.7,
     displacementSpeed: 0.3,
-    grainStrength: 0.03,     // Added grain strength parameter
+    grainStrength: 0.02,     // Added grain strength parameter
     grainScale: 50.0,        // Added grain scale parameter
     randomizeMarble: function() {
         // Generate random colors
@@ -292,7 +292,7 @@ function init() {
                 color = mix(baseColor, accentColor, density * 2.0);
                 
                 // Add fresnel effect
-                float fresnel = pow(1.0 - abs(dot(normal, -viewDir)), 5.0) * refractionIntensity;
+                float fresnel = pow(1.0 - abs(dot(normal, -viewDir)), 2.0) * refractionIntensity;
                 color = mix(color, vec3(1.0), fresnel);
                 
                 // Add specular highlight
@@ -312,7 +312,7 @@ function init() {
     });
 
     // Create marble geometry
-    const geometry = new THREE.SphereGeometry(1, 64, 64);
+    const geometry = new THREE.SphereGeometry(1, 128, 128);
     marble = new THREE.Mesh(geometry, marbleMaterial);
     scene.add(marble);
 
