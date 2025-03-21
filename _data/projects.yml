@@ -30,14 +30,6 @@
   year: "2025"
   external_link: true
 
-- title: "Nova Grid"
-  link: "nova-grid"
-  image: "/assets/images/nova-grid.jpg"
-  platform: "Web & Mobile"
-  role: "Creator"
-  year: "2025"
-  external_link: false
-
 - title: "Holy Hues"
   link: "https://apps.apple.com/us/app/holy-hues/id6740889386"
   image: "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/8b/24/a9/8b24a947-7eb5-e7ca-aa5a-ab8d1d6989e2/AppIcon-0-0-1x_U007ephone-0-85-220.jpeg/460x0w.webp"
