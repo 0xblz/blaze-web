@@ -1,6 +1,6 @@
 ---
 layout: default
-title: digital designer / creative dev
+title: digital designer
 description: building fun and intuitive experiences
 is_home: true
 js_file: ethereal
@@ -12,19 +12,6 @@ js_file: ethereal
 
 <aside>
     <h1>{{ page.title }}</h1>
-</aside>
-
-<aside>
-    <h2><i class="fa-solid fa-bolt"></i> experiments</h2>
-    {% for experiment in site.data.experiments %}
-    <a href="{{ experiment.link }}" {% if experiment.external_link %}target="_blank"{% endif %} class="row-link">
-        <div class="row-link-content">
-            <h3><i class="fa-solid fa-code"></i></h3>
-            <h3>{{ experiment.title }}</h3>
-        </div>
-        <small>{{ experiment.platform }}</small>
-    </a>
-    {% endfor %}
 </aside>
 
 <aside>
@@ -56,6 +43,3 @@ js_file: ethereal
     </a>
     {% endfor %}
 </aside>
-
-<!-- Add script tag to load the ethereal animation -->
-<script src="{{ site.baseurl }}/assets/js/experiments/ethereal.js"></script>
