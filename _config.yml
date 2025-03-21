@@ -20,4 +20,7 @@ collections:
 # Sass/SCSS
 sass:
   sass_dir: _sass
-  style: compressed 
+  style: compressed
+
+plugins:
+  - jekyll-redirect-from 
