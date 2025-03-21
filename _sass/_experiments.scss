@@ -42,6 +42,16 @@ body.marble-maker {
         box-shadow: 0 2rem 2rem var(--primary-color) !important;
     }
 
+    .c {
+        .slider-fg {
+            background-color: var(--secondary-color) !important;
+        }
+    }
+
+    .cr.number input[type=text] {
+        color: var(--secondary-color) !important;
+    }
+
     &.ac {
         z-index: 9999 !important;
     }
