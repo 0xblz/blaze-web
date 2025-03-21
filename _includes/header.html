@@ -1,20 +1,16 @@
 <header>
-    {% if page.url == "/" %}
-        <nav class="logo">
-            <div class="avatar"><img src="{{ site.baseurl }}/assets/images/marble.png"/></div>
-            <h3>{{ site.title }}</h3>
-        </nav>
-        <nav>
+    <nav>
+        {% if page.url != "/" %}
+            <a href="/" class="back-button"><i class="fa-solid fa-arrow-left"></i></a>
+        {% endif %}
+        <h1>{{ page.title }}</h1>
+    </nav>
+    <nav>
+        {% if page.url == "/" %}
             <p><a href="https://x.com/0xblz" target="_blank"><i class="fa-brands fa-x-twitter"></i></a></p>
             <p><a href="https://forms.gle/2tDqRA8P79LEguBt8" target="_blank"><i class="fa-solid fa-envelope"></i></a></p>
-        </nav>
-    {% else %}
-        <nav>
-            <a href="/" class="back-button"><i class="fa-solid fa-arrow-left"></i></a>
-            <h2>{{ page.title }}</h2>
-        </nav>
-        <nav>
+        {% else %}
             <p>{{ page.description }}</p>
-        </nav>
-    {% endif %}
+        {% endif %}
+    </nav>
 </header>
