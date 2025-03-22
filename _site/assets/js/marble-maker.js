@@ -36,8 +36,6 @@ const params = {
     ambientLightColor: '#dbcaff',    // Added ambient light color
     directionalLightColor: '#ffdaf6', // Added directional light color
     displacementStrength: 0.7,
-    grainStrength: 0.02,
-    grainScale: 50.0,
     lineScale: 3.0,      // Controls line frequency
     lineIntensity: 0.5,  // Controls line strength
     randomizeMarble: function() {
@@ -51,8 +49,8 @@ const params = {
         // Update parameters
         params.baseColor = randomColor1;
         params.accentColor = randomColor2;
-        params.patternComplexity = Math.random() * 0.7 + 0.8;  // Range: 0.8 to 1.5
-        params.patternScale = Math.random() * 0.7 + 0.8;      // Range: 0.8 to 1.5
+        params.patternComplexity = Math.random() * 0.3 + 0.7;  // Range: 0.7 to 1.0
+        params.patternScale = Math.random() * 0.3 + 0.7;      // Range: 0.7 to 1.0
         params.swirlIntensity = Math.random() * 0.6 + 0.2;
         params.swirlFrequency = Math.random() * 2.0 + 1.0;
         params.refractionIntensity = Math.random() * 0.6 + 0.4;
@@ -60,9 +58,7 @@ const params = {
         params.lightIntensity = Math.random() * 0.6 + 0.4;
         params.ambientLightColor = '#ffffff';
         params.directionalLightColor = '#ffffff';
-        params.displacementStrength = Math.random() * 0.7 + 0.3;  // Range: 0.3 to 1.0
-        params.grainStrength = Math.random() * 0.04 + 0.01;
-        params.grainScale = Math.random() * 30.0 + 40.0;
+        params.displacementStrength = Math.random() * 0.7 + 0.3;
         params.lineScale = Math.random() * 1.5 + 0.5;
         params.lineIntensity = Math.random() * 0.6 + 0.2;
         
@@ -80,8 +76,6 @@ const params = {
         marble.material.uniforms.ambientLightColor.value.set(params.ambientLightColor);
         marble.material.uniforms.directionalLightColor.value.set(params.directionalLightColor);
         marble.material.uniforms.displacementStrength.value = params.displacementStrength;
-        marble.material.uniforms.grainStrength.value = params.grainStrength;
-        marble.material.uniforms.grainScale.value = params.grainScale;
         marble.material.uniforms.lineScale.value = params.lineScale;
         marble.material.uniforms.lineIntensity.value = params.lineIntensity;
         
@@ -196,8 +190,6 @@ function init() {
         time: { value: 0 },
         cameraPos: { value: new THREE.Vector3() },
         displacementStrength: { value: params.displacementStrength },
-        grainStrength: { value: params.grainStrength },        // Added grain strength uniform
-        grainScale: { value: params.grainScale },               // Added grain scale uniform
         lineScale: { value: params.lineScale },
         lineIntensity: { value: params.lineIntensity },
     };
@@ -231,13 +223,11 @@ function init() {
             uniform float refractionIntensity;
             uniform float glossiness;
             uniform float lightIntensity;
-            uniform vec3 ambientLightColor;     // Add ambient light color uniform
-            uniform vec3 directionalLightColor; // Add directional light color uniform
+            uniform vec3 ambientLightColor;
+            uniform vec3 directionalLightColor;
             uniform float time;
             uniform vec3 cameraPos;
             uniform float displacementStrength;
-            uniform float grainStrength;
-            uniform float grainScale;
             uniform float lineScale;
             uniform float lineIntensity;
             
@@ -295,19 +285,6 @@ function init() {
                     fbm(p + vec3(2.0))
                 );
                 return noise * 2.0 - 1.0;
-            }
-            
-            // Fast hash function for grain effect
-            float hash13(vec3 p3) {
-                p3 = fract(p3 * .1031);
-                p3 += dot(p3, p3.yzx + 33.33);
-                return fract((p3.x + p3.y) * p3.z);
-            }
-            
-            // Grain noise function
-            float grain(vec3 pos) {
-                vec3 p = pos * grainScale;
-                return hash13(p) * 2.0 - 1.0;
             }
             
             void main() {
@@ -372,10 +349,6 @@ function init() {
                 
                 color = (ambient + diffuse) * lightIntensity + spec;
                 
-                // Apply grain effect
-                float grainNoise = grain(vWorldPosition);
-                color += vec3(grainNoise * grainStrength);
-                
                 gl_FragColor = vec4(color, transparency);
             }
         `,
@@ -439,10 +412,10 @@ function setupGUI() {
     });
     
     // Pattern
-    patternFolder.add(params, 'patternComplexity', 0, 2).name('Pattern Complexity').onChange(value => {
+    patternFolder.add(params, 'patternComplexity', 0, 1).name('Pattern Complexity').onChange(value => {
         marble.material.uniforms.patternComplexity.value = value;
     });
-    patternFolder.add(params, 'patternScale', 0.1, 2).name('Pattern Scale').onChange(value => {
+    patternFolder.add(params, 'patternScale', 0.1, 1).name('Pattern Scale').onChange(value => {
         marble.material.uniforms.patternScale.value = value;
     });
     patternFolder.add(params, 'swirlIntensity', 0, 1).name('Swirl Intensity').onChange(value => {
@@ -472,12 +445,6 @@ function setupGUI() {
     // Details
     detailsFolder.add(params, 'displacementStrength', 0, 1).name('Displacement Strength').onChange(value => {
         marble.material.uniforms.displacementStrength.value = value;
-    });
-    detailsFolder.add(params, 'grainStrength', 0, 0.1).name('Grain Strength').onChange(value => {
-        marble.material.uniforms.grainStrength.value = value;
-    });
-    detailsFolder.add(params, 'grainScale', 10, 100).name('Grain Scale').onChange(value => {
-        marble.material.uniforms.grainScale.value = value;
     });
     
     // Main controls
