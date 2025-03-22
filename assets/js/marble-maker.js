@@ -39,27 +39,41 @@ const params = {
     lineScale: 3.0,      // Controls line frequency
     lineIntensity: 0.5,  // Controls line strength
     randomizeMarble: function() {
-        // Generate random colors
-        const randomColor1 = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-        const randomColor2 = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        // Generate random base color and convert to HSL for easier darkening
+        const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        const baseColorObj = new THREE.Color(randomColor);
+        
+        // Generate random accent color with controlled lightness
+        const accentColorObj = new THREE.Color().setHSL(
+            Math.random(),  // random hue
+            0.7,           // high saturation for vibrant color
+            0.6            // controlled lightness
+        );
+        
+        // Generate random directional light color (vibrant)
+        const randomLightColor = new THREE.Color().setHSL(
+            Math.random(),  // random hue
+            0.8,           // high saturation for vibrant color
+            0.8            // high lightness to keep it bright
+        );
         
         // Store old values
         const oldParams = { ...params };
         
         // Update parameters
-        params.baseColor = randomColor1;
-        params.accentColor = randomColor2;
+        params.baseColor = '#' + baseColorObj.getHexString();
+        params.accentColor = '#' + accentColorObj.getHexString();
         params.patternComplexity = Math.random() * 0.3 + 0.7;  // Range: 0.7 to 1.0
-        params.patternScale = Math.random() * 0.3 + 0.7;      // Range: 0.7 to 1.0
+        params.patternScale = Math.random() * 1.3 + 0.7;      // Range: 0.7 to 2.0
         params.swirlIntensity = Math.random() * 0.6 + 0.2;
         params.swirlFrequency = Math.random() * 2.0 + 1.0;
         params.refractionIntensity = Math.random() * 0.6 + 0.4;
         params.glossiness = Math.random() * 0.6 + 0.4;
         params.lightIntensity = Math.random() * 0.6 + 0.4;
-        params.ambientLightColor = '#ffffff';
-        params.directionalLightColor = '#ffffff';
+        params.ambientLightColor = '#ffffff';  // Keep ambient light white
+        params.directionalLightColor = '#' + randomLightColor.getHexString();  // Set random directional light
         params.displacementStrength = Math.random() * 0.7 + 0.3;
-        params.lineScale = Math.random() * 1.5 + 0.5;
+        params.lineScale = Math.random() + 1.0;  // Range: 1.0 to 2.0
         params.lineIntensity = Math.random() * 0.6 + 0.2;
         
         // Update material uniforms
@@ -415,7 +429,7 @@ function setupGUI() {
     patternFolder.add(params, 'patternComplexity', 0, 1).name('Pattern Complexity').onChange(value => {
         marble.material.uniforms.patternComplexity.value = value;
     });
-    patternFolder.add(params, 'patternScale', 0.1, 1).name('Pattern Scale').onChange(value => {
+    patternFolder.add(params, 'patternScale', 0.1, 2).name('Pattern Scale').onChange(value => {
         marble.material.uniforms.patternScale.value = value;
     });
     patternFolder.add(params, 'swirlIntensity', 0, 1).name('Swirl Intensity').onChange(value => {
@@ -424,7 +438,7 @@ function setupGUI() {
     patternFolder.add(params, 'swirlFrequency', 0.5, 5).name('Swirl Frequency').onChange(value => {
         marble.material.uniforms.swirlFrequency.value = value;
     });
-    patternFolder.add(params, 'lineScale', 0.1, 2).name('Line Scale').onChange(value => {
+    patternFolder.add(params, 'lineScale', 1, 2).name('Line Scale').onChange(value => {
         marble.material.uniforms.lineScale.value = value;
     });
     patternFolder.add(params, 'lineIntensity', 0, 1).name('Line Intensity').onChange(value => {
