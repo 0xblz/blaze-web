@@ -29,9 +29,9 @@ const params = {
     patternScale: 1.2,
     swirlIntensity: 0.25,
     swirlFrequency: 5.0,
-    transparency: 0.9,
-    refractionIntensity: 0.9,
-    glossiness: 0.7,
+    transparency: 1.0,
+    refractionIntensity: 0.5,
+    glossiness: 0.5,
     lightIntensity: 0.6,
     ambientLightColor: '#dbcaff',    // Added ambient light color
     directionalLightColor: '#ffdaf6', // Added directional light color
@@ -63,17 +63,15 @@ const params = {
         // Update parameters
         params.baseColor = '#' + baseColorObj.getHexString();
         params.accentColor = '#' + accentColorObj.getHexString();
-        params.patternComplexity = Math.random() * 0.3 + 0.7;  // Range: 0.7 to 1.0
-        params.patternScale = Math.random() * 1.3 + 0.7;      // Range: 0.7 to 2.0
+        params.patternComplexity = Math.random() * 0.3 + 0.7;
+        params.patternScale = Math.random() * 1.3 + 0.7;
         params.swirlIntensity = Math.random() * 0.6 + 0.2;
         params.swirlFrequency = Math.random() * 2.0 + 1.0;
-        params.refractionIntensity = Math.random() * 0.6 + 0.4;
-        params.glossiness = Math.random() * 0.6 + 0.4;
         params.lightIntensity = Math.random() * 0.6 + 0.4;
-        params.ambientLightColor = '#ffffff';  // Keep ambient light white
-        params.directionalLightColor = '#' + randomLightColor.getHexString();  // Set random directional light
+        params.ambientLightColor = '#ffffff';
+        params.directionalLightColor = '#' + randomLightColor.getHexString();
         params.displacementStrength = Math.random() * 0.7 + 0.3;
-        params.lineScale = Math.random() + 1.0;  // Range: 1.0 to 2.0
+        params.lineScale = Math.random() + 1.0;
         params.lineIntensity = Math.random() * 0.6 + 0.2;
         
         // Update material uniforms
@@ -399,7 +397,6 @@ function setupGUI() {
     const colorFolder = gui.addFolder('Colors');
     const lightingFolder = gui.addFolder('Lighting');
     const patternFolder = gui.addFolder('Pattern');
-    const effectsFolder = gui.addFolder('Effects');
     const detailsFolder = gui.addFolder('Details');
     
     // Colors
@@ -443,17 +440,6 @@ function setupGUI() {
     });
     patternFolder.add(params, 'lineIntensity', 0, 1).name('Line Intensity').onChange(value => {
         marble.material.uniforms.lineIntensity.value = value;
-    });
-    
-    // Effects
-    effectsFolder.add(params, 'transparency', 0, 1).name('Transparency').onChange(value => {
-        marble.material.uniforms.transparency.value = value;
-    });
-    effectsFolder.add(params, 'refractionIntensity', 0, 1).name('Refraction Intensity').onChange(value => {
-        marble.material.uniforms.refractionIntensity.value = value;
-    });
-    effectsFolder.add(params, 'glossiness', 0, 1).name('Glossiness').onChange(value => {
-        marble.material.uniforms.glossiness.value = value;
     });
     
     // Details
