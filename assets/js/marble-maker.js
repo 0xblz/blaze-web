@@ -23,8 +23,8 @@ let scene, camera, renderer, marble, controls, gui;
 
 // Marble parameters
 const params = {
-    baseColor: '#6363ff',
-    accentColor: '#ffbed9',
+    baseColor: '#0a0a44',
+    accentColor: '#8f74ff',
     patternComplexity: 0.9,
     patternScale: 1.2,
     swirlIntensity: 0.25,
@@ -397,7 +397,6 @@ function setupGUI() {
     const colorFolder = gui.addFolder('Colors');
     const lightingFolder = gui.addFolder('Lighting');
     const patternFolder = gui.addFolder('Pattern');
-    const detailsFolder = gui.addFolder('Details');
     
     // Colors
     colorFolder.addColor(params, 'baseColor').name('Base Color').onChange(value => {
@@ -441,9 +440,7 @@ function setupGUI() {
     patternFolder.add(params, 'lineIntensity', 0, 1).name('Line Intensity').onChange(value => {
         marble.material.uniforms.lineIntensity.value = value;
     });
-    
-    // Details
-    detailsFolder.add(params, 'displacementStrength', 0, 1).name('Displacement Strength').onChange(value => {
+    patternFolder.add(params, 'displacementStrength', 0, 1).name('Displacement Strength').onChange(value => {
         marble.material.uniforms.displacementStrength.value = value;
     });
     
