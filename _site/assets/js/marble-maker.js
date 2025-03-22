@@ -27,7 +27,6 @@ const params = {
     accentColor: '#ffbed9',
     patternComplexity: 0.9,
     patternScale: 1.2,
-    swirlSpeed: 0.3,      // Added swirl parameters
     swirlIntensity: 0.25,
     swirlFrequency: 5.0,
     transparency: 0.9,
@@ -37,9 +36,10 @@ const params = {
     ambientLightColor: '#dbcaff',    // Added ambient light color
     directionalLightColor: '#ffdaf6', // Added directional light color
     displacementStrength: 0.7,
-    displacementSpeed: 0.3,
-    grainStrength: 0.02,     // Added grain strength parameter
-    grainScale: 50.0,        // Added grain scale parameter
+    grainStrength: 0.02,
+    grainScale: 50.0,
+    lineScale: 3.0,      // Controls line frequency
+    lineIntensity: 0.5,  // Controls line strength
     randomizeMarble: function() {
         // Generate random colors
         const randomColor1 = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
@@ -53,26 +53,24 @@ const params = {
         params.accentColor = randomColor2;
         params.patternComplexity = Math.random() * 0.7 + 0.8;  // Range: 0.8 to 1.5
         params.patternScale = Math.random() * 0.7 + 0.8;      // Range: 0.8 to 1.5
-        params.swirlSpeed = Math.random() * 0.3 + 0.1;        // Range: 0.1 to 0.4
-        params.swirlIntensity = Math.random() * 0.6 + 0.2;    // Range: 0.2 to 0.8
-        params.swirlFrequency = Math.random() * 2.0 + 1.0;    // Range: 1.0 to 3.0
-        params.transparency = Math.random() * 0.3 + 0.7;
+        params.swirlIntensity = Math.random() * 0.6 + 0.2;
+        params.swirlFrequency = Math.random() * 2.0 + 1.0;
         params.refractionIntensity = Math.random() * 0.6 + 0.4;
         params.glossiness = Math.random() * 0.6 + 0.4;
         params.lightIntensity = Math.random() * 0.6 + 0.4;
         params.ambientLightColor = '#ffffff';
         params.directionalLightColor = '#ffffff';
-        params.displacementStrength = Math.random() * 0.7 + 0.3;
-        params.displacementSpeed = Math.random() * 0.4 + 0.4;    // Range: 0.4 to 0.8
+        params.displacementStrength = Math.random() * 0.7 + 0.3;  // Range: 0.3 to 1.0
         params.grainStrength = Math.random() * 0.04 + 0.01;
         params.grainScale = Math.random() * 30.0 + 40.0;
+        params.lineScale = Math.random() * 1.5 + 0.5;
+        params.lineIntensity = Math.random() * 0.6 + 0.2;
         
         // Update material uniforms
         marble.material.uniforms.baseColor.value.set(params.baseColor);
         marble.material.uniforms.accentColor.value.set(params.accentColor);
         marble.material.uniforms.patternComplexity.value = params.patternComplexity;
         marble.material.uniforms.patternScale.value = params.patternScale;
-        marble.material.uniforms.swirlSpeed.value = params.swirlSpeed;
         marble.material.uniforms.swirlIntensity.value = params.swirlIntensity;
         marble.material.uniforms.swirlFrequency.value = params.swirlFrequency;
         marble.material.uniforms.transparency.value = params.transparency;
@@ -82,9 +80,10 @@ const params = {
         marble.material.uniforms.ambientLightColor.value.set(params.ambientLightColor);
         marble.material.uniforms.directionalLightColor.value.set(params.directionalLightColor);
         marble.material.uniforms.displacementStrength.value = params.displacementStrength;
-        marble.material.uniforms.displacementSpeed.value = params.displacementSpeed;
         marble.material.uniforms.grainStrength.value = params.grainStrength;
         marble.material.uniforms.grainScale.value = params.grainScale;
+        marble.material.uniforms.lineScale.value = params.lineScale;
+        marble.material.uniforms.lineIntensity.value = params.lineIntensity;
         
         // Update lights
         scene.children.forEach(child => {
@@ -186,7 +185,6 @@ function init() {
         accentColor: { value: new THREE.Color(params.accentColor) },
         patternComplexity: { value: params.patternComplexity },
         patternScale: { value: params.patternScale },
-        swirlSpeed: { value: params.swirlSpeed },           // Added swirl uniforms
         swirlIntensity: { value: params.swirlIntensity },
         swirlFrequency: { value: params.swirlFrequency },
         transparency: { value: params.transparency },
@@ -198,9 +196,10 @@ function init() {
         time: { value: 0 },
         cameraPos: { value: new THREE.Vector3() },
         displacementStrength: { value: params.displacementStrength },
-        displacementSpeed: { value: params.displacementSpeed },
         grainStrength: { value: params.grainStrength },        // Added grain strength uniform
-        grainScale: { value: params.grainScale }               // Added grain scale uniform
+        grainScale: { value: params.grainScale },               // Added grain scale uniform
+        lineScale: { value: params.lineScale },
+        lineIntensity: { value: params.lineIntensity },
     };
 
     const marbleMaterial = new THREE.ShaderMaterial({
@@ -220,11 +219,12 @@ function init() {
             }
         `,
         fragmentShader: `
+            #define PI 3.14159265359
+            
             uniform vec3 baseColor;
             uniform vec3 accentColor;
             uniform float patternComplexity;
             uniform float patternScale;
-            uniform float swirlSpeed;      // Added swirl uniforms
             uniform float swirlIntensity;
             uniform float swirlFrequency;
             uniform float transparency;
@@ -236,9 +236,10 @@ function init() {
             uniform float time;
             uniform vec3 cameraPos;
             uniform float displacementStrength;
-            uniform float displacementSpeed;
             uniform float grainStrength;
             uniform float grainScale;
+            uniform float lineScale;
+            uniform float lineIntensity;
             
             varying vec3 vPosition;
             varying vec3 vNormal;
@@ -289,9 +290,9 @@ function init() {
             // Add displacement noise function
             vec3 displacementNoise(vec3 p) {
                 vec3 noise = vec3(
-                    fbm(p + vec3(0.0, time * displacementSpeed, 0.0)),
-                    fbm(p + vec3(time * displacementSpeed, 0.0, 0.0)),
-                    fbm(p + vec3(0.0, 0.0, time * displacementSpeed))
+                    fbm(p),
+                    fbm(p + vec3(1.0)),
+                    fbm(p + vec3(2.0))
                 );
                 return noise * 2.0 - 1.0;
             }
@@ -305,7 +306,7 @@ function init() {
             
             // Grain noise function
             float grain(vec3 pos) {
-                vec3 p = pos * grainScale + vec3(time * 10.0);
+                vec3 p = pos * grainScale;
                 return hash13(p) * 2.0 - 1.0;
             }
             
@@ -339,11 +340,15 @@ function init() {
                     
                     // Create swirling pattern with displacement
                     vec3 swirl = samplePos * patternScale;
-                    swirl.x += sin(samplePos.y * swirlFrequency + time * swirlSpeed) * swirlIntensity;
-                    swirl.z += cos(samplePos.y * swirlFrequency + time * swirlSpeed) * swirlIntensity;
+                    swirl.x += sin(samplePos.y * swirlFrequency) * swirlIntensity;
+                    swirl.z += cos(samplePos.y * swirlFrequency) * swirlIntensity;
                     
                     float pattern = fbm(swirl * patternComplexity);
                     pattern = smoothstep(0.4, 0.6, pattern);
+                    
+                    // Add line pattern
+                    float lines = cos((samplePos.x + pattern * lineIntensity) * lineScale * PI);
+                    pattern = mix(pattern, lines * 0.5 + 0.5, 0.5);
                     
                     density += pattern * stepSize;
                 }
@@ -437,17 +442,20 @@ function setupGUI() {
     patternFolder.add(params, 'patternComplexity', 0, 2).name('Pattern Complexity').onChange(value => {
         marble.material.uniforms.patternComplexity.value = value;
     });
-    patternFolder.add(params, 'patternScale', 0.1, 3).name('Pattern Scale').onChange(value => {
+    patternFolder.add(params, 'patternScale', 0.1, 2).name('Pattern Scale').onChange(value => {
         marble.material.uniforms.patternScale.value = value;
-    });
-    patternFolder.add(params, 'swirlSpeed', 0, 1).name('Swirl Speed').onChange(value => {
-        marble.material.uniforms.swirlSpeed.value = value;
     });
     patternFolder.add(params, 'swirlIntensity', 0, 1).name('Swirl Intensity').onChange(value => {
         marble.material.uniforms.swirlIntensity.value = value;
     });
     patternFolder.add(params, 'swirlFrequency', 0.5, 5).name('Swirl Frequency').onChange(value => {
         marble.material.uniforms.swirlFrequency.value = value;
+    });
+    patternFolder.add(params, 'lineScale', 0.1, 2).name('Line Scale').onChange(value => {
+        marble.material.uniforms.lineScale.value = value;
+    });
+    patternFolder.add(params, 'lineIntensity', 0, 1).name('Line Intensity').onChange(value => {
+        marble.material.uniforms.lineIntensity.value = value;
     });
     
     // Effects
@@ -464,9 +472,6 @@ function setupGUI() {
     // Details
     detailsFolder.add(params, 'displacementStrength', 0, 1).name('Displacement Strength').onChange(value => {
         marble.material.uniforms.displacementStrength.value = value;
-    });
-    detailsFolder.add(params, 'displacementSpeed', 0, 2).name('Displacement Speed').onChange(value => {
-        marble.material.uniforms.displacementSpeed.value = value;
     });
     detailsFolder.add(params, 'grainStrength', 0, 0.1).name('Grain Strength').onChange(value => {
         marble.material.uniforms.grainStrength.value = value;
