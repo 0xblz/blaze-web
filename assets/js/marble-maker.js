@@ -411,33 +411,33 @@ function setupGUI() {
     const detailsFolder = gui.addFolder('Details');
     
     // Colors
-    colorFolder.addColor(params, 'baseColor').onChange(value => {
+    colorFolder.addColor(params, 'baseColor').name('Base Color').onChange(value => {
         marble.material.uniforms.baseColor.value.set(value);
     });
-    colorFolder.addColor(params, 'accentColor').onChange(value => {
+    colorFolder.addColor(params, 'accentColor').name('Accent Color').onChange(value => {
         marble.material.uniforms.accentColor.value.set(value);
     });
     
     // Lighting
-    lightingFolder.add(params, 'lightIntensity', 0.1, 1).onChange(value => {
+    lightingFolder.add(params, 'lightIntensity', 0.1, 1).name('Light Intensity').onChange(value => {
         window.lights.ambient.intensity = value * 0.5;
         window.lights.directional.intensity = value * 0.8;
         marble.material.uniforms.lightIntensity.value = value;
     });
-    lightingFolder.addColor(params, 'ambientLightColor').onChange(value => {
+    lightingFolder.addColor(params, 'ambientLightColor').name('Ambient Light Color').onChange(value => {
         window.lights.ambient.color.set(value);
         marble.material.uniforms.ambientLightColor.value.set(value);
     });
-    lightingFolder.addColor(params, 'directionalLightColor').onChange(value => {
+    lightingFolder.addColor(params, 'directionalLightColor').name('Directional Light Color').onChange(value => {
         window.lights.directional.color.set(value);
         marble.material.uniforms.directionalLightColor.value.set(value);
     });
     
     // Pattern
-    patternFolder.add(params, 'patternComplexity', 0, 2).onChange(value => {
+    patternFolder.add(params, 'patternComplexity', 0, 2).name('Pattern Complexity').onChange(value => {
         marble.material.uniforms.patternComplexity.value = value;
     });
-    patternFolder.add(params, 'patternScale', 0.1, 3).onChange(value => {
+    patternFolder.add(params, 'patternScale', 0.1, 3).name('Pattern Scale').onChange(value => {
         marble.material.uniforms.patternScale.value = value;
     });
     patternFolder.add(params, 'swirlSpeed', 0, 1).name('Swirl Speed').onChange(value => {
@@ -451,27 +451,27 @@ function setupGUI() {
     });
     
     // Effects
-    effectsFolder.add(params, 'transparency', 0, 1).onChange(value => {
+    effectsFolder.add(params, 'transparency', 0, 1).name('Transparency').onChange(value => {
         marble.material.uniforms.transparency.value = value;
     });
-    effectsFolder.add(params, 'refractionIntensity', 0, 1).onChange(value => {
+    effectsFolder.add(params, 'refractionIntensity', 0, 1).name('Refraction Intensity').onChange(value => {
         marble.material.uniforms.refractionIntensity.value = value;
     });
-    effectsFolder.add(params, 'glossiness', 0, 1).onChange(value => {
+    effectsFolder.add(params, 'glossiness', 0, 1).name('Glossiness').onChange(value => {
         marble.material.uniforms.glossiness.value = value;
     });
     
     // Details
-    detailsFolder.add(params, 'displacementStrength', 0, 1).onChange(value => {
+    detailsFolder.add(params, 'displacementStrength', 0, 1).name('Displacement Strength').onChange(value => {
         marble.material.uniforms.displacementStrength.value = value;
     });
-    detailsFolder.add(params, 'displacementSpeed', 0, 2).onChange(value => {
+    detailsFolder.add(params, 'displacementSpeed', 0, 2).name('Displacement Speed').onChange(value => {
         marble.material.uniforms.displacementSpeed.value = value;
     });
-    detailsFolder.add(params, 'grainStrength', 0, 0.1).onChange(value => {
+    detailsFolder.add(params, 'grainStrength', 0, 0.1).name('Grain Strength').onChange(value => {
         marble.material.uniforms.grainStrength.value = value;
     });
-    detailsFolder.add(params, 'grainScale', 10, 100).onChange(value => {
+    detailsFolder.add(params, 'grainScale', 10, 100).name('Grain Scale').onChange(value => {
         marble.material.uniforms.grainScale.value = value;
     });
     
