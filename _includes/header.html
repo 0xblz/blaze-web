@@ -7,8 +7,8 @@
     </nav>
     <nav>
         {% if page.url == "/" %}
-            <p><a href="https://x.com/0xblz" target="_blank"><i class="fa-brands fa-x-twitter"></i></a></p>
-            <p><a href="https://forms.gle/2tDqRA8P79LEguBt8" target="_blank"><i class="fa-solid fa-envelope"></i></a></p>
+            <a href="https://x.com/0xblz" target="_blank" class="social-link"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="https://forms.gle/2tDqRA8P79LEguBt8" target="_blank" class="social-link"><i class="fa-solid fa-envelope"></i></a>
         {% else %}
             <p>{{ page.description }}</p>
         {% endif %}

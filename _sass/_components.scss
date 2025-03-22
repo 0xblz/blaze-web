@@ -118,3 +118,16 @@ figure {
     }
 }
 
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    background-color: rgba(255, 255, 255, 0.1);
+    &:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+}
