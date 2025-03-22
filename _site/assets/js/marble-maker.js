@@ -318,7 +318,7 @@ function init() {
                 vec3 color = baseColor;
                 float density = 0.0;
                 
-                float stepSize = (intersect.y - intersect.x) / 12.0; // Increased steps for better quality
+                float stepSize = (intersect.y - intersect.x) / 24.0; // Increased steps for better quality
                 
                 for(float t = intersect.x; t < intersect.y; t += stepSize) {
                     vec3 pos = ro + rd * t;
