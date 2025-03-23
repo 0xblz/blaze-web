@@ -1,0 +1,67 @@
+// Typography
+body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    color: white;
+}
+h1 {
+    font-size: 1.4rem;
+    line-height: 1.2em;
+    font-weight: 800;
+    color: var(--secondary-color);
+}
+
+h2 {
+    font-size: 1.3rem;
+    line-height: 1.4em;
+    font-weight: 500;
+    text-shadow: 0 0 6rem var(--primary-color);
+}
+
+h3 {
+    font-size: 1.1rem;
+    line-height: 1.2em;
+    font-weight: 600;
+}
+
+h4 {
+    font-size: 1.2rem;
+    line-height: 1.4em;
+    font-weight: 500;
+    color: var(--primary-color);
+    text-shadow: 0 0 6rem var(--primary-color);
+    a {
+        color: var(--secondary-color);
+        &:hover,
+        &:focus,
+        &:active {
+            color: white;
+        }
+    }
+}
+
+p {
+    font-size: 1.1rem;
+    line-height: 1.2em;
+    font-weight: 500;
+}
+
+a {
+    transition: all 0.2s ease-in-out;
+    color: var(--tertiary-color);
+    text-decoration: none;
+    font-weight: 700;
+    color: white;
+    
+    &:hover,
+    &:focus,
+    &:active {
+        color: var(--secondary-color);
+    }
+}
+
+small {
+    opacity: 0.5;
+    font-weight: 700;
+    font-size: 0.8rem;
+} 

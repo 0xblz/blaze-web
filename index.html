@@ -1,0 +1,49 @@
+---
+layout: default
+title: blaze, designer
+description: building fun and intuitive experiences
+is_home: true
+js_file: ethereal
+---
+
+<div id="etherealCanvas" class="background-canvas"></div>
+<img src="{{ site.baseurl }}/keyboard.svg" alt="keyboard" class="keyboard-icon" />
+
+<aside>
+    <h2>
+        I'm a self-taught digital designer who's spent the past 15+ years creating thoughtful apps and digital products. 
+        <br>
+        <br>
+        I enjoy simplifying complex problems into experiences people love to use.
+    </h2>
+</aside>
+
+<aside>
+    {% for project in site.data.projects %}
+    <a href="{{ project.link }}" {% if project.external_link %}target="_blank"{% endif %} class="row-link">
+        <div class="row-link-content">
+            <figure>
+                <img src="{{ project.image }}" alt="{{ project.title }}" />
+            </figure>
+            <h3>{{ project.title }}<br><small>{{ project.platform }}</small></h3>
+        </div>
+        <small>{{ project.role }}, {{ project.year }}</small>
+    </a>
+    {% endfor %}
+</aside>
+
+<aside>
+    <h4>
+        In recent years, I've designed digital experiences for several innovative companies. At <a href="https://x.com/prtyDAO" target="_blank">PartyDAO</a> (2022–present), I've contributed as a designer on <a href="https://party.app" target="_blank">party.app</a> and <a href="https://world.org/ecosystem" target="_blank">World</a> apps, shaping intuitive product experiences for users. 
+        <br>
+        <br>
+        Before that, I was the founding designer at <a href="https://www.crunchbase.com/organization/showtime-732e" target="_blank">Showtime</a> (2021–2022), where I led the product design direction. 
+        In 2021, I collaborated with <a href="https://www.workos.com/" target="_blank">WorkOS</a>, creating marketing graphics and impactful visual materials. 
+        <br>
+        <br>
+        From 2015–2017, at <a href="https://www.bitovi.com/" target="_blank">Bitovi</a>, I worked on major web projects for brands like <a href="https://www.lowes.com/" target="_blank">Lowe's</a> and <a href="https://www.levis.com/" target="_blank">Levi's</a>. 
+        <br>
+        <br>
+        Prior to that, from 2013–2017, I explored various experimental 3D projects as a freelance designer. Early in my career, I joined <a href="https://www.scribd.com/" target="_blank">Scribd</a> (2010–2012), where I focused on designing and enhancing their primary marketing website.
+    </h4>
+</aside>

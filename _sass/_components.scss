@@ -1,0 +1,133 @@
+// Row links
+.row-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    border: 4px solid rgba(255, 255, 255, 0.05);
+    background-color: rgba(115, 80, 255, 0.03);
+    -webkit-backdrop-filter: blur(1rem);
+    backdrop-filter: blur(1rem);
+    z-index: 99;
+    width: 100%;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 1.5rem;
+    animation: fade 0.5s ease-in-out;
+    
+    &:hover,
+    &:focus,
+    &:active {
+        color: white;
+        transform: scale(1.02);
+        border-color: var(--primary-color);
+        
+        figure {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1) rotate(-5deg);
+        }
+    }
+    
+    &-content {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+    }
+}
+
+// Figures and images
+figure {
+    transition: all 0.2s ease-in-out;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: all 0.2s ease-in-out;
+    }
+}
+
+.rounded {
+    border-radius: 9999px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.keyboard-icon {
+    width: auto;
+    height: 4rem;
+    position: fixed;
+    bottom: 1.5rem;
+    left: 1.5rem;
+    z-index: 9999;
+    backdrop-filter: blur(1rem);
+    -webkit-backdrop-filter: blur(1rem);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    &.full {
+        height: 8rem;
+        width: auto;
+    }
+    @media (max-width: 800px) {
+        display: none;
+    }
+}
+
+.back-button {
+    transition: all 0.2s ease-in-out;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+}
+
+.soundcloud-player {
+    position: fixed; 
+    top: 1rem; 
+    left: 1rem; 
+    z-index: 1000; 
+    max-width: 240px; 
+    width: 100%;
+    height: 80px; 
+    background-color: black; 
+    border-radius: 8px; 
+    overflow: hidden; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    @media (max-width: 800px) {
+        bottom: 1rem;
+        left: 1rem;
+        top: initial;
+    }
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    background-color: rgba(255, 255, 255, 0.1);
+    &:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+}

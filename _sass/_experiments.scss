@@ -1,0 +1,69 @@
+// three.js canvas
+.background-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+    pointer-events: none;
+}
+
+body.experiment {
+    cursor: auto;
+} 
+
+// custom page styles
+body.marble-maker {
+    overflow: hidden;
+    
+    canvas {
+        display: block;
+    }
+
+    .marble-maker-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+    }
+} 
+
+// custom dat.gui styles
+.dg {
+    & > * {
+        font-family: 'DM Sans', sans-serif !important;
+        font-weight: 700 !important;
+    }
+
+    &.a {
+        box-shadow: 0 2rem 2rem var(--primary-color) !important;
+    }
+
+    .c {
+        .slider-fg {
+            background-color: var(--secondary-color) !important;
+        }
+    }
+
+    .cr.number input[type=text] {
+        color: var(--secondary-color) !important;
+    }
+
+    &.ac {
+        z-index: 9999 !important;
+    }
+
+    .close-button {
+        height: 2.5rem !important;
+        line-height: 2.5rem !important;
+        background-color: var(--primary-color) !important;
+        color: #fff !important;
+        border-bottom-left-radius: 0.75rem !important;
+        border-bottom-right-radius: 0.75rem !important;
+        font-size: 12px;
+        text-shadow: none !important;
+    }
+}

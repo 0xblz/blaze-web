@@ -1,0 +1,14 @@
+// Animations
+
+@keyframes fade {
+    0% { 
+        opacity: 0; 
+        transform: translateY(10vh); 
+        filter: blur(2rem); 
+    }
+    100% { 
+        opacity: 1; 
+        transform: translateY(0); 
+        filter: blur(0px); 
+    }
+}
