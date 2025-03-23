@@ -1,21 +1,23 @@
 // Typography
 body {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-primary);
     font-size: 16px;
     color: white;
 }
 h1 {
-    font-size: 1.4rem;
+    font-family: var(--font-secondary);
+    font-size: 1.3rem;
     line-height: 1.2em;
     font-weight: 800;
-    color: var(--secondary-color);
 }
 
+
 h2 {
-    font-size: 1.3rem;
-    line-height: 1.4em;
-    font-weight: 500;
-    text-shadow: 0 0 6rem var(--primary-color);
+    font-family: var(--font-secondary);
+    font-size: 2.4rem;
+    line-height: 1.2em;
+    font-weight: 800;
+    color: var(--primary-color);
 }
 
 h3 {
@@ -25,11 +27,11 @@ h3 {
 }
 
 h4 {
-    font-size: 1.2rem;
-    line-height: 1.4em;
-    font-weight: 500;
-    color: var(--primary-color);
     text-shadow: 0 0 6rem var(--primary-color);
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    font-weight: 500;
+    line-height: 1.4em;
     a {
         color: var(--secondary-color);
         &:hover,
@@ -65,3 +67,8 @@ small {
     font-weight: 700;
     font-size: 0.8rem;
 } 
+
+.soft {
+    color: var(--primary-color);
+    opacity: 0.4;
+}

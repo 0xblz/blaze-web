@@ -3,6 +3,7 @@ title: blaze
 description: digital designer / creative dev
 url: "https://blaze.design"
 baseurl: ""
+version: 1.1
 
 # Build settings
 markdown: kramdown
