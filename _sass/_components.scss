@@ -138,8 +138,15 @@ figure {
 
 hr {
     border: 0;
-    border-top: 2px solid white;
+    border-top: 2px solid var(--secondary-color);
     max-width: 2rem;
     margin-top: 1.5rem;
     margin-bottom: 1.5rem;
+}
+
+.version {
+    color: var(--primary-color);
+    font-family: var(--font-secondary);
+    font-size: 1rem;
+    font-weight: 400;
 }
