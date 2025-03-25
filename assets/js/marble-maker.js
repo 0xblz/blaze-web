@@ -70,7 +70,7 @@ const params = {
         params.accentColor = '#' + accentColorObj.getHexString();
         params.patternComplexity = Math.random() * 0.3 + 0.7;
         params.patternScale = Math.random() * 0.5 + 0.5;
-        params.swirlIntensity = Math.random() * 3.0 + 1.0;
+        params.swirlIntensity = Math.random() * 2.0 + 1.0;
         params.swirlFrequency = Math.random() * 2.0 + 1.0;
         params.ambientLightColor = '#ffffff';
         params.directionalLightColor = '#' + randomLightColor.getHexString();
@@ -307,7 +307,7 @@ function init() {
                 vec3 viewDir = normalize(vWorldPosition - cameraPos);
                 vec3 normal = normalize(vNormal);
                 
-                float ior = 1.45;
+                float ior = 1.65;
                 vec3 refractDir = refract(viewDir, normal, 1.0 / ior);
                 
                 if(dot(refractDir, refractDir) == 0.0) {
@@ -350,18 +350,20 @@ function init() {
                 color = mix(baseColor, accentColor, density * 2.0);
                 
                 // Add fresnel effect
-                float fresnel = pow(1.0 - abs(dot(normal, -viewDir)), 2.0) * refractionIntensity;
-                color = mix(color, vec3(1.0), fresnel);
+                float fresnel = pow(1.0 - abs(dot(normal, -viewDir)), 6.0) * refractionIntensity;
+                color = mix(color, vec3(1.5), fresnel);
                 
                 // Add colored lighting with more even distribution
                 vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
                 vec3 halfDir = normalize(lightDir - viewDir);
-                float specular = pow(max(dot(normal, halfDir), 0.0), 32.0 * glossiness);
+                
+                // Reduce specular intensity by lowering the base value and adjusting the power
+                float specular = pow(max(dot(normal, halfDir), 0.0), 32.0 * glossiness) * 0.3; // Added * 0.3 to reduce intensity
                 
                 // Increase ambient contribution and reduce directional contrast
-                vec3 ambient = ambientLightColor * color * 0.7;  // Increased from 0.5 to 0.7
-                vec3 diffuse = directionalLightColor * color * (max(dot(normal, lightDir), 0.0) * 0.5 + 0.5);  // Added bias to reduce contrast
-                vec3 spec = directionalLightColor * specular * 0.8;  // Reduced specular intensity
+                vec3 ambient = ambientLightColor * color * 0.7;
+                vec3 diffuse = directionalLightColor * color * (max(dot(normal, lightDir), 0.0) * 0.3 + 0.7); // Modified multipliers
+                vec3 spec = directionalLightColor * specular * 0.4;  // Reduced from 0.8 to 0.4
                 
                 color = (ambient + diffuse) * lightIntensity + spec;
                 
@@ -435,7 +437,7 @@ function setupGUI() {
     patternFolder.add(params, 'patternScale', 0.1, 1).name('Pattern Scale').onChange(value => {
         marble.material.uniforms.patternScale.value = value;
     });
-    patternFolder.add(params, 'swirlIntensity', 1, 3).name('Swirl Intensity').onChange(value => {
+    patternFolder.add(params, 'swirlIntensity', 1, 2).name('Swirl Intensity').onChange(value => {
         marble.material.uniforms.swirlIntensity.value = value;
     });
     patternFolder.add(params, 'swirlFrequency', 0.5, 3.0).name('Swirl Frequency').onChange(value => {
