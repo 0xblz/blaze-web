@@ -23,8 +23,8 @@ let scene, camera, renderer, marble, controls, gui;
 
 // Marble parameters
 const params = {
-    baseColor: '#0a0523',
-    accentColor: '#b492eb',
+    baseColor: '#08919e',
+    accentColor: '#ebd292',
     patternComplexity: 0.9,
     patternScale: 1.0,
     swirlIntensity: 1,
@@ -32,14 +32,17 @@ const params = {
     transparency: 1.0,
     refractionIntensity: 0.5,
     glossiness: 0.7,
-    lightIntensity: 0.5,
-    ambientLightColor: '#dbcaff',    // Added ambient light color
-    directionalLightColor: '#d2d9ff', // Added directional light color
+    mainLightIntensity: 0.5,    // Renamed from lightIntensity
+    ambientLightIntensity: 0.2,  // New parameter
+    ambientLightColor: '#dbcaff',    // Added back ambient light color
+    directionalLightColor: '#ffcbc5', // Added directional light color
     displacementStrength: 0.7,
     lineScale: 3.0,      // Controls line frequency
     lineIntensity: 0.5,  // Controls line strength
     isAnimating: false,    // New parameter for animation toggle
     animationSpeed: 1.0,   // New parameter for rotation speed
+    secondaryLightColor: '#ffcbc5',  // Match directional light default
+    secondaryLightIntensity: 0.3,    // Match initial intensity
     randomizeMarble: function() {
         // Generate more vibrant base color with higher saturation and lightness
         const baseColorObj = new THREE.Color().setHSL(
@@ -88,7 +91,7 @@ const params = {
         marble.material.uniforms.transparency.value = params.transparency;
         marble.material.uniforms.refractionIntensity.value = params.refractionIntensity;
         marble.material.uniforms.glossiness.value = params.glossiness;
-        marble.material.uniforms.lightIntensity.value = params.lightIntensity;
+        marble.material.uniforms.mainLightIntensity.value = params.mainLightIntensity;
         marble.material.uniforms.ambientLightColor.value.set(params.ambientLightColor);
         marble.material.uniforms.directionalLightColor.value.set(params.directionalLightColor);
         marble.material.uniforms.displacementStrength.value = params.displacementStrength;
@@ -99,8 +102,15 @@ const params = {
         scene.children.forEach(child => {
             if (child instanceof THREE.AmbientLight) {
                 child.color.set(params.ambientLightColor);
+                child.intensity = params.ambientLightIntensity;
             } else if (child instanceof THREE.DirectionalLight) {
-                child.color.set(params.directionalLightColor);
+                if (child === window.lights.directional) {
+                    child.color.set(params.directionalLightColor);
+                    child.intensity = params.mainLightIntensity;
+                } else if (child === window.lights.secondary) {
+                    child.color.set(params.secondaryLightColor);
+                    child.intensity = params.secondaryLightIntensity;
+                }
             }
         });
         
@@ -180,13 +190,19 @@ function init() {
     scene.add(ambientLight);
 
     const directionalLight = new THREE.DirectionalLight(params.directionalLightColor, 0.8);
-    directionalLight.position.set(1, 1, 1);
+    directionalLight.position.set(0.5, 1.5, 0.5);
     scene.add(directionalLight);
+
+    // Add a second, softer directional light to help distribute the lighting
+    const secondaryLight = new THREE.DirectionalLight(params.secondaryLightColor, 0.3);
+    secondaryLight.position.set(-0.5, -0.5, 1);
+    scene.add(secondaryLight);
 
     // Store light references for later updates
     window.lights = {
         ambient: ambientLight,
-        directional: directionalLight
+        directional: directionalLight,
+        secondary: secondaryLight
     };
 
     // Create marble material with custom shader
@@ -200,14 +216,17 @@ function init() {
         transparency: { value: params.transparency },
         refractionIntensity: { value: params.refractionIntensity },
         glossiness: { value: params.glossiness },
-        lightIntensity: { value: params.lightIntensity },
-        ambientLightColor: { value: new THREE.Color(params.ambientLightColor) },    // Add ambient light color
-        directionalLightColor: { value: new THREE.Color(params.directionalLightColor) }, // Add directional light color
+        mainLightIntensity: { value: params.mainLightIntensity },
+        ambientLightIntensity: { value: params.ambientLightIntensity },
+        ambientLightColor: { value: new THREE.Color(params.ambientLightColor) },
+        directionalLightColor: { value: new THREE.Color(params.directionalLightColor) },
+        secondaryLightColor: { value: new THREE.Color(params.secondaryLightColor) },
+        secondaryLightIntensity: { value: params.secondaryLightIntensity },
         time: { value: 0 },
         cameraPos: { value: new THREE.Vector3() },
         displacementStrength: { value: params.displacementStrength },
         lineScale: { value: params.lineScale },
-        lineIntensity: { value: params.lineIntensity },
+        lineIntensity: { value: params.lineIntensity }
     };
 
     const marbleMaterial = new THREE.ShaderMaterial({
@@ -238,7 +257,8 @@ function init() {
             uniform float transparency;
             uniform float refractionIntensity;
             uniform float glossiness;
-            uniform float lightIntensity;
+            uniform float mainLightIntensity;
+            uniform float ambientLightIntensity;
             uniform vec3 ambientLightColor;
             uniform vec3 directionalLightColor;
             uniform float time;
@@ -246,6 +266,8 @@ function init() {
             uniform float displacementStrength;
             uniform float lineScale;
             uniform float lineIntensity;
+            uniform float secondaryLightIntensity;
+            uniform vec3 secondaryLightColor;
             
             varying vec3 vPosition;
             varying vec3 vNormal;
@@ -361,11 +383,20 @@ function init() {
                 float specular = pow(max(dot(normal, halfDir), 0.0), 32.0 * glossiness) * 0.3; // Added * 0.3 to reduce intensity
                 
                 // Increase ambient contribution and reduce directional contrast
-                vec3 ambient = ambientLightColor * color * 0.7;
-                vec3 diffuse = directionalLightColor * color * (max(dot(normal, lightDir), 0.0) * 0.3 + 0.7); // Modified multipliers
-                vec3 spec = directionalLightColor * specular * 0.4;  // Reduced from 0.8 to 0.4
+                vec3 ambient = ambientLightColor * color * 0.7 * ambientLightIntensity;
+                vec3 diffuse = directionalLightColor * color * (max(dot(normal, lightDir), 0.0) * 0.3 + 0.7);
+                vec3 spec = directionalLightColor * specular * 0.4;
                 
-                color = (ambient + diffuse) * lightIntensity + spec;
+                // Add secondary light contribution
+                vec3 secondaryLightDir = normalize(vec3(-0.5, -0.5, 1.0));
+                vec3 secondaryHalfDir = normalize(secondaryLightDir - viewDir);
+                float secondarySpec = pow(max(dot(normal, secondaryHalfDir), 0.0), 32.0 * glossiness);
+                
+                vec3 secondaryDiffuse = secondaryLightColor * color * (max(dot(normal, secondaryLightDir), 0.0) * 0.3 + 0.7);
+                vec3 secondarySpecular = secondaryLightColor * secondarySpec * 0.4;
+                
+                color = (ambient + diffuse * mainLightIntensity + spec) + 
+                        (secondaryDiffuse * secondaryLightIntensity + secondarySpecular * secondaryLightIntensity);
                 
                 gl_FragColor = vec4(color, transparency);
             }
@@ -412,22 +443,42 @@ function setupGUI() {
         marble.material.uniforms.accentColor.value.set(value);
     });
     
-    // Lighting
-    lightingFolder.add(params, 'lightIntensity', 0.1, 1).name('Light Intensity').onChange(value => {
-        window.lights.ambient.intensity = value * 0.5;
-        window.lights.directional.intensity = value * 0.8;
-        marble.material.uniforms.lightIntensity.value = value;
+    // Group all lighting controls together in logical pairs
+    // Main Light
+    lightingFolder.add(params, 'mainLightIntensity', 0.1, 1).name('Main Light Intensity').onChange(value => {
+        window.lights.directional.intensity = value;
+        marble.material.uniforms.mainLightIntensity.value = value;
     });
-    lightingFolder.add(params, 'glossiness', 0, 5).name('Glossiness').onChange(value => {
-        marble.material.uniforms.glossiness.value = value;
+    lightingFolder.addColor(params, 'directionalLightColor').name('Main Light Color').onChange(value => {
+        window.lights.directional.color.set(value);
+        marble.material.uniforms.directionalLightColor.value.set(value);
+    });
+
+    // Secondary Light
+    lightingFolder.add(params, 'secondaryLightIntensity', 0, 1)
+        .name('Secondary Light Intensity').onChange(value => {
+            window.lights.secondary.intensity = value;
+            marble.material.uniforms.secondaryLightIntensity.value = value;
+    });
+    lightingFolder.addColor(params, 'secondaryLightColor')
+        .name('Secondary Light Color').onChange(value => {
+            window.lights.secondary.color.set(value);
+            marble.material.uniforms.secondaryLightColor.value.set(value);
+    });
+
+    // Ambient Light
+    lightingFolder.add(params, 'ambientLightIntensity', 0.1, 1).name('Ambient Light Intensity').onChange(value => {
+        window.lights.ambient.intensity = value;
+        marble.material.uniforms.ambientLightIntensity.value = value;
     });
     lightingFolder.addColor(params, 'ambientLightColor').name('Ambient Light Color').onChange(value => {
         window.lights.ambient.color.set(value);
         marble.material.uniforms.ambientLightColor.value.set(value);
     });
-    lightingFolder.addColor(params, 'directionalLightColor').name('Directional Light Color').onChange(value => {
-        window.lights.directional.color.set(value);
-        marble.material.uniforms.directionalLightColor.value.set(value);
+
+    // Surface Properties
+    lightingFolder.add(params, 'glossiness', 0, 5).name('Glossiness').onChange(value => {
+        marble.material.uniforms.glossiness.value = value;
     });
     
     // Pattern
@@ -545,8 +596,8 @@ function saveAsImage() {
     exportScene.add(exportMarble);
     
     // Add lights
-    const ambientLight = new THREE.AmbientLight(params.ambientLightColor, 0.5 * params.lightIntensity);
-    const directionalLight = new THREE.DirectionalLight(params.directionalLightColor, 0.8 * params.lightIntensity);
+    const ambientLight = new THREE.AmbientLight(params.ambientLightColor, 0.5 * params.mainLightIntensity);
+    const directionalLight = new THREE.DirectionalLight(params.directionalLightColor, 0.8 * params.mainLightIntensity);
     directionalLight.position.set(1, 1, 1);
     exportScene.add(ambientLight, directionalLight);
     
