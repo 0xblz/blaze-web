@@ -27,12 +27,12 @@ const params = {
     accentColor: '#8f74ff',
     patternComplexity: 0.9,
     patternScale: 1.0,
-    swirlIntensity: 0.25,
+    swirlIntensity: 1,
     swirlFrequency: 3.0,
     transparency: 1.0,
     refractionIntensity: 0.5,
     glossiness: 0.5,
-    lightIntensity: 0.6,
+    lightIntensity: 0.4,
     ambientLightColor: '#dbcaff',    // Added ambient light color
     directionalLightColor: '#ffdaf6', // Added directional light color
     displacementStrength: 0.7,
@@ -70,7 +70,7 @@ const params = {
         params.accentColor = '#' + accentColorObj.getHexString();
         params.patternComplexity = Math.random() * 0.3 + 0.7;
         params.patternScale = Math.random() * 0.5 + 0.5;
-        params.swirlIntensity = Math.random() * 0.6 + 0.2;
+        params.swirlIntensity = Math.random() * 3.0 + 1.0;
         params.swirlFrequency = Math.random() * 2.0 + 1.0;
         params.ambientLightColor = '#ffffff';
         params.directionalLightColor = '#' + randomLightColor.getHexString();
@@ -432,7 +432,7 @@ function setupGUI() {
     patternFolder.add(params, 'patternScale', 0.1, 1).name('Pattern Scale').onChange(value => {
         marble.material.uniforms.patternScale.value = value;
     });
-    patternFolder.add(params, 'swirlIntensity', 0, 1).name('Swirl Intensity').onChange(value => {
+    patternFolder.add(params, 'swirlIntensity', 1, 3).name('Swirl Intensity').onChange(value => {
         marble.material.uniforms.swirlIntensity.value = value;
     });
     patternFolder.add(params, 'swirlFrequency', 0.5, 3.0).name('Swirl Frequency').onChange(value => {
