@@ -23,8 +23,8 @@ let scene, camera, renderer, marble, controls, gui;
 
 // Marble parameters
 const params = {
-    baseColor: '#0a0a44',
-    accentColor: '#8f74ff',
+    baseColor: '#0a0523',
+    accentColor: '#b492eb',
     patternComplexity: 0.9,
     patternScale: 1.0,
     swirlIntensity: 1,
@@ -34,7 +34,7 @@ const params = {
     glossiness: 0.7,
     lightIntensity: 0.5,
     ambientLightColor: '#dbcaff',    // Added ambient light color
-    directionalLightColor: '#ffdaf6', // Added directional light color
+    directionalLightColor: '#d2d9ff', // Added directional light color
     displacementStrength: 0.7,
     lineScale: 3.0,      // Controls line frequency
     lineIntensity: 0.5,  // Controls line strength
