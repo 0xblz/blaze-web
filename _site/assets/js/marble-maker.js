@@ -31,8 +31,8 @@ const params = {
     swirlFrequency: 3.0,
     transparency: 1.0,
     refractionIntensity: 0.5,
-    glossiness: 0.5,
-    lightIntensity: 0.4,
+    glossiness: 0.7,
+    lightIntensity: 0.5,
     ambientLightColor: '#dbcaff',    // Added ambient light color
     directionalLightColor: '#ffdaf6', // Added directional light color
     displacementStrength: 0.7,
@@ -41,18 +41,18 @@ const params = {
     isAnimating: false,    // New parameter for animation toggle
     animationSpeed: 1.0,   // New parameter for rotation speed
     randomizeMarble: function() {
-        // Generate random base color and convert to HSL for easier darkening
+        // Generate more vibrant base color with higher saturation and lightness
         const baseColorObj = new THREE.Color().setHSL(
             Math.random(),    // random hue
-            0.7,             // high saturation
-            0.15             // reduced lightness for darker color
+            0.85,            // increased saturation from 0.7 to 0.85
+            0.25             // increased lightness from 0.15 to 0.25
         );
         
-        // Generate random accent color with controlled lightness
+        // Generate lighter accent color
         const accentColorObj = new THREE.Color().setHSL(
             Math.random(),  // random hue
-            0.7,           // high saturation
-            0.6            // controlled lightness
+            0.7,           // keep same saturation
+            0.75          // increased lightness from 0.6 to 0.75
         );
         
         // Generate random directional light color (vibrant)
@@ -415,6 +415,9 @@ function setupGUI() {
         window.lights.ambient.intensity = value * 0.5;
         window.lights.directional.intensity = value * 0.8;
         marble.material.uniforms.lightIntensity.value = value;
+    });
+    lightingFolder.add(params, 'glossiness', 0, 5).name('Glossiness').onChange(value => {
+        marble.material.uniforms.glossiness.value = value;
     });
     lightingFolder.addColor(params, 'ambientLightColor').name('Ambient Light Color').onChange(value => {
         window.lights.ambient.color.set(value);
