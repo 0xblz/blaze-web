@@ -430,12 +430,12 @@ function init() {
 function setupGUI() {
     gui = new dat.GUI();
     
-    // Create folders for better organization
+    // Create folders for organization
     const colorFolder = gui.addFolder('Colors');
     const lightingFolder = gui.addFolder('Lighting');
     const patternFolder = gui.addFolder('Pattern');
     
-    // Colors
+    // Base/Accent colors in color folder
     colorFolder.addColor(params, 'baseColor').name('Base Color').onChange(value => {
         marble.material.uniforms.baseColor.value.set(value);
     });
@@ -443,35 +443,35 @@ function setupGUI() {
         marble.material.uniforms.accentColor.value.set(value);
     });
     
-    // Group all lighting controls together in logical pairs
-    // Main Light
-    lightingFolder.add(params, 'mainLightIntensity', 0.1, 1).name('Main Light Intensity').onChange(value => {
+    // Main Light controls
+    const mainLightFolder = lightingFolder.addFolder('Main Light');
+    mainLightFolder.add(params, 'mainLightIntensity', 0.1, 1).name('Intensity').onChange(value => {
         window.lights.directional.intensity = value;
         marble.material.uniforms.mainLightIntensity.value = value;
     });
-    lightingFolder.addColor(params, 'directionalLightColor').name('Main Light Color').onChange(value => {
+    mainLightFolder.addColor(params, 'directionalLightColor').name('Color').onChange(value => {
         window.lights.directional.color.set(value);
         marble.material.uniforms.directionalLightColor.value.set(value);
     });
 
-    // Secondary Light
-    lightingFolder.add(params, 'secondaryLightIntensity', 0, 1)
-        .name('Secondary Light Intensity').onChange(value => {
-            window.lights.secondary.intensity = value;
-            marble.material.uniforms.secondaryLightIntensity.value = value;
+    // Secondary Light controls
+    const secondaryLightFolder = lightingFolder.addFolder('Secondary Light');
+    secondaryLightFolder.add(params, 'secondaryLightIntensity', 0, 1).name('Intensity').onChange(value => {
+        window.lights.secondary.intensity = value;
+        marble.material.uniforms.secondaryLightIntensity.value = value;
     });
-    lightingFolder.addColor(params, 'secondaryLightColor')
-        .name('Secondary Light Color').onChange(value => {
-            window.lights.secondary.color.set(value);
-            marble.material.uniforms.secondaryLightColor.value.set(value);
+    secondaryLightFolder.addColor(params, 'secondaryLightColor').name('Color').onChange(value => {
+        window.lights.secondary.color.set(value);
+        marble.material.uniforms.secondaryLightColor.value.set(value);
     });
 
-    // Ambient Light
-    lightingFolder.add(params, 'ambientLightIntensity', 0.1, 1).name('Ambient Light Intensity').onChange(value => {
+    // Ambient Light controls
+    const ambientLightFolder = lightingFolder.addFolder('Ambient Light');
+    ambientLightFolder.add(params, 'ambientLightIntensity', 0.1, 1).name('Intensity').onChange(value => {
         window.lights.ambient.intensity = value;
         marble.material.uniforms.ambientLightIntensity.value = value;
     });
-    lightingFolder.addColor(params, 'ambientLightColor').name('Ambient Light Color').onChange(value => {
+    ambientLightFolder.addColor(params, 'ambientLightColor').name('Color').onChange(value => {
         window.lights.ambient.color.set(value);
         marble.material.uniforms.ambientLightColor.value.set(value);
     });
