@@ -45,7 +45,7 @@ const params = {
         const baseColorObj = new THREE.Color().setHSL(
             Math.random(),    // random hue
             0.7,             // high saturation
-            0.15             // reduced lightness for darker color (changed from implicit 0.5-ish)
+            0.15             // reduced lightness for darker color
         );
         
         // Generate random accent color with controlled lightness
@@ -72,7 +72,6 @@ const params = {
         params.patternScale = Math.random() * 0.5 + 0.5;
         params.swirlIntensity = Math.random() * 0.6 + 0.2;
         params.swirlFrequency = Math.random() * 2.0 + 1.0;
-        params.lightIntensity = Math.random() * 0.6 + 0.4;
         params.ambientLightColor = '#ffffff';
         params.directionalLightColor = '#' + randomLightColor.getHexString();
         params.displacementStrength = Math.random() * 0.7 + 0.3;
