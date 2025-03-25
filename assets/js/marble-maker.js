@@ -44,6 +44,55 @@ const params = {
     secondaryLightColor: '#ffcbc5',  // Match directional light default
     secondaryLightIntensity: 0.3,    // Match initial intensity
     randomizeMarble: function() {
+        // Store old values
+        const oldParams = { ...params };
+        
+        // Reset light intensities to defaults
+        params.mainLightIntensity = 0.5;     // Default from initial params
+        params.secondaryLightIntensity = 0.3; // Default from initial params
+        params.ambientLightIntensity = 0.2;   // Default from initial params
+        
+        // Update light intensities in both uniforms and actual lights
+        marble.material.uniforms.mainLightIntensity.value = params.mainLightIntensity;
+        marble.material.uniforms.secondaryLightIntensity.value = params.secondaryLightIntensity;
+        marble.material.uniforms.ambientLightIntensity.value = params.ambientLightIntensity;
+        
+        window.lights.directional.intensity = params.mainLightIntensity;
+        window.lights.secondary.intensity = params.secondaryLightIntensity;
+        window.lights.ambient.intensity = params.ambientLightIntensity;
+        
+        // Explicitly update the light intensity controllers in their respective folders
+        const lightingFolder = gui.__folders['Lighting'];
+        if (lightingFolder) {
+            const mainLightFolder = lightingFolder.__folders['Main Light'];
+            const secondaryLightFolder = lightingFolder.__folders['Secondary Light'];
+            const ambientLightFolder = lightingFolder.__folders['Ambient Light'];
+            
+            if (mainLightFolder) {
+                mainLightFolder.__controllers.forEach(controller => {
+                    if (controller.property === 'mainLightIntensity') {
+                        controller.setValue(params.mainLightIntensity);
+                    }
+                });
+            }
+            
+            if (secondaryLightFolder) {
+                secondaryLightFolder.__controllers.forEach(controller => {
+                    if (controller.property === 'secondaryLightIntensity') {
+                        controller.setValue(params.secondaryLightIntensity);
+                    }
+                });
+            }
+            
+            if (ambientLightFolder) {
+                ambientLightFolder.__controllers.forEach(controller => {
+                    if (controller.property === 'ambientLightIntensity') {
+                        controller.setValue(params.ambientLightIntensity);
+                    }
+                });
+            }
+        }
+        
         // Generate more vibrant base color with higher saturation and lightness
         const baseColorObj = new THREE.Color().setHSL(
             Math.random(),    // random hue
@@ -64,9 +113,6 @@ const params = {
             0.8,           // high saturation for vibrant color
             0.8            // high lightness to keep it bright
         );
-        
-        // Store old values
-        const oldParams = { ...params };
         
         // Update parameters
         params.baseColor = '#' + baseColorObj.getHexString();
@@ -97,22 +143,6 @@ const params = {
         marble.material.uniforms.displacementStrength.value = params.displacementStrength;
         marble.material.uniforms.lineScale.value = params.lineScale;
         marble.material.uniforms.lineIntensity.value = params.lineIntensity;
-        
-        // Update lights
-        scene.children.forEach(child => {
-            if (child instanceof THREE.AmbientLight) {
-                child.color.set(params.ambientLightColor);
-                child.intensity = params.ambientLightIntensity;
-            } else if (child instanceof THREE.DirectionalLight) {
-                if (child === window.lights.directional) {
-                    child.color.set(params.directionalLightColor);
-                    child.intensity = params.mainLightIntensity;
-                } else if (child === window.lights.secondary) {
-                    child.color.set(params.secondaryLightColor);
-                    child.intensity = params.secondaryLightIntensity;
-                }
-            }
-        });
         
         // Update GUI controllers
         for (let i in gui.__controllers) {
