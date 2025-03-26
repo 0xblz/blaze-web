@@ -383,6 +383,15 @@ function init() {
                     vec3 displacement = displacementNoise(pos * patternScale) * displacementStrength;
                     vec3 samplePos = pos + displacement;
                     
+                    // Add rotation matrix based on time
+                    float rotTime = time * 0.5;  // Adjust rotation speed
+                    mat3 rotMatrix = mat3(
+                        cos(rotTime), 0.0, sin(rotTime),
+                        0.0, 1.0, 0.0,
+                        -sin(rotTime), 0.0, cos(rotTime)
+                    );
+                    samplePos = rotMatrix * samplePos;
+                    
                     // Create swirling pattern with displacement
                     vec3 swirl = samplePos * patternScale;
                     swirl.x += sin(samplePos.y * swirlFrequency) * swirlIntensity;
@@ -550,18 +559,15 @@ const TIME_DELTA = 0.01;
 function animate() {
     animationFrameId = requestAnimationFrame(animate);
     
-    // Add rotation animation
+    // Update time uniform for pattern rotation instead of mesh rotation
     if (params.isAnimating) {
-        marble.rotation.y += 0.01 * params.animationSpeed;
+        const timeUniform = marble.material.uniforms.time;
+        if (timeUniform) {
+            timeUniform.value += 0.01 * params.animationSpeed;
+        }
     }
     
     controls.update();
-    
-    // Update time uniform only if it exists
-    const timeUniform = marble.material.uniforms.time;
-    if (timeUniform) {
-        timeUniform.value += TIME_DELTA;
-    }
     
     // Update camera position only if it changed
     const cameraPosUniform = marble.material.uniforms.cameraPos;
