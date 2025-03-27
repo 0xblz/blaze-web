@@ -14,8 +14,15 @@ body.experiment {
 } 
 
 // custom page styles
-body.marble-maker {
+body.marbles {
     overflow: hidden;
+    background: linear-gradient(to bottom, #ccc, white);
+    color: var(--tertiary-color);
+
+    header,
+    footer {
+        border-color: white;
+    }
     
     canvas {
         display: block;
