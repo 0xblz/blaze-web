@@ -1267,7 +1267,7 @@ class EtherealAnimation {
                 
                 // Reset content position if needed
                 // Get all elements that might have been shaken
-                const shakeableElements = document.querySelectorAll('header, h1, h2, .row-link > *');
+                const shakeableElements = document.querySelectorAll('header, footer');
                 
                 // Reset transform on all elements
                 shakeableElements.forEach(element => {
@@ -1293,7 +1293,7 @@ class EtherealAnimation {
         const shakeY = (Math.random() * 2 - 1) * this.shakeIntensity;
         
         // Get all major content elements that should shake
-        const shakeableElements = document.querySelectorAll('header, h1, h2, .row-link > *');
+        const shakeableElements = document.querySelectorAll('header, footer');
         
         // Apply shake to each element
         shakeableElements.forEach(element => {
