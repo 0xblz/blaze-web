@@ -14,7 +14,7 @@
     padding: 0.75rem;
     border-radius: 1.5rem;
     animation: fade 0.5s ease-in-out;
-    
+    position: relative;
     &:hover,
     &:focus,
     &:active {
@@ -26,6 +26,29 @@
             background-color: rgba(255, 255, 255, 0.1);
             transform: scale(1.1) rotate(-5deg);
         }
+
+        .external-link {
+            background-color: var(--primary-color);
+            color: white;
+        }
+    }
+
+    .external-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: -0.5rem;
+        right: -0.5rem;
+        font-size: 0.75rem;
+        z-index: 9999;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 0.75rem;
+        color: rgba(255, 255, 255, 0.6);
+        width: 1.5rem;
+        height: 1.5rem;
+        backdrop-filter: blur(1rem);
+        -webkit-backdrop-filter: blur(1rem);
     }
     
     &-content {

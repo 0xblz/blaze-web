@@ -5,7 +5,7 @@ short_description: digital designer
 description: building fun and intuitive experiences
 is_home: true
 js_file: ethereal
-version: 1.3
+version: 1.4
 ---
 
 <div id="etherealCanvas" class="background-canvas"></div>
@@ -15,6 +15,7 @@ version: 1.3
     {% for project in site.data.projects %}
     <a href="{{ project.link }}" {% if project.external_link %}target="_blank"{% endif %} class="row-link">
         <div class="row-link-content">
+            {% if project.external_link %}<div class="external-link"><i class="fa-solid fa-up-right-from-square"></i></div>{% endif %}
             <figure>
                 <img src="{{ project.image }}" alt="{{ project.title }}" />
             </figure>
