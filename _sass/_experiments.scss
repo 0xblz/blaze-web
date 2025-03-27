@@ -61,7 +61,7 @@ body.marbles {
     }
 
     &.a {
-        box-shadow: 0 2rem 2rem var(--primary-color) !important;
+        box-shadow: 0 2rem 2rem white !important;
     }
 
     .c {
@@ -81,8 +81,8 @@ body.marbles {
     .close-button {
         height: 2.5rem !important;
         line-height: 2.5rem !important;
-        background-color: var(--primary-color) !important;
-        color: #fff !important;
+        background-color: white !important;
+        color: var(--tertiary-color) !important;
         border-bottom-left-radius: 0.75rem !important;
         border-bottom-right-radius: 0.75rem !important;
         font-size: 12px;
