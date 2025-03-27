@@ -46,6 +46,14 @@
   year: "2025"
   external_link: false
 
+- title: "Ethereal Sky"
+  link: "ethereal"
+  image: "/assets/images/ethereal.jpg"
+  platform: "Web Experiment"
+  role: "Creator"
+  year: "2025"
+  external_link: false
+
 - title: "Party"
   link: "https://party.app"
   image: /assets/images/party-logo.jpg

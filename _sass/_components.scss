@@ -44,7 +44,7 @@
         font-size: 0.75rem;
         z-index: 9999;
         background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 0.75rem;
+        border-radius: 9999px;
         color: rgba(255, 255, 255, 0.6);
         width: 1.5rem;
         height: 1.5rem;
@@ -168,9 +168,13 @@ hr {
     margin-bottom: 1.5rem;
 }
 
-.version {
-    color: var(--primary-color);
-    font-family: var(--font-secondary);
-    font-size: 1rem;
-    font-weight: 400;
+.avatar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    img {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 9999px;
+    }
 }
