@@ -16,12 +16,27 @@ body.experiment {
 // custom page styles
 body.marbles {
     overflow: hidden;
-    background: linear-gradient(to bottom, #ccc, white);
+    background: 
+        radial-gradient(
+            circle at 50% 100%,
+            rgba(white,1) 0%,
+            rgba(gray,0) 45%,
+            rgba(gray,0) 100%
+        ),
+        linear-gradient(
+            180deg,
+            gray 0%,
+            lightgray 55%,
+            white 65%,
+            lightgray 85%,
+            lightgray 90%,
+            gray 100%
+        );
     color: var(--tertiary-color);
 
     header,
     footer {
-        border-color: white;
+        border-color: rgba(white,0.2);
     }
     
     canvas {
