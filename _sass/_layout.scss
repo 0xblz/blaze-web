@@ -1,6 +1,10 @@
 // Body and main layout
+html {
+    background: var(--tertiary-color);
+}
 body {
-    background-color: var(--tertiary-color);
+    background: linear-gradient(to bottom, var(--tertiary-color), var(--primary-color));
+    background-attachment: fixed;
 }
 
 main {

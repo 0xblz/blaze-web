@@ -27,12 +27,12 @@ h3 {
 
 h4 {
     text-shadow: 0 0 6rem var(--primary-color);
-    color: var(--primary-color);
-    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
     font-weight: 500;
     line-height: 1.4em;
     a {
-        color: var(--secondary-color);
+        color: white;
         &:hover,
         &:focus,
         &:active {
