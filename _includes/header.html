@@ -3,7 +3,10 @@
         {% if page.url != "/" %}
             <a href="/" class="back-button"><i class="fa-solid fa-arrow-left"></i></a>
         {% endif %}
-        <h1>{{ page.title }}</h1>
+        <div class="avatar">
+           {% if page.url == "/" %}<img src="{{ site.baseurl }}/assets/images/avatar.jpg" alt="avatar" />{% endif %}
+            <h1>{{ page.title }}</h1>
+        </div>
     </nav>
     <nav>
         {% if page.url == "/" %}

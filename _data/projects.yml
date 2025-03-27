@@ -1,4 +1,4 @@
-- title: "Marble Maker"
+- title: "Marbles"
   link: "marbles"
   image: "/assets/images/marble-maker.jpg"
   platform: "Web Experiment"
@@ -37,6 +37,14 @@
   role: "Creator"
   year: "2025"
   external_link: true
+
+- title: "Nova Grid"
+  link: "nova-grid"
+  image: "/assets/images/nova-grid.jpg"
+  platform: "Web Experiment"
+  role: "Creator"
+  year: "2025"
+  external_link: false
 
 - title: "Party"
   link: "https://party.app"

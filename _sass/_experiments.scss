@@ -14,8 +14,30 @@ body.experiment {
 } 
 
 // custom page styles
-body.marble-maker {
+body.marbles {
     overflow: hidden;
+    background: 
+        radial-gradient(
+            circle at 50% 100%,
+            rgba(white,1) 0%,
+            rgba(gray,0) 45%,
+            rgba(gray,0) 100%
+        ),
+        linear-gradient(
+            180deg,
+            gray 0%,
+            lightgray 55%,
+            white 65%,
+            lightgray 85%,
+            lightgray 90%,
+            gray 100%
+        );
+    color: var(--tertiary-color);
+
+    header,
+    footer {
+        border-color: rgba(white,0.2);
+    }
     
     canvas {
         display: block;
@@ -39,7 +61,7 @@ body.marble-maker {
     }
 
     &.a {
-        box-shadow: 0 2rem 2rem var(--primary-color) !important;
+        box-shadow: 0 2rem 2rem white !important;
     }
 
     .c {
@@ -59,8 +81,8 @@ body.marble-maker {
     .close-button {
         height: 2.5rem !important;
         line-height: 2.5rem !important;
-        background-color: var(--primary-color) !important;
-        color: #fff !important;
+        background-color: white !important;
+        color: var(--tertiary-color) !important;
         border-bottom-left-radius: 0.75rem !important;
         border-bottom-right-radius: 0.75rem !important;
         font-size: 12px;

@@ -5,27 +5,46 @@
     justify-content: space-between;
     flex-wrap: wrap;
     border: 4px solid rgba(255, 255, 255, 0.05);
-    background-color: rgba(115, 80, 255, 0.03);
-    -webkit-backdrop-filter: blur(1rem);
+    background-color: rgba(255, 255, 255, 0.01);
     backdrop-filter: blur(1rem);
+    -webkit-backdrop-filter: blur(1rem);
     z-index: 99;
     width: 100%;
     gap: 0.75rem;
     padding: 0.75rem;
     border-radius: 1.5rem;
     animation: fade 0.5s ease-in-out;
-    
     &:hover,
     &:focus,
     &:active {
         color: white;
         transform: scale(1.02);
-        border-color: var(--primary-color);
+        border-color: white;
         
         figure {
             background-color: rgba(255, 255, 255, 0.1);
             transform: scale(1.1) rotate(-5deg);
         }
+
+        .external-link {
+            background-color: white;
+            color: var(--primary-color);
+        }
+    }
+
+    .external-link {
+        transition: all 0.1s ease-in-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 9999px;
+        color: rgba(255, 255, 255, 0.6);
+        width: 1.5rem;
+        height: 1.5rem;
+        backdrop-filter: blur(1rem);
+        -webkit-backdrop-filter: blur(1rem);
     }
     
     &-content {
@@ -125,13 +144,14 @@ figure {
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 0.75rem;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    color: var(--secondary-color);
+    background-color: rgba(255, 255, 255, 0.01);
+    border: 2px solid rgba(255, 255, 255, 0.05);
+    color: white;
     i {
         font-size: 1rem;
     }
     &:hover {
-        border-color: var(--secondary-color);
+        border-color: white;
         color: white;
     }
 }
@@ -142,11 +162,16 @@ hr {
     max-width: 2rem;
     margin-top: 1.5rem;
     margin-bottom: 1.5rem;
+    box-shadow: 0 2px 0 rgba(255, 255, 255, 0.1);
 }
 
-.version {
-    color: var(--primary-color);
-    font-family: var(--font-secondary);
-    font-size: 1rem;
-    font-weight: 400;
+.avatar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    img {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 9999px;
+    }
 }
