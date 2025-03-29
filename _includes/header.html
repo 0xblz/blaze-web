@@ -1,8 +1,8 @@
 <header>
+    {% if page.url != "/" %}
+        <a href="/" class="back-button"><i class="fa-solid fa-arrow-left"></i></a>
+    {% endif %}
     <nav>
-        {% if page.url != "/" %}
-            <a href="/" class="back-button"><i class="fa-solid fa-arrow-left"></i></a>
-        {% endif %}
         <div class="avatar">
            {% if page.url == "/" %}<img src="{{ site.baseurl }}/assets/images/avatar.jpg" alt="avatar" />{% endif %}
             <h1>{{ page.title }}</h1>
