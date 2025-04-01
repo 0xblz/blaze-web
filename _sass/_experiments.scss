@@ -33,11 +33,6 @@ body.marbles {
             gray 100%
         );
     color: var(--tertiary-color);
-
-    header,
-    footer {
-        border-color: rgba(white,0.2);
-    }
     
     canvas {
         display: block;
