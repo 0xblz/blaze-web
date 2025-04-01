@@ -48,6 +48,7 @@ footer {
         display: flex;
         align-items: center;
         gap: 0.75rem;
+        flex-wrap: wrap;
         &:first-of-type {
             flex: 1;
         }
