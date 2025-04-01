@@ -35,15 +35,24 @@ class StarfieldAnimation {
         this.mouseInterpolationSpeed = 0.15;
         this.parallaxStrength = 0.15;
         this.clock = new THREE.Clock();
+        
+        // Add rotation parameters
+        this.rotation = 0;
+        this.rotationSpeed = 0.01; // Very slow rotation speed
     }
     
     init() {
         // Create scene
         this.scene = new THREE.Scene();
         
-        // Create camera
-        this.camera = new THREE.PerspectiveCamera(75, this.width / this.height, 0.1, 2000);
-        this.camera.position.z = 1000;
+        // Create camera with wider field of view and greater depth
+        this.camera = new THREE.PerspectiveCamera(
+            60, // Reduced FOV for less distortion
+            this.width / this.height,
+            0.1,
+            3000 // Increased far plane for greater depth
+        );
+        this.camera.position.z = 1500; // Moved camera back for better perspective
         
         // Create renderer
         this.renderer = new THREE.WebGLRenderer({ 
@@ -308,6 +317,10 @@ class StarfieldAnimation {
         
         this.mouse.x += (this.targetMouse.x - this.mouse.x) * this.mouseInterpolationSpeed;
         this.mouse.y += (this.targetMouse.y - this.mouse.y) * this.mouseInterpolationSpeed;
+        
+        // Update rotation
+        this.rotation += this.rotationSpeed;
+        this.scene.rotation.z = Math.sin(this.rotation) * 0.1; // Gentle rolling motion
         
         this.updateParticles();
         this.updateWindStreaks();
