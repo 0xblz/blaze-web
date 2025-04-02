@@ -123,8 +123,6 @@ hr {
     min-width: 12rem;
     height: 12rem;
     min-height: 12rem;
-    border: 4px solid transparent;
-    border-color: transparent;
     z-index: 99;
     gap: 0.25rem;
     padding: 1rem;
@@ -147,7 +145,6 @@ hr {
         -webkit-backdrop-filter: blur(1rem);
         color: white;
         transform: scale(1.02);
-        border-color: white;
         
         figure {
             transform: scale(1.1) rotate(-5deg);
