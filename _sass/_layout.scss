@@ -29,8 +29,9 @@ hr {
     height: 100vh;
     overflow: auto;
     padding: 1rem;
-    border: 4px solid orange;
+    border: 10px dashed orange;
     position: relative;
+    padding-top: 4rem;
 }
 
 .top-bar {
@@ -46,7 +47,6 @@ hr {
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
     gap: 0.75rem;
-    border: 1px solid red;
     z-index: 999;
     backdrop-filter: blur(1rem);
     -webkit-backdrop-filter: blur(1rem);
@@ -100,13 +100,73 @@ hr {
 }
 
 .projects {
+    animation: fade 0.5s ease-in-out;
     display: flex;
+    align-items: flex-start;
     flex-wrap: wrap;
-    padding-top: 4rem;
+    width: 100%;
     gap: 0.75rem;
+    border: 10px dashed red;
+
+    .shortcut {
+        transition: all 0.2s ease-in-out;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+        max-width: 200px;
+        border: 4px solid rgba(255, 255, 255, 0.05);
+        background-color: rgba(255, 255, 255, 0.01);
+        backdrop-filter: blur(1rem);
+        -webkit-backdrop-filter: blur(1rem);
+        z-index: 99;
+        gap: 0.25rem;
+        padding: 0.75rem;
+        border-radius: 1.5rem;
+        &:hover,
+        &:focus,
+        &:active {
+            color: white;
+            transform: scale(1.02);
+            border-color: white;
+            backdrop-filter: blur(1rem);
+            -webkit-backdrop-filter: blur(1rem);
+            
+            figure {
+                transform: scale(1.1) rotate(-5deg);
+            }
+        }
+        
+        &-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            
+            figure {
+                animation: fade 1s ease-in-out;
+                transition: all 0.2s ease-in-out;
+                width: 4rem;
+                height: 4rem;
+                border-radius: 0.75rem;
+                overflow: hidden;
+                box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                background-color: rgba(255, 255, 255, 0.1);
+                
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+            }
+        }
+    }
 }
 
 .dialog {
+    animation: fade 0.3s ease-in-out;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -122,7 +182,7 @@ hr {
     box-shadow: 0 1rem 2rem 0 rgba(0, 0, 0, 0.2);
     max-width: 420px;
     width: 100%;
-    background-color: rgba(255, 255, 255, 0.01);
+    background-color: rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(1rem);
     -webkit-backdrop-filter: blur(1rem);
     z-index: 999;
