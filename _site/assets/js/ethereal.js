@@ -23,6 +23,68 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Add this class before StarfieldAnimation
+class GlitchEffect {
+    constructor(element) {
+        this.element = element;
+        this.originalText = element.textContent;
+        this.glitchChars = '!<>-_\\/[]{}—=+*^?#________';
+        this.interval = null;
+        // Get the CSS variables
+        this.primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+        this.secondaryColor = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim();
+        this.init();
+    }
+
+    init() {
+        // Store original text
+        this.element.dataset.text = this.originalText;
+        
+        // Start glitch loop
+        this.interval = setInterval(() => this.glitch(), 200);
+
+        // Add color shift
+        this.colorShift();
+    }
+
+    glitch() {
+        if (Math.random() < 0.1) {
+            let glitchedText = '';
+            const numGlitchChars = Math.floor(Math.random() * 3) + 1;
+            const position = Math.floor(Math.random() * this.originalText.length);
+            
+            for (let i = 0; i < this.originalText.length; i++) {
+                if (i >= position && i < position + numGlitchChars) {
+                    glitchedText += this.glitchChars[Math.floor(Math.random() * this.glitchChars.length)];
+                } else {
+                    glitchedText += this.originalText[i];
+                }
+            }
+            
+            this.element.textContent = glitchedText;
+            
+            setTimeout(() => {
+                this.element.textContent = this.originalText;
+            }, 50);
+        }
+    }
+
+    colorShift() {
+        // Convert the CSS variables to rgba with low opacity
+        const color = Math.random() < 0.5 ? 'rgba(115, 80, 255, 0.6)' : 'rgba(220, 80, 255, 0.6)';
+        this.element.style.textShadow = `0 0 0.5rem ${color}`;
+        requestAnimationFrame(() => this.colorShift());
+    }
+
+    destroy() {
+        if (this.interval) {
+            clearInterval(this.interval);
+        }
+        this.element.style.textShadow = '';
+        this.element.textContent = this.originalText;
+    }
+}
+
 class StarfieldAnimation {
     constructor() {
         this.container = document.getElementById('etherealCanvas');
@@ -41,7 +103,9 @@ class StarfieldAnimation {
         this.rotationSpeed = 0.01; // Very slow rotation speed
         this.typingSpeed = 50; // milliseconds between each character
         this.typingDelay = 1000; // delay before starting typing
+        this.glitchElements = [];
         this.initIntersectionObserver();
+        this.initGlitchEffects();
     }
     
     init() {
@@ -411,6 +475,14 @@ class StarfieldAnimation {
             // Skip other node types
             this.typeText(element, nodes, nodeIndex + 1);
         }
+    }
+
+    initGlitchEffects() {
+        // Initialize glitch effect for all elements with the class
+        const glitchElements = document.querySelectorAll('.glitch-effect');
+        glitchElements.forEach(element => {
+            this.glitchElements.push(new GlitchEffect(element));
+        });
     }
 }
 
