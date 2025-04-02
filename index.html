@@ -9,19 +9,17 @@ js_file: ethereal
 
 <div id="etherealCanvas" class="background-canvas"></div>
 
-<div class="projects">
-    {% for project in site.data.projects %}
-    <a href="{{ project.link }}" {% if project.external_link %}target="_blank"{% endif %} class="shortcut">
-        <div class="shortcut-content">
-            <figure>
-                <img src="{{ project.image }}" alt="{{ project.title }}" />
-            </figure>
-            <h3>{{ project.title }}<br><small>{{ project.platform }}</small></h3>
-        </div>
-        <small>{{ project.role }}, {{ project.year }}</small>
-    </a>
-    {% endfor %}
-</div>
+{% for project in site.data.projects %}
+<a href="{{ project.link }}" {% if project.external_link %}target="_blank"{% endif %} class="shortcut">
+    <div class="shortcut-content">
+        <figure>
+            <img src="{{ project.image }}" alt="{{ project.title }}" />
+        </figure>
+        <h3>{{ project.title }}<br><small>{{ project.platform }}</small></h3>
+    </div>
+    <small>{{ project.role }}, {{ project.year }}</small>
+</a>
+{% endfor %}
 
 <div class="dialog">
     <h5 data-text="<i class='fa-solid fa-circle-info'></i> about" class="typing-text"></h5>
