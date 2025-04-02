@@ -12,6 +12,7 @@ main {
     align-items: center;
     height: 100vh;
     overflow: hidden;
+    position: relative;
 
     @media (max-width: 768px) {
         height: auto;
@@ -43,7 +44,6 @@ hr {
 
     @media (max-width: 768px) {
         height: auto;
-        padding-bottom: 10rem;
     }
 }
 
@@ -97,6 +97,18 @@ hr {
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 1.5rem;
     box-shadow: 0 1rem 2rem 0 rgba(0, 0, 0, 0.2);
+
+    @media (max-width: 768px) {
+        position: relative;
+        justify-content: space-between;
+        width: 100%;
+        border-radius: 0;
+        bottom: 0;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        box-shadow: none;
+        background-color: transparent;
+    }
 
     &:hover {
         transform: scale(1.02);
@@ -153,6 +165,9 @@ hr {
         min-width: 10rem;
         height: 10rem;
         min-height: 10rem;
+        backdrop-filter: blur(1rem);
+        -webkit-backdrop-filter: blur(1rem);
+        background-color: rgba(255, 255, 255, 0.05);
     }
     
     &:hover,
@@ -250,11 +265,21 @@ hr {
     }
 
     @media (max-width: 768px) {
-        position: relative;
+        position: relative !important;
         max-width: 100%;
         max-height: 100%;
         bottom: 0;
         right: 0;
+        top: 0;
+        left: 0;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        background-color: transparent;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        transform: none;
+
         &::after {
             display: none;
         }
