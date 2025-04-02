@@ -12,9 +12,9 @@
 <body{% if page.is_experiment %} class="experiment {% if page.custom_css %}{{ page.custom_css }}{% endif %}"{% endif %}>
     <main>
         {% include header.html %}
-        <section>
+        <div class="desktop">
             {{ content }}
-        </section>
+        </div>
         {% if page.url == "/" %}
             {% include footer.html %}
         {% endif %}
