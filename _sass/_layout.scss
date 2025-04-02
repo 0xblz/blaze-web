@@ -210,7 +210,7 @@ hr {
     flex-direction: column;
     align-items: flex-start;
     position: fixed;
-    top: 40%;
+    bottom: 4rem;
     right: 4rem;
     gap: 1rem;
     max-height: 50vh;
@@ -248,7 +248,7 @@ hr {
         position: relative;
         max-width: 100%;
         max-height: 100%;
-        top: 0;
+        bottom: 0;
         right: 0;
         &::after {
             display: none;
