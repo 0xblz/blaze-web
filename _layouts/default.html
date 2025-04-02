@@ -8,6 +8,14 @@
     <link rel="icon" type="image/jpg" href="{{ site.baseurl }}/assets/images/avatar.jpg">
     <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/main.css">
     <script src="https://kit.fontawesome.com/53df3a2a07.js" crossorigin="anonymous"></script>
+    
+    <!-- Add jQuery and jQuery UI -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    
+    <!-- Add draggable.js -->
+    <script src="{{ '/assets/js/draggable.js' | relative_url }}"></script>
 </head>
 <body{% if page.is_experiment %} class="experiment {% if page.custom_css %}{{ page.custom_css }}{% endif %}"{% endif %}>
     <main>
