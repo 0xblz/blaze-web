@@ -10,7 +10,7 @@ js_file: ethereal
 <div id="etherealCanvas" class="background-canvas"></div>
 
 <aside>
-    <h5><i class="fa-solid fa-code"></i> projects</h5>
+    <h5 data-text="<i class='fa-solid fa-code'></i> projects" class="typing-text"></h5>
     {% for project in site.data.projects %}
     <a href="{{ project.link }}" {% if project.external_link %}target="_blank"{% endif %} class="row-link">
         <div class="row-link-content">
@@ -25,7 +25,7 @@ js_file: ethereal
 </aside>
 
 <aside>
-    <h5><i class="fa-solid fa-circle-info"></i> about</h5>
+    <h5 data-text="<i class='fa-solid fa-circle-info'></i> about" class="typing-text"></h5>
     <h4>
         I collaborate with innovative companies to design and build creative digital experiences. 
         At <a href="https://x.com/prtyDAO" target="_blank">PartyDAO</a> (2022–present), I've contributed to the design of <a href="https://party.app" target="_blank">party.app</a> and <a href="https://world.org/ecosystem" target="_blank">World</a> apps, shaping engaging and user-friendly products.
