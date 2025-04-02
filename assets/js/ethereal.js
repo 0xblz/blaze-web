@@ -23,6 +23,68 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Add this class before StarfieldAnimation
+class GlitchEffect {
+    constructor(element) {
+        this.element = element;
+        this.originalText = element.textContent;
+        this.glitchChars = '!<>-_\\/[]{}—=+*^?#________';
+        this.interval = null;
+        // Get the CSS variables
+        this.primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+        this.secondaryColor = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim();
+        this.init();
+    }
+
+    init() {
+        // Store original text
+        this.element.dataset.text = this.originalText;
+        
+        // Start glitch loop
+        this.interval = setInterval(() => this.glitch(), 200);
+
+        // Add color shift
+        this.colorShift();
+    }
+
+    glitch() {
+        if (Math.random() < 0.1) {
+            let glitchedText = '';
+            const numGlitchChars = Math.floor(Math.random() * 3) + 1;
+            const position = Math.floor(Math.random() * this.originalText.length);
+            
+            for (let i = 0; i < this.originalText.length; i++) {
+                if (i >= position && i < position + numGlitchChars) {
+                    glitchedText += this.glitchChars[Math.floor(Math.random() * this.glitchChars.length)];
+                } else {
+                    glitchedText += this.originalText[i];
+                }
+            }
+            
+            this.element.textContent = glitchedText;
+            
+            setTimeout(() => {
+                this.element.textContent = this.originalText;
+            }, 50);
+        }
+    }
+
+    colorShift() {
+        // Convert the CSS variables to rgba with low opacity
+        const color = Math.random() < 0.5 ? 'rgba(115, 80, 255, 0.6)' : 'rgba(220, 80, 255, 0.6)';
+        this.element.style.textShadow = `0 0 0.5rem ${color}`;
+        requestAnimationFrame(() => this.colorShift());
+    }
+
+    destroy() {
+        if (this.interval) {
+            clearInterval(this.interval);
+        }
+        this.element.style.textShadow = '';
+        this.element.textContent = this.originalText;
+    }
+}
+
 class StarfieldAnimation {
     constructor() {
         this.container = document.getElementById('etherealCanvas');
@@ -39,6 +101,11 @@ class StarfieldAnimation {
         // Add rotation parameters
         this.rotation = 0;
         this.rotationSpeed = 0.01; // Very slow rotation speed
+        this.typingSpeed = 50; // milliseconds between each character
+        this.typingDelay = 1000; // delay before starting typing
+        this.glitchElements = [];
+        this.initIntersectionObserver();
+        this.initGlitchEffects();
     }
     
     init() {
@@ -79,6 +146,9 @@ class StarfieldAnimation {
         // Add event listeners
         window.addEventListener('resize', this.onWindowResize.bind(this));
         document.addEventListener('mousemove', this.onMouseMove.bind(this), { passive: true });
+        
+        // Add typing animation initialization
+        this.initTypingAnimation();
     }
     
     createParticles() {
@@ -326,4 +396,106 @@ class StarfieldAnimation {
         this.updateWindStreaks();
         this.renderer.render(this.scene, this.camera);
     }
+    
+    initIntersectionObserver() {
+        const options = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.3 // Trigger when 30% of the element is visible
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !entry.target.classList.contains('typed-started')) {
+                    this.initTypingForElement(entry.target);
+                    entry.target.classList.add('typed-started');
+                    observer.unobserve(entry.target); // Stop observing once animation starts
+                }
+            });
+        }, options);
+
+        // Observe all typing-text elements except the first one (projects)
+        const typingElements = document.querySelectorAll('.typing-text');
+        typingElements.forEach((element, index) => {
+            if (index > 0) { // Skip the first element since it starts immediately
+                observer.observe(element);
+            }
+        });
+    }
+
+    initTypingAnimation() {
+        // Only initialize the first typing-text element immediately
+        const firstTypingElement = document.querySelector('.typing-text');
+        if (firstTypingElement) {
+            this.initTypingForElement(firstTypingElement);
+            firstTypingElement.classList.add('typed-started');
+        }
+    }
+
+    initTypingForElement(element) {
+        const text = element.dataset.text;
+        const parser = new DOMParser();
+        const parsedHtml = parser.parseFromString(text, 'text/html');
+        const nodes = Array.from(parsedHtml.body.childNodes);
+        
+        element.innerHTML = '<span class="typed"></span><span class="cursor">|</span>';
+        
+        this.typeText(element.querySelector('.typed'), nodes, 0);
+    }
+    
+    typeText(element, nodes, nodeIndex) {
+        if (nodeIndex >= nodes.length) return;
+        
+        const currentNode = nodes[nodeIndex];
+        
+        if (currentNode.nodeType === Node.ELEMENT_NODE) {
+            // If it's an HTML element, add it immediately
+            element.appendChild(currentNode.cloneNode(true));
+            setTimeout(() => {
+                this.typeText(element, nodes, nodeIndex + 1);
+            }, this.typingSpeed);
+        } else if (currentNode.nodeType === Node.TEXT_NODE) {
+            // If it's text, type it out character by character
+            let text = currentNode.textContent;
+            let charIndex = 0;
+            
+            const typeChar = () => {
+                if (charIndex < text.length) {
+                    element.appendChild(document.createTextNode(text.charAt(charIndex)));
+                    charIndex++;
+                    setTimeout(typeChar, this.typingSpeed);
+                } else {
+                    // Move to next node
+                    this.typeText(element, nodes, nodeIndex + 1);
+                }
+            };
+            
+            typeChar();
+        } else {
+            // Skip other node types
+            this.typeText(element, nodes, nodeIndex + 1);
+        }
+    }
+
+    initGlitchEffects() {
+        // Initialize glitch effect for all elements with the class
+        const glitchElements = document.querySelectorAll('.glitch-effect');
+        glitchElements.forEach(element => {
+            this.glitchElements.push(new GlitchEffect(element));
+        });
+    }
 }
+
+// Add this CSS to the document head
+const style = document.createElement('style');
+style.textContent = `
+    .typing-text .cursor {
+        animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
