@@ -43,7 +43,7 @@ hr {
 
     @media (max-width: 768px) {
         height: auto;
-        padding-bottom: 25vh;
+        padding-bottom: 10rem;
     }
 }
 
@@ -244,6 +244,9 @@ hr {
         max-height: 100%;
         top: 0;
         right: 0;
+        &::after {
+            display: none;
+        }
     }
 
     h5 {
