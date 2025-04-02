@@ -19,10 +19,10 @@
 </head>
 <body{% if page.is_experiment %} class="experiment {% if page.custom_css %}{{ page.custom_css }}{% endif %}"{% endif %}>
     <main>
-        {% include header.html %}
-        <div class="desktop">
-            {{ content }}
-        </div>
+        {% if page.url == "/" %}
+            {% include header.html %}
+        {% endif %}
+        {{ content }}
         {% if page.url == "/" %}
             {% include footer.html %}
         {% endif %}
