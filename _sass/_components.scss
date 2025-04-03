@@ -15,7 +15,7 @@
 
 .soundcloud-player {
     position: fixed; 
-    top: 1rem; 
+    bottom: 1rem; 
     left: 1rem; 
     z-index: 1000; 
     max-width: 240px; 
@@ -26,8 +26,6 @@
     overflow: hidden; 
     box-shadow: 0 4px 8px rgba(0,0,0,0.5);
     @media (max-width: 800px) {
-        bottom: 1rem;
-        left: 1rem;
-        top: initial;
+        display: none;
     }
 }
