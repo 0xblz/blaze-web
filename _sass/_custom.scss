@@ -1,4 +1,35 @@
 // custom page styles
+body.nova-grid {
+    .background-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 1;
+        pointer-events: none;
+    }
+    .keyboard-icon {
+        width: auto;
+        height: 4rem;
+        position: fixed;
+        bottom: 1.5rem;
+        left: 1.5rem;
+        z-index: 9999;
+        backdrop-filter: blur(1rem);
+        -webkit-backdrop-filter: blur(1rem);
+        border-radius: 0.75rem;
+        padding: 0.75rem;
+        &.full {
+            height: 8rem;
+            width: auto;
+        }
+        @media (max-width: 800px) {
+            display: none;
+        }
+    }
+}
+
 body.marbles {
     cursor: auto;
     overflow: hidden;
