@@ -43,5 +43,8 @@
     {% if page.js_file %}
     <script src="/assets/js/{{ page.js_file }}.js"></script>
     {% endif %}
+    
+    <!-- Add this before the closing body tag, with your other scripts -->
+    <script src="{{ '/assets/js/memory.js' | relative_url }}"></script>
 </body>
 </html> 

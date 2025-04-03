@@ -60,7 +60,7 @@ $(document).ready(function() {
     }
 
     // Handle internal page links
-    $('a[data-internal-page]').on('click', function(e) {
+    $('a[data-internal-page]').off('click').on('click', function(e) {
         e.preventDefault();
         // Prevent body scrolling when dialog opens
         $('body').css('overflow', 'hidden');
