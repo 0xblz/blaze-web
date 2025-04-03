@@ -26,9 +26,8 @@ js_file: ethereal
                 {% endif %}
                 <img src="{{ project.image }}" alt="{{ project.title }}" />
             </figure>
-            <h3>{{ project.title }}<br><small>{{ project.platform }}</small></h3>
+            <h3>{{ project.title }}<br><small>{{ project.role }}</small></h3>
         </div>
-        <small>{{ project.role }}, {{ project.year }}</small>
     </a>
     {% endfor %}
 </div>
