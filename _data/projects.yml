@@ -8,6 +8,11 @@
   image: "/assets/images/marbles.jpg"
   external_link: false
 
+- title: "reveal.spline"
+  link: "https://my.spline.design/untitled-71dd7f41996016bd4bd4519ba03666b5/"
+  image: "/assets/images/reveal.jpg"
+  external_link: false
+
 - title: "UNO"
   link: "https://worldcoin.org/ecosystem/app_a4f7f3e62c1de0b9490a5260cb390b56"
   image: "/assets/images/uno-appicon.jpg"
