@@ -1,13 +1,11 @@
 - title: "about.txt"
   link: "about"
   image: "/assets/images/text-file.jpg"
-  role: "Text File"
   external_link: false
 
-- title: "Marbles"
+- title: "Marble Editor"
   link: "marbles"
   image: "/assets/images/marbles.jpg"
-  role: "Experiment"
   external_link: false
 
 - title: "UNO"
