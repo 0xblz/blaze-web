@@ -332,6 +332,9 @@ hr {
             .dialog-content {
                 padding: 0;
                 overflow-y: auto;
+                padding-bottom: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
             }
         }
 
@@ -373,16 +376,37 @@ hr {
             }
         }
 
+        @supports (-webkit-touch-callout: none) {
+            height: -webkit-fill-available;
+            max-height: -webkit-fill-available;
+            
+            @media (max-width: 768px) {
+                height: 100%;
+                max-height: -webkit-fill-available;
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+
         @media (max-width: 768px) {
             width: 100vw;
-            height: 100vh;
+            height: 100dvh;
             max-width: none;
             max-height: none;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0;
-            bottom: 0;
+            position: fixed;
+            inset: 0;
             transform: none;
+            overflow: hidden;
+            padding-bottom: env(safe-area-inset-bottom);
+            
+            .dialog-content {
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                height: calc(100% - 3rem - env(safe-area-inset-bottom));
+                padding-bottom: env(safe-area-inset-bottom);
+            }
             
             &:hover {
                 transform: none;

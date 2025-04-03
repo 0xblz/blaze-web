@@ -33,6 +33,9 @@ $(document).ready(function() {
     // Handle internal page links
     $('a[data-internal-page]').on('click', function(e) {
         e.preventDefault();
+        // Prevent body scrolling when dialog opens
+        $('body').css('overflow', 'hidden');
+        
         const pageUrl = $(this).attr('href');
         const pageTitle = $(this).attr('data-page-title');
         
@@ -104,6 +107,8 @@ $(document).ready(function() {
     
     // Handle dialog close
     $(document).on('click', '.close-dialog', function() {
+        // Re-enable body scrolling when dialog closes
+        $('body').css('overflow', '');
         $(this).closest('.dialog').remove();
     });
 
