@@ -1,3 +1,11 @@
+- title: "about.txt"
+  link: "about"
+  image: "/assets/images/marbles.jpg"
+  platform: "about me"
+  role: "Creator"
+  year: "2025"
+  external_link: false
+
 - title: "Marbles"
   link: "marbles"
   image: "/assets/images/marbles.jpg"
