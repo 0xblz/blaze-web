@@ -17,7 +17,7 @@
     <!-- Add draggable.js -->
     <script src="{{ '/assets/js/draggable.js' | relative_url }}"></script>
 </head>
-<body{% if page.is_experiment %} class="experiment {% if page.custom_css %}{{ page.custom_css }}{% endif %}"{% endif %}>
+<body class="{% if page.custom_css %}{{ page.custom_css }}{% endif %}">
     <main>
         {% if page.url == "/" %}
             {% include header.html %}

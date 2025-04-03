@@ -19,12 +19,21 @@ main {
     }
 }
 
+article {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 1rem;
+}
+
 hr {
     border: 0;
     border-top: 2px solid var(--secondary-color);
     max-width: 2rem;
     margin-top: 1.5rem;
     margin-bottom: 1.5rem;
+    width: 100%;
 }
 
 .desktop {
@@ -60,7 +69,7 @@ hr {
     padding-left: 1rem;
     padding-right: 1rem;
     gap: 1rem;
-    z-index: 9999;
+    z-index: 999;
     backdrop-filter: blur(1rem);
     -webkit-backdrop-filter: blur(1rem);
     position: fixed;
@@ -296,6 +305,20 @@ hr {
         max-height: 800px;
         position: fixed;
         transform: none;
+
+        &[data-page="about.txt"] {
+            max-width: 420px;
+            width: 100%;
+            bottom: 4rem;
+            right: 4rem;
+            top: auto;
+            left: auto;
+            
+            .dialog-content {
+                padding: 0;
+                overflow-y: auto;
+            }
+        }
 
         .dialog-header {
             display: flex;
