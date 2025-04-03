@@ -6,21 +6,21 @@ body {
 }
 h1 {
     font-family: var(--font-secondary);
-    font-size: 1.1rem;
-    line-height: 1.2em;
+    font-size: 1rem;
+    line-height: 1em;
     font-weight: 700;
 }
 
 h2 {
     font-family: var(--font-secondary);
-    font-size: 1.1rem;
-    line-height: 1.2em;
+    font-size: 0.9rem;
+    line-height: 1em;
     font-weight: 400;
     color: var(--primary-color);
 }
 
 h3 {
-    font-size: 1.1rem;
+    font-size: 1rem;
     line-height: 1.2em;
     font-weight: 700;
 }
@@ -28,7 +28,7 @@ h3 {
 h4 {
     text-shadow: 0 0 6rem var(--primary-color);
     color: rgba(255, 255, 255, 0.8);
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     line-height: 1.4em;
     i {
@@ -56,9 +56,9 @@ h5 {
 }
 
 p {
-    font-size: 1.1rem;
+    font-size: 1rem;
     line-height: 1.2em;
-    font-weight: 600;
+    font-weight: 500;
 }
 
 a {
@@ -78,5 +78,5 @@ a {
 small {
     opacity: 0.5;
     font-weight: 700;
-    font-size: 0.8rem;
+    font-size: 80%;
 }

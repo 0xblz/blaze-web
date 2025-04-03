@@ -8,122 +8,194 @@
     <link rel="icon" type="image/jpg" href="/assets/images/avatar.jpg">
     <link rel="stylesheet" href="/assets/css/main.css">
     <script src="https://kit.fontawesome.com/53df3a2a07.js" crossorigin="anonymous"></script>
+    
+    <!-- Add jQuery and jQuery UI -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    
+    <!-- Add draggable.js -->
+    <script src="/assets/js/draggable.js"></script>
+    <script src="/assets/js/date.js"></script>
 </head>
-<body>
+<body class="home">
     <main>
-        <header>
-    
-    <nav>
-        <nav>
-            
-                <div class="avatar">
-                    <img src="/assets/images/avatar.jpg" alt="avatar" />
-                    <h1 class="glitch-effect">blaze</h1>
-                </div>
-            
-        </nav>
-        <nav>
-            
-                <h2>digital designer</h2>
-            
-        </nav>
-    </nav>
-</header>
-        <section>
-            <div id="etherealCanvas" class="background-canvas"></div>
+        
+            <div class="top-bar">
+    <div>
+        
+            <div class="avatar">
+                <img src="/assets/images/avatar.jpg" alt="avatar" />
+                <h1 class="glitch-effect">blaze</h1>
+            </div>
+        
+    </div>
+    <div>
+        <div>
+            <h5>
+                <i class="fa-solid fa-wifi"></i>
+                <small>
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </small>
+                <i class="fa-solid fa-bars-progress"></i>
+                <small>
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </small>
+                <i class="fa-solid fa-bolt pulse"></i>
+            </h5>
+        </div>
+        <div class="hide">
+            <h5>
+                <i class="fa-solid fa-calendar-days"></i>
+                <!-- Date will be inserted by JavaScript -->
+            </h5>
+        </div>
+        <div class="hide">
+            <h5>
+                <i class="fa-solid fa-clock"></i>
+                <!-- Time will be inserted by JavaScript -->
+            </h5>
+        </div>
+    </div>
+</div>
+        
+        <div id="etherealCanvas" class="background-canvas"></div>
 
-<aside>
-    <h5 data-text="<i class='fa-solid fa-code'></i> projects" class="typing-text"></h5>
+<div id="soundcloudPlayer" class="soundcloud-player">
+    <div class="soundcloud-handle"><i class="fa-solid fa-grip"></i></div>
+    <iframe 
+        width="100%" 
+        height="100%" 
+        scrolling="no" 
+        frameborder="no" 
+        allow="autoplay" 
+        src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/slowunknown3/haddaway-what-is-love-special-extended-mix&color=%23ff5500&auto_play=true&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true">
+    </iframe>
+</div>
+
+<div class="desktop">
     
-    <a href="marbles"  class="row-link">
-        <div class="row-link-content">
+    <a href="about" 
+       
+           data-internal-page="about"
+           data-page-title="about.txt"
+        
+       class="shortcut">
+        <div class="shortcut-content">
             <figure>
+                
+                <img src="/assets/images/text-file.jpg" alt="about.txt" />
+            </figure>
+            <h3>about.txt<br><small>Text File</small></h3>
+        </div>
+    </a>
+    
+    <a href="marbles" 
+       
+           data-internal-page="marbles"
+           data-page-title="Marbles"
+        
+       class="shortcut">
+        <div class="shortcut-content">
+            <figure>
+                
                 <img src="/assets/images/marbles.jpg" alt="Marbles" />
             </figure>
-            <h3>Marbles<br><small>Web Experiment</small></h3>
+            <h3>Marbles<br><small>Experiment</small></h3>
         </div>
-        <small>Creator, 2025</small>
     </a>
     
-    <a href="https://worldcoin.org/ecosystem/app_a4f7f3e62c1de0b9490a5260cb390b56" target="_blank" class="row-link">
-        <div class="row-link-content">
+    <a href="https://worldcoin.org/ecosystem/app_a4f7f3e62c1de0b9490a5260cb390b56" 
+       
+           target="_blank"
+        
+       class="shortcut">
+        <div class="shortcut-content">
             <figure>
+                
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                
                 <img src="/assets/images/uno-appicon.jpg" alt="UNO" />
             </figure>
-            <h3>UNO<br><small>World App</small></h3>
+            <h3>UNO<br><small>Team Designer</small></h3>
         </div>
-        <small>Team Designer, 2025</small>
     </a>
     
-    <a href="https://worldcoin.org/ecosystem/app_f1e44837a5e3c2af4da8925b46027645" target="_blank" class="row-link">
-        <div class="row-link-content">
+    <a href="https://worldcoin.org/ecosystem/app_f1e44837a5e3c2af4da8925b46027645" 
+       
+           target="_blank"
+        
+       class="shortcut">
+        <div class="shortcut-content">
             <figure>
+                
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                
                 <img src="/assets/images/oro-appicon.jpg" alt="ORO" />
             </figure>
-            <h3>ORO<br><small>World App</small></h3>
+            <h3>ORO<br><small>Team Designer</small></h3>
         </div>
-        <small>Team Designer, 2025</small>
     </a>
     
-    <a href="https://howstheroads.com" target="_blank" class="row-link">
-        <div class="row-link-content">
+    <a href="https://howstheroads.com" 
+       
+           target="_blank"
+        
+       class="shortcut">
+        <div class="shortcut-content">
             <figure>
+                
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                
                 <img src="https://howstheroads.com/appicon.png" alt="How's the roads?" />
             </figure>
-            <h3>How's the roads?<br><small>Web & iOS</small></h3>
+            <h3>How's the roads?<br><small>Creator</small></h3>
         </div>
-        <small>Creator, 2025</small>
     </a>
     
-    <a href="https://apps.apple.com/us/app/holy-hues/id6740889386" target="_blank" class="row-link">
-        <div class="row-link-content">
+    <a href="https://apps.apple.com/us/app/holy-hues/id6740889386" 
+       
+           target="_blank"
+        
+       class="shortcut">
+        <div class="shortcut-content">
             <figure>
+                
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                
                 <img src="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/8b/24/a9/8b24a947-7eb5-e7ca-aa5a-ab8d1d6989e2/AppIcon-0-0-1x_U007ephone-0-85-220.jpeg/460x0w.webp" alt="Holy Hues" />
             </figure>
-            <h3>Holy Hues<br><small>iOS</small></h3>
+            <h3>Holy Hues<br><small>Creator</small></h3>
         </div>
-        <small>Creator, 2025</small>
     </a>
     
-    <a href="https://party.app" target="_blank" class="row-link">
-        <div class="row-link-content">
+    <a href="https://party.app" 
+       
+           target="_blank"
+        
+       class="shortcut">
+        <div class="shortcut-content">
             <figure>
+                
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                
                 <img src="/assets/images/party-logo.jpg" alt="Party" />
             </figure>
-            <h3>Party<br><small>Web & Mobile</small></h3>
+            <h3>Party<br><small>Team Designer</small></h3>
         </div>
-        <small>Team Designer, 2024</small>
     </a>
     
-</aside>
-
-<aside>
-    <h5 data-text="<i class='fa-solid fa-circle-info'></i> about" class="typing-text"></h5>
-    <h4>
-        I collaborate with innovative companies to design and build creative digital experiences. 
-        At <a href="https://x.com/prtyDAO" target="_blank">PartyDAO</a> (2022–present), I've contributed to the design of <a href="https://party.app" target="_blank">party.app</a> and <a href="https://world.org/ecosystem" target="_blank">World</a> apps, shaping engaging and user-friendly products.
-        <hr>
-        Previously, I was the founding designer at <a href="https://www.crunchbase.com/organization/showtime-732e" target="_blank">Showtime</a> (2021–2022), leading the product design direction. In 2021, I also collaborated with <a href="https://workos.com" target="_blank">WorkOS</a>, creating compelling marketing graphics and visual materials.
-        <hr>
-        From 2015–2017, I worked at <a href="https://bitovi.com" target="_blank">Bitovi</a>, delivering major web projects for brands including <a href="https://lowes.com" target="_blank">Lowe's</a> and <a href="https://levi.com" target="_blank">Levi's</a>. 
-        Prior to this, between 2013–2017, I pursued experimental 3D projects as a freelance designer, including work in space and weather-related visualizations.
-        Early in my career at <a href="https://scribd.com" target="_blank">Scribd</a> (2010–2012), I focused on designing and enhancing their core website.
-        <hr>
-        I'm currently experimenting with AI, weather visualizations, and 3D tools to make complex data more intuitive and engaging.    
-    </h4>
-</aside>
-        </section>
+</div>
         
-            <footer>
-    <nav>
-        <a href="https://x.com/0xblz" target="_blank" class="social-link"><i class="fa-brands fa-x-twitter"></i></a>
-        <a href="https://codepen.io/0xblz" target="_blank" class="social-link"><i class="fa-brands fa-codepen"></i></a>
-        <a href="https://github.com/0xblz/blaze-web" class="social-link" target="_blank"><i class="fa-solid fa-code-branch"></i></a>
-    </nav>
-    <nav>
-        <a href="https://forms.gle/2tDqRA8P79LEguBt8" target="_blank" class="social-link"><i class="fa-solid fa-envelope"></i></a>
-    </nav>
-</footer>
+            <div class="dock">
+    <a href="https://x.com/0xblz" target="_blank" class="social-link"><i class="fa-brands fa-x-twitter"></i></a>
+    <a href="https://codepen.io/0xblz" target="_blank" class="social-link"><i class="fa-brands fa-codepen"></i></a>
+    <a href="https://github.com/0xblz/blaze-web" class="social-link" target="_blank"><i class="fa-solid fa-code-branch"></i></a>
+    <small>
+        <i class="fa-solid fa-ellipsis-vertical"></i>
+    </small>
+    <a href="https://forms.gle/2tDqRA8P79LEguBt8" target="_blank" class="social-link"><i class="fa-solid fa-envelope"></i></a>
+</div>
         
     </main>
     
