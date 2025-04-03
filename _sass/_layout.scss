@@ -89,6 +89,12 @@ hr {
             gap: 0.5rem;
         }
 
+        &.hide {
+            @media (max-width: 768px) {
+                display: none;
+            }
+        }
+
         img {
             width: 1.5rem;
             height: 1.5rem;
