@@ -29,6 +29,32 @@ $(document).ready(function() {
         $(document).on('mousedown', '.dialog', function() {
             $(this).css('z-index', ++zIndexCounter);
         });
+
+        // Initialize SoundCloud player draggable
+        function initSoundCloudDraggable() {
+            const player = $('#soundcloudPlayer');
+            if (player.length) {
+                player.draggable({
+                    containment: 'window',
+                    cursor: 'move',
+                    handle: '.soundcloud-handle', // Add a handle to prevent iframe issues
+                    start: function(event, ui) {
+                        $(this).css('z-index', ++zIndexCounter);
+                    }
+                });
+
+                // Bring player to front when clicked
+                player.on('mousedown', function() {
+                    $(this).css('z-index', ++zIndexCounter);
+                });
+            }
+        }
+
+        // Try to initialize immediately
+        initSoundCloudDraggable();
+
+        // Also try again after a short delay to ensure player is loaded
+        setTimeout(initSoundCloudDraggable, 1000);
     }
 
     // Handle internal page links
