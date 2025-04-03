@@ -82,8 +82,12 @@ hr {
     div {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 2rem;
         flex-wrap: wrap;
+        
+        &.avatar {
+            gap: 0.5rem;
+        }
 
         img {
             width: 1.5rem;
