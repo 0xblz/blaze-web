@@ -107,10 +107,8 @@ $(document).ready(function() {
         $(this).closest('.dialog').remove();
     });
 
-    // Prevent link click during drag
-    $('.shortcut').on('click', function(e) {
-        if ($(this).hasClass('dragging')) {
-            e.preventDefault();
-        }
+    // Prevent native drag only on images and links
+    $('.shortcut img, .shortcut a').on('dragstart', function(e) {
+        e.preventDefault();
     });
 });

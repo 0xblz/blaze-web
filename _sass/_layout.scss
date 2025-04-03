@@ -165,17 +165,20 @@ hr {
     margin: 0;
     position: relative;
     cursor: default;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    -webkit-user-drag: none;
     -webkit-touch-callout: none;
+    outline: none !important;
     
     &:hover,
     &:focus,
     &:active {
         background-color: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(1rem);
-        -webkit-backdrop-filter: blur(1rem);
+        backdrop-filter: blur(0.25rem);
+        -webkit-backdrop-filter: blur(0.25rem);
         color: white;
         transform: scale(1.02);
         cursor: grab;
@@ -246,6 +249,17 @@ hr {
                 user-select: none;
             }
         }
+    }
+
+    a {
+        -webkit-user-drag: none;
+        -webkit-tap-highlight-color: transparent;
+        outline: none !important;
+    }
+
+    img {
+        -webkit-user-drag: none;
+        user-select: none;
     }
 }
 
