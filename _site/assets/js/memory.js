@@ -1,72 +1,105 @@
-let baselineMemory = 0;
-let totalResourceSize = 0;
-
-function formatBytes(bytes) {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i)) + sizes[i];
-}
-
-function calculateResourceSize() {
-    const resources = performance.getEntriesByType('resource');
-    let size = 0;
-    resources.forEach(resource => {
-        if (resource.transferSize) {
-            size += resource.transferSize;
-        }
-    });
-    return size;
-}
-
-function updateMemoryUsage() {
-    try {
-        // Count DOM elements
-        const domElements = document.getElementsByTagName('*').length;
-        
-        // Count active dialogs
-        const activeDialogs = $('.dialog').length;
-        
-        // Count loaded resources
-        const resources = performance.getEntriesByType('resource').length;
-        
-        // Calculate a percentage based on these metrics
-        // Base max on reasonable estimates: 1000 DOM elements, 5 dialogs, 50 resources
-        const maxElements = 1000;
-        const maxDialogs = 5;
-        const maxResources = 50;
-        
-        const elementScore = (domElements / maxElements) * 50; // 50% weight
-        const dialogScore = (activeDialogs / maxDialogs) * 30;  // 30% weight
-        const resourceScore = (resources / maxResources) * 20;  // 20% weight
-        
-        let percentage = Math.round(elementScore + dialogScore + resourceScore);
-        percentage = Math.min(Math.max(percentage, 1), 100); // Keep between 1-100
-        
-        // Update display
-        $('#memoryUsage').text(`${percentage}%`);
-        
-        // Add tooltip with details
-        const tooltip = `DOM Elements: ${domElements}\nActive Dialogs: ${activeDialogs}\nLoaded Resources: ${resources}`;
-        $('#memoryUsage').attr('title', tooltip);
-
-    } catch (error) {
-        console.error('Error measuring usage:', error);
-        $('#memoryUsage').text('--');
-    }
-}
-
-// Update frequently to catch changes
 $(document).ready(function() {
-    // Initial update
+    let baselineNodes = 0;
+    let baselineMemory = 0;
+    let basePercentage = 15;
+
+    function calculateDialogComplexity(dialog) {
+        const elements = dialog.find('*').length;
+        const hasIframe = dialog.find('iframe').length > 0;
+        const textContent = dialog.text().length;
+        const hasImages = dialog.find('img').length > 0;
+        
+        // Calculate complexity score
+        let score = 0;
+        score += elements * 0.5;  // Each element adds 0.5%
+        score += hasIframe ? 15 : 0;  // iframes are heavy
+        score += textContent / 1000;  // Each 1000 chars add 1%
+        score += hasImages ? 5 : 0;  // Images add 5%
+        
+        return score;
+    }
+
+    function calculateResourceUsage() {
+        const resources = performance.getEntriesByType('resource');
+        let score = 0;
+        
+        resources.forEach(resource => {
+            if (resource.transferSize) {
+                // Add 1% per 100KB transferred
+                score += (resource.transferSize / 102400);
+            }
+        });
+        
+        return Math.round(score);
+    }
+
+    function updateMemoryUsage() {
+        try {
+            // Count current elements and calculate base memory
+            const currentNodes = document.getElementsByTagName('*').length;
+            let percentage = basePercentage;
+            
+            // Set baseline on first run
+            if (baselineNodes === 0) {
+                baselineNodes = currentNodes;
+                baselineMemory = calculateResourceUsage();
+            }
+
+            // Calculate DOM growth
+            const nodeDiff = currentNodes - baselineNodes;
+            percentage += Math.round(nodeDiff / 30) * 2; // More granular node counting
+            
+            // Calculate dialog complexity
+            $('.dialog').each(function() {
+                percentage += calculateDialogComplexity($(this));
+            });
+            
+            // Add resource usage
+            const currentResources = calculateResourceUsage();
+            percentage += currentResources - baselineMemory;
+            
+            // Add extra for active animations
+            const activeAnimations = $(':animated').length;
+            percentage += activeAnimations * 2;
+            
+            // Consider canvas elements if present
+            $('canvas').each(function() {
+                const canvas = $(this)[0];
+                const contextType = canvas.getContext('2d') ? '2d' : 
+                                  canvas.getContext('webgl') ? 'webgl' : null;
+                if (contextType === 'webgl') {
+                    percentage += 10; // WebGL contexts use more memory
+                } else if (contextType === '2d') {
+                    percentage += 5; // 2D contexts use less
+                }
+            });
+            
+            // Keep between 15% and 100%
+            percentage = Math.max(15, Math.min(100, Math.round(percentage)));
+            
+            // Update display
+            $('#memoryUsage').text(percentage + '%');
+            
+            // Add detailed tooltip
+            const tooltip = `DOM Elements: ${currentNodes}\n` +
+                          `Baseline Elements: ${baselineNodes}\n` +
+                          `Active Dialogs: ${$('.dialog').length}\n` +
+                          `Resource Score: ${currentResources}%\n` +
+                          `Active Animations: ${activeAnimations}`;
+            $('#memoryUsage').attr('title', tooltip);
+            
+        } catch (error) {
+            console.error('Error:', error);
+            $('#memoryUsage').text('--');
+        }
+    }
+
+    // Update frequently for smoother changes
     updateMemoryUsage();
-    
-    // Regular updates
-    setInterval(updateMemoryUsage, 500);
-    
-    // Update on dialog events
-    $(document).on('click', '.shortcut, .close-dialog', function() {
-        setTimeout(updateMemoryUsage, 100);
-    });
+    setInterval(updateMemoryUsage, 250);
+
+    // Update on various events that might affect memory
+    $(document).on('click', '.shortcut, .close-dialog', updateMemoryUsage);
+    $(document).on('animationstart animationend', updateMemoryUsage);
+    $(window).on('load resize', updateMemoryUsage);
 }); 
