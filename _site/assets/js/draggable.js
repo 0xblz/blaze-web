@@ -15,10 +15,12 @@ $(document).ready(function() {
             containment: '.desktop',
             cursor: 'move',
             start: function(event, ui) {
-                $(this).addClass('dragging');
+                $(this).addClass('dragging')
+                    .css('transform', 'scale(0.9)');
             },
             stop: function(event, ui) {
                 var $shortcut = $(this);
+                $shortcut.css('transform', '');
                 setTimeout(function() {
                     $shortcut.removeClass('dragging');
                 }, 10);
