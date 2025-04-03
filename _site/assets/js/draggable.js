@@ -3,6 +3,11 @@ $(document).ready(function() {
     // Check if device is mobile/tablet
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
     
+    let zIndexCounter = 1000;
+    
+    // Keep track of open dialogs
+    const openDialogs = new Map(); // key: pageTitle, value: dialog element
+    
     // Only enable draggable on desktop
     if (!isMobile) {
         // Make shortcuts draggable
@@ -20,13 +25,9 @@ $(document).ready(function() {
             }
         });
 
-        // Make dialog draggable
-        $('.dialog').draggable({
-            containment: 'window',
-            cursor: 'move',
-            start: function(event, ui) {
-                $(this).css('z-index', 1000);
-            }
+        // Make all dialogs draggable by default
+        $(document).on('mousedown', '.dialog', function() {
+            $(this).css('z-index', ++zIndexCounter);
         });
     }
 
@@ -39,6 +40,20 @@ $(document).ready(function() {
         const pageUrl = $(this).attr('href');
         const pageTitle = $(this).attr('data-page-title');
         
+        // If it's about.txt and already open, just focus it
+        if (pageTitle === 'about.txt' && openDialogs.has(pageTitle)) {
+            const existingDialog = openDialogs.get(pageTitle);
+            existingDialog.css('z-index', ++zIndexCounter);
+            return;
+        }
+        
+        // For other pages, check if already open
+        if (pageTitle !== 'about.txt' && openDialogs.has(pageTitle)) {
+            const existingDialog = openDialogs.get(pageTitle);
+            existingDialog.css('z-index', ++zIndexCounter);
+            return;
+        }
+
         // Create and append dialog
         const dialog = $('<div class="dialog internal-page-dialog"' + 
             (pageTitle === 'about.txt' ? ' data-page="about.txt"' : '') + '>' +
@@ -65,8 +80,12 @@ $(document).ready(function() {
             '</div>' +
             '</div>');
         
-        // Add dialog to body and position it
+        // Add dialog to body and store reference
         $('body').append(dialog);
+        openDialogs.set(pageTitle, dialog);
+        
+        // Set initial z-index
+        dialog.css('z-index', ++zIndexCounter);
 
         // Initialize typing animation
         const $typingText = dialog.find('.typing-text');
@@ -99,7 +118,7 @@ $(document).ready(function() {
                 cursor: 'move',
                 cancel: '.close-dialog, iframe', // Prevent dragging from close button and iframe
                 start: function(event, ui) {
-                    $(this).css('z-index', 9999);
+                    $(this).css('z-index', ++zIndexCounter);
                 }
             });
         }
@@ -109,7 +128,10 @@ $(document).ready(function() {
     $(document).on('click', '.close-dialog', function() {
         // Re-enable body scrolling when dialog closes
         $('body').css('overflow', '');
-        $(this).closest('.dialog').remove();
+        const dialog = $(this).closest('.dialog');
+        const pageTitle = dialog.find('.typing-text').data('text').match(/> (.*?)$/)[1];
+        openDialogs.delete(pageTitle);
+        dialog.remove();
     });
 
     // Prevent native drag only on images and links
