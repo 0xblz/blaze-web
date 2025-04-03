@@ -165,16 +165,6 @@ hr {
     -webkit-tap-highlight-color: transparent;
     -webkit-user-drag: none;
     -webkit-touch-callout: none;
-
-    @media (max-width: 768px) {
-        width: 10rem;
-        min-width: 10rem;
-        height: 10rem;
-        min-height: 10rem;
-        backdrop-filter: blur(1rem);
-        -webkit-backdrop-filter: blur(1rem);
-        background-color: rgba(255, 255, 255, 0.05);
-    }
     
     &:hover,
     &:focus,
@@ -184,11 +174,21 @@ hr {
         -webkit-backdrop-filter: blur(1rem);
         color: white;
         transform: scale(1.02);
-        cursor: move;
+        cursor: grab;
         
         figure {
             transform: scale(1.1) rotate(-5deg);
         }
+    }
+
+    @media (max-width: 768px) {
+        width: 10rem;
+        min-width: 10rem;
+        height: 10rem;
+        min-height: 10rem;
+        backdrop-filter: blur(1rem);
+        -webkit-backdrop-filter: blur(1rem);
+        background-color: rgba(255, 255, 255, 0.05);
     }
 
     &.dragging {
@@ -218,6 +218,24 @@ hr {
             box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.1);
             background-color: rgba(255, 255, 255, 0.1);
+            position: relative;
+            i {
+                display: flex;
+                flex-direction: column;
+                width: 1.5rem;
+                height: 1.5rem;
+                font-size: 0.8rem;
+                border-radius: 9999px;
+                background-color: rgba(0, 0, 0, 0.2);
+                backdrop-filter: blur(1rem);
+                -webkit-backdrop-filter: blur(1rem);
+                color: white;
+                align-items: center;
+                justify-content: center;
+                position: absolute;
+                top: 0;
+                right: 0;
+            }
             
             img {
                 width: 100%;
@@ -252,7 +270,7 @@ hr {
     backdrop-filter: blur(2rem);
     -webkit-backdrop-filter: blur(2rem);
     z-index: 999;
-    cursor: move;
+    cursor: grab;
 
     &::after {
         content: '';

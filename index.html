@@ -14,6 +14,9 @@ js_file: ethereal
     <a href="{{ project.link }}" {% if project.external_link %}target="_blank"{% endif %} class="shortcut">
         <div class="shortcut-content">
             <figure>
+                {% if project.external_link %}
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                {% endif %}
                 <img src="{{ project.image }}" alt="{{ project.title }}" />
             </figure>
             <h3>{{ project.title }}<br><small>{{ project.platform }}</small></h3>
