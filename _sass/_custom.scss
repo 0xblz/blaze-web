@@ -2,22 +2,7 @@
 body.marbles {
     cursor: auto;
     overflow: hidden;
-    background: 
-        radial-gradient(
-            circle at 50% 100%,
-            rgba(white,1) 0%,
-            rgba(gray,0) 45%,
-            rgba(gray,0) 100%
-        ),
-        linear-gradient(
-            180deg,
-            gray 0%,
-            lightgray 55%,
-            white 65%,
-            lightgray 85%,
-            lightgray 90%,
-            gray 100%
-        );
+    background: linear-gradient(to bottom, #000, #222);
     color: var(--tertiary-color);
     
     canvas {
@@ -42,7 +27,7 @@ body.marbles {
     }
 
     &.a {
-        box-shadow: 0 2rem 2rem white !important;
+        box-shadow: 0 2rem 2rem var(--secondary-color) !important;
     }
 
     .c {
