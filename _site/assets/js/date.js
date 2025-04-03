@@ -2,13 +2,11 @@ $(document).ready(function() {
     function updateDateTime() {
         const now = new Date();
         
-        // Format date: April 3, 2024
-        const dateOptions = { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        };
-        const formattedDate = now.toLocaleDateString('en-US', dateOptions);
+        // Format date: DD.MM.YYYY
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const formattedDate = `${day}.${month}.${year}`;
         
         // Format time: 12:04 pm
         const timeOptions = { 

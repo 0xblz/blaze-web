@@ -41,7 +41,12 @@
     </script>
     
     {% if page.js_file %}
-    <script src="/assets/js/{{ page.js_file }}.js"></script>
+        <script src="/assets/js/{{ page.js_file }}.js"></script>
+    {% endif %}
+    
+    {% if page.url == "/" %}
+        <script src="{{ '/assets/js/memory.js' | relative_url }}"></script>
+        <script src="{{ '/assets/js/wifi.js' | relative_url }}"></script>
     {% endif %}
 </body>
 </html> 

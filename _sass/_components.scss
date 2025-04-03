@@ -26,6 +26,11 @@
     border-radius: 8px; 
     overflow: hidden; 
     box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    transition: transform 0.2s ease-in-out;
+    
+    &:hover {
+        transform: scale(1.05);
+    }
 
     @media (max-width: 800px) {
         display: none;

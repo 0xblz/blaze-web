@@ -15,10 +15,12 @@ $(document).ready(function() {
             containment: '.desktop',
             cursor: 'move',
             start: function(event, ui) {
-                $(this).addClass('dragging');
+                $(this).addClass('dragging')
+                    .css('transform', 'scale(0.9)');
             },
             stop: function(event, ui) {
                 var $shortcut = $(this);
+                $shortcut.css('transform', '');
                 setTimeout(function() {
                     $shortcut.removeClass('dragging');
                 }, 10);
@@ -58,7 +60,7 @@ $(document).ready(function() {
     }
 
     // Handle internal page links
-    $('a[data-internal-page]').on('click', function(e) {
+    $('a[data-internal-page]').off('click').on('click', function(e) {
         e.preventDefault();
         // Prevent body scrolling when dialog opens
         $('body').css('overflow', 'hidden');
@@ -140,7 +142,6 @@ $(document).ready(function() {
         // Make draggable
         if (!isMobile) {
             dialog.draggable({
-                containment: 'window',
                 cursor: 'move',
                 cancel: '.close-dialog, iframe', // Prevent dragging from close button and iframe
                 start: function(event, ui) {
