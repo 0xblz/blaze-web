@@ -41,11 +41,12 @@
     </script>
     
     {% if page.js_file %}
-    <script src="/assets/js/{{ page.js_file }}.js"></script>
+        <script src="/assets/js/{{ page.js_file }}.js"></script>
     {% endif %}
     
-    <!-- Add this before the closing body tag, with your other scripts -->
-    <script src="{{ '/assets/js/memory.js' | relative_url }}"></script>
-    <script src="{{ '/assets/js/wifi.js' | relative_url }}"></script>
+    {% if page.url == "/" %}
+        <script src="{{ '/assets/js/memory.js' | relative_url }}"></script>
+        <script src="{{ '/assets/js/wifi.js' | relative_url }}"></script>
+    {% endif %}
 </body>
 </html> 
