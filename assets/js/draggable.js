@@ -142,7 +142,6 @@ $(document).ready(function() {
         // Make draggable
         if (!isMobile) {
             dialog.draggable({
-                containment: 'window',
                 cursor: 'move',
                 cancel: '.close-dialog, iframe', // Prevent dragging from close button and iframe
                 start: function(event, ui) {
