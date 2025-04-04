@@ -313,15 +313,7 @@ hr {
         position: fixed;
         transform: none;
 
-        &[data-page="about.txt"] {
-            max-width: 640px;
-            max-height: 420px;
-            width: 100%;
-            bottom: 4rem;
-            right: 4rem;
-            top: auto;
-            left: auto;
-
+        &[data-page="txt"] {
             @media (max-width: 768px), (max-height: 640px) {
                 max-width: 100vw;
                 max-height: 100vh;
@@ -364,6 +356,7 @@ hr {
             width: 100%;
             height: calc(100% - 3rem);
             position: relative;
+            overflow-y: auto;
 
             iframe {
                 width: 100%;

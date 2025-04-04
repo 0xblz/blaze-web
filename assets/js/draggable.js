@@ -139,12 +139,6 @@ $(document).ready(function() {
                     'height': '420px'
                 });
             }
-            
-            // Add scrolling to dialog content for txt files
-            dialog.find('.dialog-content').css({
-                'overflow-y': 'auto',
-                'height': '100%'
-            });
         }
 
         // Center all dialogs
