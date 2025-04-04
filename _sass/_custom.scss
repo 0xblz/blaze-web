@@ -33,7 +33,13 @@ body.nova-grid {
 body.marbles {
     cursor: auto;
     overflow: hidden;
-    background: linear-gradient(to bottom, #000, #222);
+    background-color: black;
+    background-image: 
+        radial-gradient(circle at center, black 0%, transparent 100%),
+        url('/assets/images/scratch-pattern.svg');
+    background-size: 100% 100%, 10rem 10rem;
+    background-position: center, center;
+    background-repeat: no-repeat, repeat;
     color: var(--tertiary-color);
     
     canvas {

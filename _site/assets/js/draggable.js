@@ -86,7 +86,7 @@ $(document).ready(function() {
         const dialog = $('<div class="dialog internal-page-dialog"' + 
             (pageTitle === 'about.txt' ? ' data-page="about.txt"' : '') + '>' +
             '<div class="dialog-header">' +
-            '<h5 class="typing-text" data-text="<i class=\'fa-solid fa-file-lines\'></i> ' + pageTitle + '"></h5>' +
+            '<h5 class="typing-text" data-text="<i class=\'fa-solid fa-file\'></i> ' + pageTitle + '"></h5>' +
             '<button class="close-dialog"><i class="fa-solid fa-xmark"></i></button>' +
             '</div>' +
             '<div class="dialog-content">' +
