@@ -1,5 +1,5 @@
 - title: "about.txt"
-  link: "about"
+  link: "/about.txt"
   image: "/assets/images/text-file.jpg"
   external_link: false
 
