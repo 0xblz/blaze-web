@@ -31,8 +31,8 @@
   external_link: true
 
 - title: "How's the roads?"
-  link: "https://howstheroads.com"
-  image: "https://howstheroads.com/appicon.png"
+  link: "https://apps.apple.com/us/app/hows-the-roads/id6742173400"
+  image: "/assets/images/roads-appicon.png"
   role: "Creator"
   external_link: true
 
