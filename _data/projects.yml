@@ -18,6 +18,12 @@
   image: "/assets/images/reveal.jpg"
   external_link: false
 
+- title: "LiteSpend"
+  link: "https://apps.apple.com/us/app/litespend/id6744382463"
+  image: "/assets/images/litespend-appicon.jpg"
+  role: "Creator"
+  external_link: true
+
 - title: "UNO"
   link: "https://worldcoin.org/ecosystem/app_a4f7f3e62c1de0b9490a5260cb390b56"
   image: "/assets/images/uno-appicon.jpg"
@@ -38,7 +44,7 @@
 
 - title: "Holy Hues"
   link: "https://apps.apple.com/us/app/holy-hues/id6740889386"
-  image: "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/8b/24/a9/8b24a947-7eb5-e7ca-aa5a-ab8d1d6989e2/AppIcon-0-0-1x_U007ephone-0-85-220.jpeg/460x0w.webp"
+  image: "/assets/images/holyhues-appicon.jpg"
   role: "Creator"
   external_link: true
 
