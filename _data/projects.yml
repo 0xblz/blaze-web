@@ -18,12 +18,6 @@
   image: "/assets/images/reveal.jpg"
   external_link: false
 
-- title: "LiteSpend"
-  link: "https://apps.apple.com/us/app/litespend/id6744382463"
-  image: "/assets/images/litespend-appicon.jpg"
-  role: "Creator"
-  external_link: true
-
 - title: "UNO"
   link: "https://worldcoin.org/ecosystem/app_a4f7f3e62c1de0b9490a5260cb390b56"
   image: "/assets/images/uno-appicon.jpg"
