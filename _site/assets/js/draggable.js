@@ -155,6 +155,13 @@ $(document).ready(function() {
                 start: function(event, ui) {
                     $(this).css('z-index', ++zIndexCounter);
                 }
+            }).resizable({
+                minHeight: 200,
+                minWidth: 300,
+                handles: 'all',
+                start: function(event, ui) {
+                    $(this).css('z-index', ++zIndexCounter);
+                }
             });
         }
     }
