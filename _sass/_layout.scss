@@ -118,7 +118,7 @@ hr {
     align-items: center;
     gap: 0.5rem;
     padding: 1rem;
-    z-index: 999;
+    z-index: 400;
     backdrop-filter: blur(1rem);
     -webkit-backdrop-filter: blur(1rem);
     position: fixed;
@@ -432,6 +432,7 @@ hr {
 }
 .tippy-arrow {
     color: rgba(255, 255, 255, 0.1);
+    background: linear-gradient(to top, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
     filter: blur(1px);
     backdrop-filter: blur(1rem);
     -webkit-backdrop-filter: blur(1rem);
