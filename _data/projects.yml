@@ -5,6 +5,20 @@
   type: "Text File"
   role: "hello 😄"
 
+# - title: "LiteSpend"
+#   link: "litespend"
+#   image: "/assets/images/litespend-appicon.jpg"
+#   external_link: false
+#   type: "Local App"
+#   role: "Creator"
+
+# - title: "Weather Test"
+#   link: "weather"
+#   image: "/assets/images/weather.jpg"
+#   external_link: false
+#   type: "Local App"
+#   role: "Creator"
+
 - title: "Marble Editor"
   link: "marbles"
   image: "/assets/images/marbles.jpg"

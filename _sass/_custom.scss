@@ -1,4 +1,10 @@
 // custom page styles
+body.weather {
+    background: var(--tertiary-color);
+    font-size: 3rem;
+}
+
+// Nova Grid
 body.nova-grid {
     .background-canvas {
         position: fixed;
@@ -30,6 +36,7 @@ body.nova-grid {
     }
 }
 
+// Marble Editor
 body.marbles {
     cursor: auto;
     overflow: hidden;
@@ -55,40 +62,3 @@ body.marbles {
         overflow: hidden;
     }
 } 
-
-// custom dat.gui styles
-.dg {
-    & > * {
-        font-family: 'DM Sans', sans-serif !important;
-        font-weight: 700 !important;
-    }
-
-    &.a {
-        box-shadow: 0 2rem 2rem var(--secondary-color) !important;
-    }
-
-    .c {
-        .slider-fg {
-            background-color: var(--secondary-color) !important;
-        }
-    }
-
-    .cr.number input[type=text] {
-        color: var(--secondary-color) !important;
-    }
-
-    &.ac {
-        z-index: 9999 !important;
-    }
-
-    .close-button {
-        height: 2.5rem !important;
-        line-height: 2.5rem !important;
-        background-color: white !important;
-        color: var(--tertiary-color) !important;
-        border-bottom-left-radius: 0.75rem !important;
-        border-bottom-right-radius: 0.75rem !important;
-        font-size: 12px;
-        text-shadow: none !important;
-    }
-}
