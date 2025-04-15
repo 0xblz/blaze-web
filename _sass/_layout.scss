@@ -4,6 +4,10 @@ html {
 }
 body {
     background: linear-gradient(to bottom, var(--tertiary-color), var(--primary-color));
+    overflow: hidden;
+    @media (max-width: 768px), (max-height: 640px) {
+        overflow: auto;
+    }
 }
 
 main {
