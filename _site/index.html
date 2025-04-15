@@ -15,6 +15,12 @@
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     
+    <!-- Add Tippy.js -->
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light.css">
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/scale.css">
+
     <!-- Add draggable.js -->
     <script src="/assets/js/draggable.js"></script>
     <script src="/assets/js/date.js"></script>
@@ -83,13 +89,14 @@
            data-internal-page="/about.txt"
            data-page-title="about.txt"
         
-       class="shortcut">
+       class="shortcut"
+       data-tippy-content="hello 😄">
         <div class="shortcut-content">
             <figure>
                 
                 <img src="/assets/images/text-file.jpg" alt="about.txt" />
             </figure>
-            <h3>about.txt<br><small></small></h3>
+            <h3>about.txt<br><small>Text File</small></h3>
         </div>
     </a>
     
@@ -98,13 +105,14 @@
            data-internal-page="marbles"
            data-page-title="Marble Editor"
         
-       class="shortcut">
+       class="shortcut"
+       data-tippy-content="Creator">
         <div class="shortcut-content">
             <figure>
                 
                 <img src="/assets/images/marbles.jpg" alt="Marble Editor" />
             </figure>
-            <h3>Marble Editor<br><small></small></h3>
+            <h3>Marble Editor<br><small>Local App</small></h3>
         </div>
     </a>
     
@@ -113,13 +121,14 @@
            data-internal-page="nova-grid"
            data-page-title="Nova Grid"
         
-       class="shortcut">
+       class="shortcut"
+       data-tippy-content="Creator">
         <div class="shortcut-content">
             <figure>
                 
                 <img src="/assets/images/nova-grid.jpg" alt="Nova Grid" />
             </figure>
-            <h3>Nova Grid<br><small></small></h3>
+            <h3>Nova Grid<br><small>Local App</small></h3>
         </div>
     </a>
     
@@ -128,13 +137,14 @@
            data-internal-page="https://my.spline.design/untitled-71dd7f41996016bd4bd4519ba03666b5/"
            data-page-title="reveal.spline"
         
-       class="shortcut">
+       class="shortcut"
+       data-tippy-content="Creator">
         <div class="shortcut-content">
             <figure>
                 
                 <img src="/assets/images/reveal.jpg" alt="reveal.spline" />
             </figure>
-            <h3>reveal.spline<br><small></small></h3>
+            <h3>reveal.spline<br><small>Spline</small></h3>
         </div>
     </a>
     
@@ -142,7 +152,8 @@
        
            target="_blank"
         
-       class="shortcut">
+       class="shortcut"
+       data-tippy-content="Team Designer">
         <div class="shortcut-content">
             <figure>
                 
@@ -150,7 +161,7 @@
                 
                 <img src="/assets/images/uno-appicon.jpg" alt="UNO" />
             </figure>
-            <h3>UNO<br><small>Team Designer</small></h3>
+            <h3>UNO<br><small>World Mini App</small></h3>
         </div>
     </a>
     
@@ -158,7 +169,8 @@
        
            target="_blank"
         
-       class="shortcut">
+       class="shortcut"
+       data-tippy-content="Team Designer">
         <div class="shortcut-content">
             <figure>
                 
@@ -166,7 +178,7 @@
                 
                 <img src="/assets/images/oro-appicon.jpg" alt="ORO" />
             </figure>
-            <h3>ORO<br><small>Team Designer</small></h3>
+            <h3>ORO<br><small>World Mini App</small></h3>
         </div>
     </a>
     
@@ -174,7 +186,8 @@
        
            target="_blank"
         
-       class="shortcut">
+       class="shortcut"
+       data-tippy-content="Creator">
         <div class="shortcut-content">
             <figure>
                 
@@ -182,7 +195,7 @@
                 
                 <img src="/assets/images/roads-appicon.png" alt="How's the roads?" />
             </figure>
-            <h3>How's the roads?<br><small>Creator</small></h3>
+            <h3>How's the roads?<br><small>iOS App</small></h3>
         </div>
     </a>
     
@@ -190,7 +203,8 @@
        
            target="_blank"
         
-       class="shortcut">
+       class="shortcut"
+       data-tippy-content="Creator">
         <div class="shortcut-content">
             <figure>
                 
@@ -198,7 +212,7 @@
                 
                 <img src="/assets/images/holyhues-appicon.jpg" alt="Holy Hues" />
             </figure>
-            <h3>Holy Hues<br><small>Creator</small></h3>
+            <h3>Holy Hues<br><small>iOS App</small></h3>
         </div>
     </a>
     
@@ -206,7 +220,8 @@
        
            target="_blank"
         
-       class="shortcut">
+       class="shortcut"
+       data-tippy-content="Team Designer">
         <div class="shortcut-content">
             <figure>
                 
@@ -214,19 +229,19 @@
                 
                 <img src="/assets/images/party-logo.jpg" alt="Party" />
             </figure>
-            <h3>Party<br><small>Team Designer</small></h3>
+            <h3>Party<br><small>Web App</small></h3>
         </div>
     </a>
     
 </div>
         
             <div class="dock">
-    <a href="https://x.com/0xblz" target="_blank" class="social-link"><i class="fa-brands fa-x-twitter"></i></a>
-    <a href="https://github.com/0xblz/blaze-web" class="social-link" target="_blank"><i class="fa-solid fa-code-branch"></i></a>
+    <a href="https://x.com/0xblz" target="_blank" class="social-link" data-tippy-content="Follow me on X"><i class="fa-brands fa-x-twitter"></i></a>
+    <a href="https://github.com/0xblz/blaze-web" class="social-link" target="_blank" data-tippy-content="Project Source"><i class="fa-solid fa-code-branch"></i></a>
     <small>
         <i class="fa-solid fa-ellipsis-vertical"></i>
     </small>
-    <a href="https://forms.gle/2tDqRA8P79LEguBt8" target="_blank" class="social-link"><i class="fa-solid fa-envelope"></i></a>
+    <a href="https://forms.gle/2tDqRA8P79LEguBt8" target="_blank" class="social-link" data-tippy-content="Contact"><i class="fa-solid fa-envelope"></i></a>
 </div>
         
     </main>
@@ -247,6 +262,16 @@
     
         <script src="/assets/js/memory.js"></script>
         <script src="/assets/js/wifi.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                tippy('[data-tippy-content]', {
+                    placement: 'top',
+                    animation: 'scale',
+                    arrow: true,
+                    duration: 200
+                });
+            });
+        </script>
     
 </body>
 </html> 

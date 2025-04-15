@@ -2,49 +2,62 @@
   link: "/about.txt"
   image: "/assets/images/text-file.jpg"
   external_link: false
+  type: "Text File"
+  role: "hello 😄"
 
 - title: "Marble Editor"
   link: "marbles"
   image: "/assets/images/marbles.jpg"
   external_link: false
+  type: "Local App"
+  role: "Creator"
 
 - title: "Nova Grid"
   link: "nova-grid"
   image: "/assets/images/nova-grid.jpg"
   external_link: false
+  type: "Local App"
+  role: "Creator"
 
 - title: "reveal.spline"
   link: "https://my.spline.design/untitled-71dd7f41996016bd4bd4519ba03666b5/"
   image: "/assets/images/reveal.jpg"
   external_link: false
+  type: "Spline"
+  role: "Creator"
 
 - title: "UNO"
   link: "https://worldcoin.org/ecosystem/app_a4f7f3e62c1de0b9490a5260cb390b56"
   image: "/assets/images/uno-appicon.jpg"
   role: "Team Designer"
   external_link: true
+  type: "World Mini App"
 
 - title: "ORO"
   link: "https://worldcoin.org/ecosystem/app_f1e44837a5e3c2af4da8925b46027645"
   image: "/assets/images/oro-appicon.jpg"
   role: "Team Designer"
   external_link: true
+  type: "World Mini App"
 
 - title: "How's the roads?"
   link: "https://apps.apple.com/us/app/hows-the-roads/id6742173400"
   image: "/assets/images/roads-appicon.png"
   role: "Creator"
   external_link: true
+  type: "iOS App"
 
 - title: "Holy Hues"
   link: "https://apps.apple.com/us/app/holy-hues/id6740889386"
   image: "/assets/images/holyhues-appicon.jpg"
   role: "Creator"
   external_link: true
+  type: "iOS App"
 
 - title: "Party"
   link: "https://party.app"
   image: /assets/images/party-logo.jpg
   role: "Team Designer"
   external_link: true
+  type: "Web App"
 

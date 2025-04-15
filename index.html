@@ -31,7 +31,8 @@ custom_css: home
            data-internal-page="{{ project.link }}"
            data-page-title="{{ project.title }}"
        {% endif %} 
-       class="shortcut">
+       class="shortcut"
+       {% if project.role %}data-tippy-content="{{ project.role }}"{% endif %}>
         <div class="shortcut-content">
             <figure>
                 {% if project.external_link %}
@@ -39,7 +40,7 @@ custom_css: home
                 {% endif %}
                 <img src="{{ project.image }}" alt="{{ project.title }}" />
             </figure>
-            <h3>{{ project.title }}<br><small>{{ project.role }}</small></h3>
+            <h3>{{ project.title }}<br><small>{{ project.type }}</small></h3>
         </div>
     </a>
     {% endfor %}

@@ -23,8 +23,8 @@ let scene, camera, renderer, marble, controls, gui;
 
 // Marble parameters
 const params = {
-    baseColor: '#08919e',
-    accentColor: '#ebd292',
+    baseColor: '#190975',
+    accentColor: '#dd92eb',
     patternComplexity: 0.9,
     patternScale: 1.0,
     swirlIntensity: 1,
