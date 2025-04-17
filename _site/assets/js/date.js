@@ -19,11 +19,11 @@ $(document).ready(function() {
         
         // Update the DOM
         $('.fa-calendar-days').parent().html(
-            '<i class="fa-solid fa-calendar-days"></i> ' + formattedDate
+            '<i class="fa-solid fa-calendar-days soft"></i> ' + formattedDate
         );
         
         $('.fa-clock').parent().html(
-            '<i class="fa-solid fa-clock"></i> ' + formattedTime
+            '<i class="fa-solid fa-clock soft"></i> ' + formattedTime
         );
     }
 
