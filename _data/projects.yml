@@ -23,21 +23,14 @@
   link: "marbles"
   image: "/assets/images/marbles.jpg"
   external_link: false
-  type: "Local App"
+  type: "Experiment"
   role: "Creator"
 
 - title: "Nova Grid"
   link: "nova-grid"
   image: "/assets/images/nova-grid.jpg"
   external_link: false
-  type: "Local App"
-  role: "Creator"
-
-- title: "reveal.spline"
-  link: "https://my.spline.design/untitled-71dd7f41996016bd4bd4519ba03666b5/"
-  image: "/assets/images/reveal.jpg"
-  external_link: false
-  type: "Spline"
+  type: "Experiment"
   role: "Creator"
 
 - title: "UNO"
