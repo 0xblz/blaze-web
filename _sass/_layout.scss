@@ -3,7 +3,12 @@ html {
     background: var(--tertiary-color);
 }
 body {
-    background: linear-gradient(to bottom, var(--tertiary-color), var(--primary-color));
+    background: 
+        url('/assets/images/pattern.png'),
+        linear-gradient(-135deg, var(--quaternary-color) 0%, var(--primary-color) 70%, var(--secondary-color) 100%);
+    background-size: 4rem 4rem, cover;
+    background-position: center, center;
+    background-repeat: repeat, no-repeat;
     overflow: hidden;
     @media (max-width: 768px), (max-height: 640px) {
         overflow: auto;
@@ -38,7 +43,8 @@ article {
 
 hr {
     border: 0;
-    border-top: 2px solid var(--secondary-color);
+    border-top: 2px solid white;
+    border-radius: 9999px;
     max-width: 2rem;
     margin-top: 1.5rem;
     margin-bottom: 1.5rem;
@@ -55,7 +61,7 @@ hr {
     overflow: hidden;
     padding: 1rem;
     position: relative;
-    padding-top: 4rem;
+    padding-top: 3.5rem;
     justify-content: flex-end;
     align-content: flex-start;
     min-height: 100vh;
@@ -69,22 +75,24 @@ hr {
 .top-bar {
     display: flex;
     width: 100%;
-    animation: fade 0.4s ease-in-out;
+    animation: slide-down 0.4s ease-in-out;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    height: 3rem;
+    height: 2.5rem;
     padding-left: 1rem;
     padding-right: 1rem;
     gap: 1rem;
     z-index: 400;
     backdrop-filter: blur(1rem);
+    box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     -webkit-backdrop-filter: blur(1rem);
     position: fixed;
+    background-color: rgba(0, 0, 0, 0.1);
     top: 0;
     width: 100%;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     
     div {
         display: flex;
@@ -113,7 +121,7 @@ hr {
 .dock {
     transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
     display: flex;
-    animation: slide-up 0.4s ease-in-out;
+    animation: slide-up 0.6s ease-in-out;
     flex-direction: row;
     align-items: center;
     gap: 0.5rem;
@@ -123,7 +131,7 @@ hr {
     -webkit-backdrop-filter: blur(1rem);
     position: fixed;
     bottom: 1rem;
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.1);
     border-radius: 1.5rem;
     box-shadow: 0 1rem 2rem 0 rgba(0, 0, 0, 0.2);
 
@@ -227,7 +235,9 @@ hr {
             overflow: hidden;
             box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.1);
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(1rem);
+            -webkit-backdrop-filter: blur(1rem);
             position: relative;
 
             i {
@@ -272,7 +282,7 @@ hr {
 
 .dialog {
     transition: transform 0.2s ease-in-out;
-    animation: fade 0.3s ease-in-out;
+    animation: fade 0.4s ease-in-out;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -284,11 +294,11 @@ hr {
     overflow: hidden;
     padding: 1rem;
     border-radius: 1rem;
-    border: 4px solid var(--primary-color);
+    border: 2px solid rgba(255, 255, 255, 0.4);
     box-shadow: 0 1rem 2rem 0 rgba(0, 0, 0, 0.2);
     max-width: 420px;
     width: 100%;
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(3rem);
     -webkit-backdrop-filter: blur(3rem);
     z-index: 999;
@@ -340,12 +350,16 @@ hr {
         }
 
         .close-dialog {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.2);
             transition: transform 0.2s ease-in-out;
             border: none;
-            background-color: transparent;
             color: white;
-            font-size: 1rem;
+            font-size: 0.8rem;
             cursor: pointer;
+            border: 2px solid white;
             &:hover,
             &:focus {
                 transform: scale(1.1);
@@ -358,7 +372,7 @@ hr {
         .dialog-content {
             flex: 1;
             width: 100%;
-            height: calc(100% - 3rem);
+            height: calc(100% - 2.5rem);
             position: relative;
             overflow-y: auto;
 
@@ -421,14 +435,15 @@ hr {
 .tippy-box {
     font-family: var(--font-primary);
     font-weight: 800;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(1rem);
     -webkit-backdrop-filter: blur(1rem);
     color: white;
     font-size: 13px;
     border-radius: 9999px;
     padding: 0.125rem 0.25rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.1);
+    top: 1.5rem;
 }
 .tippy-arrow {
     display: none;

@@ -1,6 +1,6 @@
 - title: "about.txt"
   link: "/about.txt"
-  image: "/assets/images/text-file.jpg"
+  image: "/assets/images/text-file.png"
   external_link: false
   type: "Text File"
   role: "hello 😄"
