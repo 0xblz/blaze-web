@@ -6,6 +6,8 @@ html {
 body {
     position: relative;
     overflow: hidden;
+    transition: opacity 0.3s ease-in-out;
+    overflow-x: hidden;
     background: 
         url('/assets/images/pattern.png'),
         repeating-linear-gradient(
@@ -29,7 +31,26 @@ body {
     background-size: 3rem 3rem, cover, 200% 200%;
     background-position: center center, center center, 0% 50%;
     background-repeat: repeat, repeat, cover;
-    animation: holo 8s linear infinite;
+    animation: holo 12s linear infinite;
+    
+    // Simple mode styles
+    &.simple-mode {
+        background: 
+            url('/assets/images/pattern.png'),
+            linear-gradient(
+                to bottom,
+                var(--tertiary-color),
+                var(--tertiary-color)
+            );
+        background-size: 3rem 3rem, cover;
+        background-position: center center, center center;
+        background-repeat: repeat, no-repeat;
+        animation: none;
+        
+        &::before {
+            opacity: 0;
+        }
+    }
     
     &::before {
         content: '';
@@ -49,7 +70,9 @@ body {
             );
         pointer-events: none;
         mix-blend-mode: overlay;
-        animation: holo 10s linear infinite;
+        animation: holo 8s linear infinite;
+        transition: opacity 0.3s ease-in-out;
+        opacity: 1;
     }
 
     @media (max-width: 768px), (max-height: 640px) {
@@ -136,10 +159,35 @@ hr {
     top: 0;
     width: 100%;
     
+    button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        width: 1.5rem;
+        height: 1.5rem;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 9999px;
+        border: none;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        color: inherit;
+        font: inherit;
+        font-size: 0.8rem;
+        
+        &:hover {
+            transform: scale(1.1);
+        }
+        &:active {
+            transform: scale(0.9);
+        }
+    }
+    
     div {
         display: flex;
         align-items: center;
-        gap: 2rem;
+        gap: 1rem;
         flex-wrap: wrap;
         
         &.avatar {
@@ -337,7 +385,7 @@ hr {
     overflow: hidden;
     padding: 1rem;
     border-radius: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.4);
     box-shadow: 0 1rem 2rem 0 rgba(0, 0, 0, 0.2);
     max-width: 420px;
     width: 100%;
