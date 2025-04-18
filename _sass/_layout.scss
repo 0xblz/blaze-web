@@ -6,7 +6,17 @@ html {
 body {
     position: relative;
     overflow: hidden;
-    background: var(--tertiary-color);
+    background: 
+        url('/assets/images/pattern.png'),
+        linear-gradient(45deg, 
+            var(--secondary-color) 0%, 
+            var(--primary-color) 50%,
+            var(--primary-color) 65%,
+            var(--secondary-color) 100%
+        );
+    background-size: 4rem 4rem, cover;
+    background-position: center center, center center;
+    background-repeat: repeat, no-repeat;
     @media (max-width: 768px), (max-height: 640px) {
         overflow: auto;
     }
