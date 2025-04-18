@@ -21,36 +21,17 @@ body {
             90deg, 
             var(--quaternary-color) 0%,
             var(--primary-color) 10%,
-            var(--secondary-color) 25%,
+            var(--quaternary-color) 25%,
             var(--primary-color) 50%,
             var(--quaternary-color) 60%,
             var(--secondary-color) 75%,
             var(--primary-color) 90%,
             var(--quaternary-color) 100%
         );
-    background-size: 3rem 3rem, cover, 200% 200%;
-    background-position: center center, center center, 0% 50%;
-    background-repeat: repeat, repeat, cover;
-    animation: holo 12s linear infinite;
-    
-    // Simple mode styles
-    &.simple-mode {
-        background: 
-            url('/assets/images/pattern.png'),
-            linear-gradient(
-                to bottom,
-                var(--tertiary-color),
-                var(--tertiary-color)
-            );
-        background-size: 3rem 3rem, cover;
-        background-position: center center, center center;
-        background-repeat: repeat, no-repeat;
-        animation: none;
-        
-        &::before {
-            opacity: 0;
-        }
-    }
+    background-size: 3rem 3rem, cover, 400% 400%;
+    background-position: center center, center center, 0% 0%;
+    background-repeat: repeat, repeat, repeat;
+    animation: holo 30s linear infinite;
     
     &::before {
         content: '';
@@ -63,16 +44,29 @@ body {
             linear-gradient(
                 125deg,
                 rgba(255,255,255,0) 0%,
-                rgba(255,255,255,0.1) 25%,
+                rgba(255,255,255,0) 5%,
+                rgba(255,255,255,0.2) 10%,
+                rgba(255,255,255,0.8) 15%,
+                rgba(255,255,255,0.2) 20%,
+                rgba(255,255,255,0) 25%,
+                rgba(255,255,255,0) 35%,
+                rgba(255,255,255,0.2) 40%,
+                rgba(255,255,255,0.8) 45%,
                 rgba(255,255,255,0.2) 50%,
-                rgba(255,255,255,0.1) 75%,
+                rgba(255,255,255,0) 55%,
+                rgba(255,255,255,0) 65%,
+                rgba(255,255,255,0.2) 70%,
+                rgba(255,255,255,0.8) 75%,
+                rgba(255,255,255,0.2) 80%,
+                rgba(255,255,255,0) 85%,
                 rgba(255,255,255,0) 100%
             );
         pointer-events: none;
         mix-blend-mode: overlay;
-        animation: holo 8s linear infinite;
         transition: opacity 0.3s ease-in-out;
         opacity: 1;
+        z-index: 100;
+        animation: fade-streaks 10s ease-in-out infinite;
     }
 
     @media (max-width: 768px), (max-height: 640px) {
@@ -159,31 +153,6 @@ hr {
     top: 0;
     width: 100%;
     
-    button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        width: 1.5rem;
-        height: 1.5rem;
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 9999px;
-        border: none;
-        padding: 0;
-        margin: 0;
-        cursor: pointer;
-        color: inherit;
-        font: inherit;
-        font-size: 0.8rem;
-        
-        &:hover {
-            transform: scale(1.1);
-        }
-        &:active {
-            transform: scale(0.9);
-        }
-    }
-    
     div {
         display: flex;
         align-items: center;
@@ -267,6 +236,7 @@ hr {
     gap: 0.25rem;
     padding: 1rem;
     border-radius: 1rem;
+    border: 2px solid transparent;
     margin: 0;
     position: relative;
     cursor: default;
@@ -288,6 +258,7 @@ hr {
         transform: scale(1.02);
         cursor: grab;
         -webkit-tap-highlight-color: transparent;
+        border-color: rgba(255, 255, 255, 0.1);
         
         figure {
             transform: scale(1.1) rotate(-5deg);
@@ -444,19 +415,21 @@ hr {
             width: 1.5rem;
             height: 1.5rem;
             border-radius: 9999px;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
             transition: transform 0.2s ease-in-out;
             border: none;
             color: white;
             font-size: 0.8rem;
             cursor: pointer;
-            border: 2px solid white;
+            border: 2px solid rgba(255, 255, 255, 0.1);
             &:hover,
             &:focus {
                 transform: scale(1.1);
+                border-color: white;
             }
             &:active {
                 transform: scale(0.9);
+                border-color: white;
             }
         }
 

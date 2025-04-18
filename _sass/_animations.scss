@@ -63,9 +63,18 @@
 
 @keyframes holo {
     0% {
-        background-position: center center, center center, 0% 50%;
+        background-position: center center, center center, 0% 0%;
     }
     100% {
-        background-position: center center, center center, 200% 50%;
+        background-position: center center, center center, -400% 0%;
+    }
+}
+
+@keyframes fade-streaks {
+    0%, 100% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
     }
 }

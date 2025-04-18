@@ -90,7 +90,7 @@ $(document).ready(function() {
         const dialog = $('<div class="dialog internal-page-dialog"' + 
             (pageUrl.endsWith('.txt') ? ' data-page="txt"' : '') + '>' +
             '<div class="dialog-header">' +
-            '<h1 class="typing-text" data-text="<i class=\'fa-solid fa-file-lines\'></i> ' + pageTitle + '"></h1>' +
+            '<h1 class="typing-text" data-text="<i class=\'fa-solid fa-hard-drive\'></i> ' + pageTitle + '"></h1>' +
             '<button class="close-dialog"><i class="fa-solid fa-xmark"></i></button>' +
             '</div>' +
             '<div class="dialog-content">' +
