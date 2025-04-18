@@ -466,7 +466,7 @@ hr {
 
         @media (max-width: 768px), (max-height: 640px) {
             width: 100vw;
-            height: 100dvh;
+            height: 90dvh;
             max-width: none;
             max-height: none;
             position: fixed;
@@ -475,7 +475,6 @@ hr {
             overflow: hidden;
             
             .dialog-content {
-                overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
             }
             
