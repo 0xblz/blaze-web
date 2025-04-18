@@ -3,21 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>404 - Page not found</title>
+    <title>System Error - Page not found</title>
     <meta name="description" content="Page not found">
     <link rel="icon" type="image/jpg" href="/assets/images/avatar.jpg">
     <link rel="stylesheet" href="/assets/css/main.css">
     <script src="https://kit.fontawesome.com/53df3a2a07.js" crossorigin="anonymous"></script>
     
     
+    <!-- Add jQuery and jQuery UI -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    
+    <!-- Add Tippy.js -->
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light.css">
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/scale.css">
+
+    <!-- Add draggable.js -->
+    <script src="/assets/js/draggable.js"></script>
+    <script src="/assets/js/date.js"></script>
+    
 </head>
 <body class="">
     <main>
         
-        <article>
-    <h1>System Error</h1>
-    <h2><i class="fa-solid fa-arrow-rotate-left"></i> <a href="/">Reboot</a></h2>
-</article>
+            <div class="top-bar">
+    <div>
+        
+            <h1>System Error</h1>
+        
+    </div>
+    <div>
+        <div>
+            <h5>
+                <i class="fa-solid fa-memory soft"></i>
+                <span id="memoryUsage">--</span>
+                <small>
+                    &bull;
+                </small>
+                <i class="fa-solid fa-wifi" id="wifiStatus"></i>
+                <small>
+                    &bull;
+                </small>
+                <i class="fa-solid fa-bolt pulse"></i>
+            </h5>
+        </div>
+        <div class="hide">
+            <h5>
+                <i class="fa-solid fa-calendar-days soft"></i>
+                <!-- Date will be inserted by JavaScript -->
+            </h5>
+        </div>
+        <div class="hide">
+            <h5>
+                <i class="fa-solid fa-clock soft"></i>
+                <!-- Time will be inserted by JavaScript -->
+            </h5>
+        </div>
+    </div>
+</div>
+        
+        <div class="desktop">
+    <a href="/" class="shortcut">
+        <div class="shortcut-content">
+            <h3><i class="fa-solid fa-arrow-rotate-left"></i> Reboot</h3>
+        </div>
+    </a>
+</div>
         
     </main>
     
@@ -32,6 +86,20 @@
     
     
     
+    
+        <script src="/assets/js/memory.js"></script>
+        <script src="/assets/js/wifi.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                tippy('[data-tippy-content]', {
+                    placement: 'top',
+                    animation: 'scale',
+                    arrow: true,
+                    duration: 200,
+                    zIndex: 600,
+                });
+            });
+        </script>
     
 </body>
 </html> 

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/main.css">
     <script src="https://kit.fontawesome.com/53df3a2a07.js" crossorigin="anonymous"></script>
     
-    {% if page.url == "/" %}
+    {% if page.url == "/" or page.url == "/404.html" %}
     <!-- Add jQuery and jQuery UI -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
@@ -28,7 +28,7 @@
 </head>
 <body class="{% if page.custom_css %}{{ page.custom_css }}{% endif %}">
     <main>
-        {% if page.url == "/" %}
+        {% if page.url == "/" or page.url == "/404.html" %}
             {% include header.html %}
         {% endif %}
         {{ content }}
@@ -50,7 +50,7 @@
         <script src="/assets/js/{{ page.js_file }}.js"></script>
     {% endif %}
     
-    {% if page.url == "/" %}
+    {% if page.url == "/" or page.url == "/404.html" %}
         <script src="{{ '/assets/js/memory.js' | relative_url }}"></script>
         <script src="{{ '/assets/js/wifi.js' | relative_url }}"></script>
         <script>
