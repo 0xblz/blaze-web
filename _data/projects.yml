@@ -5,13 +5,6 @@
   type: "Text File"
   role: "hello 😄"
 
-# - title: "LiteSpend"
-#   link: "litespend"
-#   image: "/assets/images/litespend-appicon.jpg"
-#   external_link: false
-#   type: "Local App"
-#   role: "Creator"
-
 # - title: "Weather Test"
 #   link: "weather"
 #   image: "/assets/images/weather.jpg"
@@ -26,12 +19,12 @@
   type: "Experiment"
   role: "Creator"
 
-- title: "Nova Grid"
-  link: "nova-grid"
-  image: "/assets/images/nova-grid.jpg"
-  external_link: false
-  type: "Experiment"
-  role: "Creator"
+# - title: "Nova Grid"
+#   link: "nova-grid"
+#   image: "/assets/images/nova-grid.jpg"
+#   external_link: false
+#   type: "Experiment"
+#   role: "Creator"
 
 - title: "UNO"
   link: "https://worldcoin.org/ecosystem/app_a4f7f3e62c1de0b9490a5260cb390b56"
@@ -68,3 +61,8 @@
   external_link: true
   type: "Web App"
 
+- title: "listening to..."
+  type: "Soundcloud Player"
+  image: "/assets/images/music-file.png"
+  link: "https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/sc-playlists/sets/synth-city&color=%23ff5500&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true"
+  role: "listening to..."

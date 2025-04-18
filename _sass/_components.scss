@@ -13,49 +13,6 @@
     }
 }
 
-.soundcloud-player {
-    animation: fade 1s ease-in-out;
-    position: fixed; 
-    bottom: 1rem; 
-    left: 1rem; 
-    z-index: 1000; 
-    max-width: 320px; 
-    max-height: 320px;
-    width: 100%;
-    height: 100%; 
-    background-color: black; 
-    border-radius: 8px; 
-    overflow: hidden; 
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-    transition: transform 0.2s ease-in-out;
-    
-    &:hover {
-        transform: scale(1.05);
-    }
-
-    @media (max-width: 800px) {
-        display: none;
-    }
-
-    .soundcloud-handle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2rem;
-        cursor: grab;
-        z-index: 2;
-        background: rgba(0, 0, 0, 0.2);
-    }
-
-    iframe {
-        margin-top: 2rem;
-    }
-}
-
 .pulse {
     animation: pulse 3s ease-in-out;
     animation-iteration-count: infinite;
