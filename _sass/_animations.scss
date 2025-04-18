@@ -69,12 +69,3 @@
         background-position: center center, center center, -400% 0%;
     }
 }
-
-@keyframes fade-streaks {
-    0%, 100% {
-        opacity: 0;
-    }
-    50% {
-        opacity: 1;
-    }
-}

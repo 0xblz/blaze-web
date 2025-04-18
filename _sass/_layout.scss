@@ -67,7 +67,6 @@ body {
         transition: opacity 0.3s ease-in-out;
         opacity: 1;
         z-index: 3;
-        animation: fade-streaks 10s ease-in-out infinite;
     }
 
     @media (max-width: 768px), (max-height: 640px) {
