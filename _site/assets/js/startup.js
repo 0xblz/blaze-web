@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Create and configure audio element
     const clickSound = new Audio('/assets/audio/notification.mp3');
-    clickSound.volume = 0.2;
+    clickSound.volume = 0.5;
     
     // Function to play sound
     const playClickSound = (event) => {
         // Create a new audio instance each time to avoid conflicts
         const sound = new Audio('/assets/audio/notification.mp3');
-        sound.volume = 0.2;
+        sound.volume = 0.5;
         sound.play().catch(error => {
             console.log('Audio playback failed:', error);
         });
