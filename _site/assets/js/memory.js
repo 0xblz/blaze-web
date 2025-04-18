@@ -4,19 +4,30 @@ $(document).ready(function() {
     let basePercentage = 15;
 
     function calculateDialogComplexity(dialog) {
-        const elements = dialog.find('*').length;
+        // Check if it's a text file dialog
+        const isTxtFile = dialog.attr('data-page') === 'txt';
         const hasIframe = dialog.find('iframe').length > 0;
-        const textContent = dialog.text().length;
-        const hasImages = dialog.find('img').length > 0;
         
-        // Calculate complexity score
+        // Calculate base score from DOM elements
         let score = 0;
-        score += elements * 0.5;  // Each element adds 0.5%
-        score += hasIframe ? 15 : 0;  // iframes are heavy
-        score += textContent / 1000;  // Each 1000 chars add 1%
-        score += hasImages ? 5 : 0;  // Images add 5%
         
-        return score;
+        if (isTxtFile) {
+            // Text files are lighter
+            const textContent = dialog.text().length;
+            score += textContent / 2000;  // Each 2000 chars add 1%
+            score += 2; // Base score for text dialog
+        } else if (hasIframe) {
+            // iframes are heavier
+            score += 8; // Base score for iframe
+            
+            // Add extra score based on iframe size
+            const iframe = dialog.find('iframe');
+            const width = iframe.width() || 0;
+            const height = iframe.height() || 0;
+            score += (width * height) / 100000; // Size-based weight
+        }
+        
+        return Math.round(score);
     }
 
     function calculateResourceUsage() {
