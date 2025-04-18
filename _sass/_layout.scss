@@ -8,15 +8,50 @@ body {
     overflow: hidden;
     background: 
         url('/assets/images/pattern.png'),
-        linear-gradient(45deg, 
-            var(--secondary-color) 0%, 
+        repeating-linear-gradient(
+            45deg,
+            transparent 0,
+            transparent 1px,
+            rgba(255, 255, 255, 0.1) 2px,
+            rgba(255, 255, 255, 0.1) 4px
+        ),
+        repeating-linear-gradient(
+            90deg, 
+            var(--quaternary-color) 0%,
+            var(--primary-color) 10%,
+            var(--secondary-color) 25%,
             var(--primary-color) 50%,
-            var(--primary-color) 65%,
-            var(--secondary-color) 100%
+            var(--quaternary-color) 60%,
+            var(--secondary-color) 75%,
+            var(--primary-color) 90%,
+            var(--quaternary-color) 100%
         );
-    background-size: 4rem 4rem, cover;
-    background-position: center center, center center;
-    background-repeat: repeat, no-repeat;
+    background-size: 3rem 3rem, cover, 200% 200%;
+    background-position: center center, center center, 0% 50%;
+    background-repeat: repeat, repeat, cover;
+    animation: holo 8s linear infinite;
+    
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            linear-gradient(
+                125deg,
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.1) 25%,
+                rgba(255,255,255,0.2) 50%,
+                rgba(255,255,255,0.1) 75%,
+                rgba(255,255,255,0) 100%
+            );
+        pointer-events: none;
+        mix-blend-mode: overlay;
+        animation: holo 10s linear infinite;
+    }
+
     @media (max-width: 768px), (max-height: 640px) {
         overflow: auto;
     }
