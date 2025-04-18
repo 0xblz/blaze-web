@@ -438,7 +438,7 @@ hr {
             width: 100%;
             height: calc(100% - 2.5rem);
             position: relative;
-            overflow-y: auto;
+            overflow: hidden;
 
             iframe {
                 width: 100%;
@@ -446,6 +446,8 @@ hr {
                 border: none;
                 border-radius: 0.5rem;
                 pointer-events: auto;
+                overflow: hidden;
+                scrolling: no;
             }
         }
 
