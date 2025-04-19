@@ -10,7 +10,7 @@ body.home {
         rgba(255, 255, 255, 0.1) 4px
     ),
     repeating-linear-gradient(
-        90deg, 
+        0deg, 
         var(--quaternary-color) 0%,
         var(--primary-color) 10%,
         var(--quaternary-color) 25%,
@@ -23,7 +23,7 @@ body.home {
     background-size: 3rem 3rem, cover, 400% 400%;
     background-position: center center, center center, 0% 0%;
     background-repeat: repeat, repeat, repeat;
-    animation: holo 30s linear infinite;
+    animation: holo 40s linear infinite;
     
     &::before {
         content: '';
