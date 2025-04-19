@@ -70,6 +70,12 @@ hr {
         height: auto;
         min-height: auto;
     }
+
+    @media (max-width: 260px) {
+        padding-left: 0;
+        padding-right: 0;
+        gap: 0;
+    }
 }
 
 .top-bar {
@@ -93,12 +99,31 @@ hr {
     background-color: rgba(0, 0, 0, 0.1);
     top: 0;
     width: 100%;
+
+    h1 {
+        @media (max-width: 320px) {
+            display: none;
+        }
+    }
     
     div {
         display: flex;
         align-items: center;
         gap: 1rem;
         flex-wrap: wrap;
+
+        &:nth-child(2) {
+            & > div {
+                @media (max-width: 260px) {
+                    display: none;
+                }
+            }
+            & > div:first-child {
+                @media (max-width: 260px) {
+                    display: flex;
+                }
+            }
+        }
         
         &.avatar {
             gap: 0.5rem;
@@ -137,6 +162,11 @@ hr {
     border-radius: 1.5rem;
     box-shadow: 0 1rem 2rem 0 rgba(0, 0, 0, 0.2);
 
+    @media (max-width: 260px) {
+        padding: 0.25rem;
+        border-radius: 9999px;
+    }
+
     &:hover {
         transform: scale(1.02);
         background-color: rgba(255, 255, 255, 0.1);
@@ -153,9 +183,16 @@ hr {
         color: white;
         border: 2px solid rgba(255, 255, 255, 0.1);
 
+        @media (max-width: 260px) {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 9999px;
+        }
+
         i {
             font-size: 1rem;
         }
+
         &:hover {
             transform: translateY(-0.25rem);
             border-color: white;
@@ -213,6 +250,10 @@ hr {
         flex: 1;
     }
 
+    @media (max-width: 260px) {
+        padding: 0.5rem;
+    }
+
     &.dragging {
         pointer-events: none;
         a {
@@ -242,6 +283,11 @@ hr {
             border: 2px solid rgba(255, 255, 255, 0.1);
             background-color: rgba(255, 255, 255, 0.2);
             position: relative;
+
+            @media (max-width: 260px) {
+                width: 3rem;
+                height: 3rem;
+            }
 
             i {
                 display: flex;
