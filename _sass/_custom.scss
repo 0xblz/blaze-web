@@ -23,12 +23,9 @@ body.home {
     background-size: 3rem 3rem, cover, 400% 400%;
     background-position: center center, center center, 0% 0%;
     background-repeat: repeat, repeat, repeat;
+    animation: holo 40s linear infinite;
     
-    // mobile for now
-    @media (max-width: 800px) { 
-        animation: holo 40s linear infinite;
-    }
-    
+    // streaks
     &::before {
         content: '';
         position: absolute;
@@ -64,8 +61,66 @@ body.home {
         opacity: 1;
         z-index: 2;
     }
-}
 
+    &.dark-mode {
+        background: 
+            url('/assets/images/pattern.png'),
+            var(--tertiary-color);
+        background-size: 3rem 3rem, cover;
+        background-position: center center, center center;
+        background-repeat: repeat, repeat;
+        color: var(--quaternary-color);
+        animation: none;
+
+        &::before {
+            background: var(--quaternary-color);
+            mix-blend-mode: overlay;
+        }
+
+        h1 {
+            color: var(--secondary-color);
+        }
+
+        .dialog {
+            border-color: var(--quaternary-color);
+        }
+        
+        .top-bar {
+            div {
+                img {
+                    border-color: var(--secondary-color);
+                }
+            }
+        }
+
+        .dock {
+            background: rgba(0, 0, 0, 0.01);
+            color: white;
+        }
+
+        .shortcut {
+            figure {
+                position: relative;
+                overflow: hidden;
+                &:after {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: var(--quaternary-color);
+                    z-index: 1;
+                    mix-blend-mode: overlay;
+                }
+            }
+            img {
+                filter: saturate(0%) brightness(90%) contrast(1.1);
+                position: relative;
+            }
+        }
+    }
+}
 
 // Weather
 body.weather {

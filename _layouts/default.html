@@ -10,6 +10,7 @@
     <script src="https://kit.fontawesome.com/53df3a2a07.js" crossorigin="anonymous"></script>
     
     {% if page.url == "/" or page.url == "/404.html" %}
+    
     <!-- Add jQuery and jQuery UI -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
@@ -23,6 +24,9 @@
 
     <!-- Add startup sound -->
     <script src="{{ '/assets/js/startup.js' | relative_url }}"></script>
+
+    <!-- Add theme toggle -->
+    <script src="{{ '/assets/js/theme.js' | relative_url }}"></script>
 
     <!-- Add draggable.js -->
     <script src="{{ '/assets/js/draggable.js' | relative_url }}"></script>

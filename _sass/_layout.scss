@@ -99,31 +99,12 @@ hr {
     background-color: rgba(0, 0, 0, 0.1);
     top: 0;
     width: 100%;
-
-    h1 {
-        @media (max-width: 320px) {
-            display: none;
-        }
-    }
     
     div {
         display: flex;
         align-items: center;
         gap: 1rem;
         flex-wrap: wrap;
-
-        &:nth-child(2) {
-            & > div {
-                @media (max-width: 260px) {
-                    display: none;
-                }
-            }
-            & > div:first-child {
-                @media (max-width: 260px) {
-                    display: flex;
-                }
-            }
-        }
         
         &.avatar {
             gap: 0.5rem;
@@ -305,6 +286,7 @@ hr {
                 position: absolute;
                 top: 0;
                 right: 0;
+                z-index: 2;
             }
             
             img {
