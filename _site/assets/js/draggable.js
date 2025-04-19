@@ -1,7 +1,7 @@
 // add draggable functionality to the desktop
 $(document).ready(function() {
     // Check if device is mobile/tablet
-    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    const isMobile = window.matchMedia("(max-width: 768px), (max-height: 640px)").matches;
     
     let zIndexCounter = 1000;
     

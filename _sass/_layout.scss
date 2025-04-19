@@ -442,7 +442,15 @@ hr {
             height: -webkit-fill-available;
             max-height: -webkit-fill-available;
             
-            @media (max-width: 768px), (max-height: 640px) {
+            @media (max-width: 768px) {
+                height: 100%;
+                max-height: -webkit-fill-available;
+                position: fixed;
+                top: 0;
+                bottom: 0;
+            }
+            
+            @media (max-height: 640px) {
                 height: 100%;
                 max-height: -webkit-fill-available;
                 position: fixed;
@@ -451,7 +459,28 @@ hr {
             }
         }
 
-        @media (max-width: 768px), (max-height: 640px) {
+        @media (max-width: 768px) {
+            width: 100vw;
+            height: 100dvh;
+            max-width: none;
+            border-radius: 0;
+            border: none;
+            max-height: none;
+            position: fixed;
+            inset: 0;
+            transform: none;
+            overflow: hidden;
+            
+            .dialog-content {
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            &:hover {
+                transform: none;
+            }
+        }
+
+        @media (max-height: 640px) {
             width: 100vw;
             height: 100dvh;
             max-width: none;

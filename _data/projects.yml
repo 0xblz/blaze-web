@@ -14,9 +14,9 @@
 
 - title: "Marble Editor"
   link: "marbles"
-  image: "/assets/images/marbles.jpg"
+  image: "/assets/images/marbles.png"
   external_link: false
-  type: "Experiment"
+  type: "Local App"
   role: "Creator"
 
 # - title: "Nova Grid"
