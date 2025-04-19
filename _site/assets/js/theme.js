@@ -2,8 +2,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const themeToggle = document.getElementById('themeToggle');
     const body = document.body;
     const moonIcon = document.querySelector('.theme-toggle-icon');
-    const startupSound = new Audio('/assets/audio/startup.mp3');
-    startupSound.volume = 0.05;
+    const startupSound = new Audio('/assets/audio/notification.mp3');
+    startupSound.volume = 0.5;
     
     // Check for saved theme preference
     const darkMode = localStorage.getItem('darkMode') === 'true';
