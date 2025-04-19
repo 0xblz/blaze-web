@@ -9,35 +9,43 @@
             <h1>{{ page.title }}</h1>
         {% endif %}
     </div>
-    <div>
+    {% if page.url == "/" %}
         <div>
-            <i class="fa-solid fa-moon theme-toggle-icon"></i>
-            <label class="switch">
-                <input type="checkbox" id="themeToggle">
-                <span class="slider round"></span>
-            </label>
+            <div>
+                <i class="fa-solid fa-moon theme-toggle-icon"></i>
+                <label class="switch">
+                    <input type="checkbox" id="themeToggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div>
+                <h5>
+                    <i class="fa-solid fa-memory pulse"></i>
+                    <span id="memoryUsage">--</span>
+                    <small>
+                        &bull;
+                    </small>
+                    <i class="fa-solid fa-wifi" id="wifiStatus"></i>
+                </h5>
+            </div>
+            <div class="hide">
+                <h5>
+                    <i class="fa-solid fa-calendar-days soft"></i>
+                    <!-- Date will be inserted by JavaScript -->
+                </h5>
+            </div>
+            <div class="hide">
+                <h5>
+                    <i class="fa-solid fa-clock soft"></i>
+                    <!-- Time will be inserted by JavaScript -->
+                </h5>
+            </div>
         </div>
+    {% else %}
         <div>
-            <h5>
-                <i class="fa-solid fa-memory pulse"></i>
-                <span id="memoryUsage">--</span>
-                <small>
-                    &bull;
-                </small>
-                <i class="fa-solid fa-wifi" id="wifiStatus"></i>
-            </h5>
+            <h1>
+                <a href="/"><i class="fa-solid fa-arrow-rotate-left"></i> Reboot</a>
+            </h1>
         </div>
-        <div class="hide">
-            <h5>
-                <i class="fa-solid fa-calendar-days soft"></i>
-                <!-- Date will be inserted by JavaScript -->
-            </h5>
-        </div>
-        <div class="hide">
-            <h5>
-                <i class="fa-solid fa-clock soft"></i>
-                <!-- Time will be inserted by JavaScript -->
-            </h5>
-        </div>
-    </div>
+    {% endif %}
 </div>
