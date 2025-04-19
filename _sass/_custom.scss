@@ -23,7 +23,7 @@ body.home {
     background-size: 3rem 3rem, cover, 400% 400%;
     background-position: center center, center center, 0% 0%;
     background-repeat: repeat, repeat, repeat;
-    animation: holo 40s linear infinite;
+    // animation: holo 40s linear infinite;
     
     &::before {
         content: '';
