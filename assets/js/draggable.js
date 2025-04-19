@@ -101,12 +101,7 @@ $(document).ready(function() {
         
         // Only set max dimensions for txt files
         if (pageUrl.endsWith('.txt')) {
-            if (isMobile) {
-                dialog.css({
-                    'max-width': '100%',
-                    'max-height': '100%'
-                });
-            } else {
+            if (!isMobile) {
                 dialog.css({
                     'max-width': '540px',
                     'max-height': '420px',
@@ -115,11 +110,13 @@ $(document).ready(function() {
             }
         }
 
-        // Center all dialogs
-        dialog.css({
-            'left': (windowWidth - dialog.outerWidth()) / 2,
-            'top': (windowHeight - dialog.outerHeight()) / 2
-        });
+        // Position dialogs - only center on desktop
+        if (!isMobile) {
+            dialog.css({
+                'left': (windowWidth - dialog.outerWidth()) / 2,
+                'top': (windowHeight - dialog.outerHeight()) / 2
+            });
+        }
 
         // Make draggable
         if (!isMobile) {
