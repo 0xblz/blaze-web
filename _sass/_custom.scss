@@ -67,13 +67,12 @@ body.home {
 
     &.dark-mode {
         background: 
-            url('/assets/images/pattern.png'),
-            var(--tertiary-color);
+            url('/assets/images/pattern02.png'),
+            linear-gradient(to top, var(--tertiary-color) 0%, var(--tertiary-color) 60%, black 100%);
         background-size: 3rem 3rem, cover;
         background-position: center center, center center;
         background-repeat: repeat, repeat;
         color: var(--quaternary-color);
-        animation: none;
 
         &::before {
             background: var(--quaternary-color);
@@ -118,7 +117,7 @@ body.home {
                 }
             }
             img {
-                filter: saturate(0%) brightness(90%) contrast(1.1);
+                filter: saturate(0%) contrast(1.25);
                 position: relative;
             }
         }

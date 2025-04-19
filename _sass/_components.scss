@@ -57,12 +57,12 @@
 }
 
 input:checked + .slider {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--quaternary-color);
 }
 
 input:checked + .slider:before {
     transform: translateX(1rem);
-    background-color: var(--quaternary-color);
+    background-color: white;
 }
 
 /* Rounded sliders */
