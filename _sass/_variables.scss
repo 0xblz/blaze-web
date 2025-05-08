@@ -1,0 +1,15 @@
+// Fonts
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Zen+Dots&display=swap');
+
+// Color variables
+:root {
+    --primary-color: rgb(108, 55, 255);
+    --secondary-color: rgb(252, 83, 255);
+    --tertiary-color: rgb(234, 233, 238);
+    --quaternary-color: rgb(21, 18, 30);
+    --quaternary-soft-color: rgba(21, 18, 30, 0.6);
+    --quinary-color: rgb(239, 238, 243);
+    --font-primary: 'DM Sans', sans-serif;
+    --font-secondary: 'Zen Dots', sans-serif;
+    --container-width: 620px;
+} 
