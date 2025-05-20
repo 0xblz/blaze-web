@@ -3,84 +3,40 @@ body {
     font-family: var(--font-primary);
     font-size: 16px;
     color: white;
-
-    @media (prefers-color-scheme: light) {
-        background-color: var(--quaternary-color);
-    }
 }
 
 h1 {
-    font-size: 1.1rem;
-    line-height: 1.2em;
-    font-weight: 700;
     font-family: var(--font-secondary);
-    color: var(--primary-color);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: white;
 }
 
 h2 {
-    font-size: 1.2rem;
-    line-height: 1.2em;
-    font-weight: 700;
     font-family: var(--font-secondary);
-    color: var(--secondary-color);
-}
-
-h3 {
     font-size: 0.8rem;
-    line-height: 1em;
-    font-weight: 900;
-    color: var(--primary-color);
+    font-weight: 800;
+    color: var(--secondary-color);
     text-transform: uppercase;
 }
 
-h4 {
-    font-size: 0.9rem;
-    line-height: 1.4em;
-    font-weight: 600;
-}
-
-h5 {
-    font-size: 0.8rem;
-    line-height: 1em;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.3);
-
-    @media (prefers-color-scheme: light) {
-        color: rgba(0, 0, 0, 0.3);
-    }
-}
-
 p {
-    font-size: 1.1rem;
+    font-size: 1rem;
     line-height: 1.4em;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.6);
-
-    @media (prefers-color-scheme: light) {
-        color: var(--quaternary-soft-color);
-    }
+    color: rgba(255, 255, 255, 0.8);
 }
 
 a {
     transition: all 0.2s ease-in-out;
-    color: var(--tertiary-color);
+    color: var(--dark-color);
     text-decoration: none;
-    font-weight: 700;
+    font-weight: 800;
     color: white;
     
     &:hover,
     &:focus,
     &:active {
         color: var(--secondary-color);
-    }
-
-    @media (prefers-color-scheme: light) {
-        color: var(--quaternary-color);
-
-        &:hover,
-        &:focus,
-        &:active {
-            color: var(--primary-color);
-        }
     }
 }
