@@ -1,10 +1,18 @@
 // Body and main layout
 html {
     background-color: var(--dark-color);
+
+    @media (prefers-color-scheme: light) {
+        background-color: var(--light-color);
+    }
 }
 
 body {
     background-color: var(--dark-color);
+
+    @media (prefers-color-scheme: light) {
+        background-color: var(--light-color);
+    }
 }
 
 main {
@@ -50,6 +58,10 @@ table {
         padding: 1.5rem 0;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         vertical-align: top;
+
+        @media (prefers-color-scheme: light) {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
     }
     
     td:first-child {
@@ -72,6 +84,10 @@ hr {
     position: relative;
     border-radius: 999px;
 
+    @media (prefers-color-scheme: light) {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
     &:before {
         animation-duration: 2s;
         animation-timing-function: ease-in-out;
@@ -85,21 +101,5 @@ hr {
         width: 20%;
         border-radius: 999px;
       }
-  }
-  
-@keyframes progress {
-    0% {
-        transform: translateX(0px);
-        opacity: 0;
-    }
-    20% {
-        opacity: 1;
-    }
-    80% {
-        opacity: 1;
-    }
-    100% {
-        transform: translateX(1440px);
-        opacity: 0;
-    }
 }
+  
