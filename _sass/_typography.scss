@@ -2,10 +2,10 @@
 body {
     font-family: var(--font-primary);
     font-size: 16px;
-    color: white;
+    color: rgba(255, 255, 255, 0.6);
 
     @media (prefers-color-scheme: light) {
-        color: var(--dark-color);
+        color: rgba(0, 0, 0, 0.6);
     }
 }
 
@@ -22,7 +22,7 @@ h1 {
 
 h2 {
     font-family: var(--font-secondary);
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: 800;
     color: var(--secondary-color);
     text-transform: uppercase;
@@ -32,11 +32,6 @@ p {
     font-size: 1rem;
     line-height: 1.4em;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.8);
-
-    @media (prefers-color-scheme: light) {
-        color: rgba(0, 0, 0, 0.8);
-    }
 }
 
 a {

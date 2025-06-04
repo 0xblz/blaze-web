@@ -1,17 +1,9 @@
 // Body and main layout
 html {
-    background-color: var(--dark-color);
+    background: var(--dark-color);
 
     @media (prefers-color-scheme: light) {
-        background-color: var(--light-color);
-    }
-}
-
-body {
-    background-color: var(--dark-color);
-
-    @media (prefers-color-scheme: light) {
-        background-color: var(--light-color);
+        background: linear-gradient(to bottom, rgb(237, 235, 255), rgb(255, 246, 249));
     }
 }
 
@@ -56,11 +48,11 @@ table {
     
     td {
         padding: 1.5rem 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         vertical-align: top;
 
         @media (prefers-color-scheme: light) {
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.01);
         }
     }
     
