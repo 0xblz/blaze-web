@@ -2,7 +2,7 @@
 body {
     font-family: var(--font-primary);
     font-size: 16px;
-    color: rgba(0, 0, 0, 0.6);
+    color: var(--quaternary-color);
     font-weight: 600;
 }
 
@@ -10,7 +10,6 @@ h1 {
     font-family: var(--font-secondary);
     font-size: 1.2rem;
     font-weight: 800;
-    color: var(--dark-color);
 }
 
 h2 {
@@ -27,14 +26,14 @@ p {
 
 a {
     transition: all 0.2s ease-in-out;
-    color: var(--dark-color);
+    color: var(--quaternary-color);
     text-decoration: none;
     font-weight: 800;
     
     &:hover,
     &:focus,
     &:active {
-        color: var(--dark-color);
+        color: var(--quaternary-color);
     }
 
     &.button {

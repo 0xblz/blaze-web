@@ -11,15 +11,20 @@ function generateTriadicColors() {
     const saturation = 85;
     const lightness = 85;
     
+    // Create darker version of primary color for text
+    const darkLightness = 20; // Much darker for text contrast
+    
     // Convert HSL to hex
     const color1 = hslToHex(hue1, saturation, lightness);
     const color2 = hslToHex(hue2, saturation, lightness);
     const color3 = hslToHex(hue3, saturation, lightness);
+    const color4 = hslToHex(hue1, saturation, darkLightness); // Quaternary color (dark primary)
 
     // Update CSS variables
     document.documentElement.style.setProperty('--primary-color', color1);
     document.documentElement.style.setProperty('--secondary-color', color2);
     document.documentElement.style.setProperty('--tertiary-color', color3);
+    document.documentElement.style.setProperty('--quaternary-color', color4);
 }
 
 function hslToHex(h, s, l) {
