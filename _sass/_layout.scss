@@ -1,10 +1,6 @@
 // Body and main layout
 html {
-    background: var(--dark-color);
-
-    @media (prefers-color-scheme: light) {
-        background: white;
-    }
+    background: white;
 }
 
 main {
@@ -15,6 +11,31 @@ main {
     gap: 4rem;
     padding: 1rem;
     animation: fadeIn 0.2s ease-in-out;
+    position: relative;
+    background: linear-gradient(to bottom, var(--primary-color), white);
+
+    &:before,
+    &:after {
+        content: "";
+        display: block;
+        width: 60vw;
+        height: 60vw;
+        border-radius: 999px;
+        background: var(--secondary-color);
+        position: absolute;
+        top: 0;
+        left: -25%;
+        z-index: 1;
+        filter: blur(100px);
+    }
+
+    &:after {
+        top: auto;
+        bottom: 0;
+        left: auto;
+        right: -25%;
+        background: var(--tertiary-color);
+    }
 }
 
 article {
@@ -24,6 +45,7 @@ article {
     width: 100%;
     max-width: var(--container-width);
     gap: 1rem;
+    z-index: 2;
 
     p { 
         img {
@@ -48,12 +70,8 @@ table {
     
     td {
         padding: 1.5rem 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.01);
         vertical-align: top;
-
-        @media (prefers-color-scheme: light) {
-            border-bottom: 1px solid rgba(0, 0, 0, 0.01);
-        }
     }
     
     td:first-child {
@@ -69,15 +87,11 @@ hr {
     display: block;
     text-align: center;
     width: 100%;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.1);
     height: 1px;
     overflow: hidden;
     position: relative;
     border-radius: 999px;
-
-    @media (prefers-color-scheme: light) {
-        background: rgba(0, 0, 0, 0.1);
-    }
 
     &:before {
         animation-duration: 2s;
