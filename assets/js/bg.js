@@ -20,11 +20,23 @@ function generateTriadicColors() {
     const color3 = hslToHex(hue3, saturation, lightness);
     const color4 = hslToHex(hue1, saturation, darkLightness); // Quaternary color (dark primary)
 
+    // Generate random positions for the pseudo-elements
+    const beforeTop = Math.random() * 20 - 10; // -10% to 10%
+    const beforeLeft = Math.random() * 50 - 50; // -50% to 0%
+    const afterBottom = Math.random() * 20 - 10; // -10% to 10%
+    const afterRight = Math.random() * 50 - 50; // -50% to 0%
+
     // Update CSS variables
     document.documentElement.style.setProperty('--primary-color', color1);
     document.documentElement.style.setProperty('--secondary-color', color2);
     document.documentElement.style.setProperty('--tertiary-color', color3);
     document.documentElement.style.setProperty('--quaternary-color', color4);
+    
+    // Update position variables
+    document.documentElement.style.setProperty('--before-top', `${beforeTop}%`);
+    document.documentElement.style.setProperty('--before-left', `${beforeLeft}%`);
+    document.documentElement.style.setProperty('--after-bottom', `${afterBottom}%`);
+    document.documentElement.style.setProperty('--after-right', `${afterRight}%`);
 }
 
 function hslToHex(h, s, l) {

@@ -35,8 +35,8 @@ main {
         border-radius: 999px;
         background: var(--secondary-color);
         position: absolute;
-        top: 0;
-        left: -25%;
+        top: var(--before-top, 0);
+        left: var(--before-left, -25%);
         z-index: 1;
         filter: blur(100px);
         transform: translateZ(0); // Force GPU acceleration
@@ -44,9 +44,9 @@ main {
 
     &:after {
         top: auto;
-        bottom: 0;
+        bottom: var(--after-bottom, 0);
         left: auto;
-        right: -25%;
+        right: var(--after-right, -25%);
         background: var(--tertiary-color);
     }
 }
