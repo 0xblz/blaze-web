@@ -39,10 +39,75 @@ function generateTriadicColors() {
     document.documentElement.style.setProperty('--after-right', `${afterRight}%`);
 }
 
+function createCrossSectionGrid() {
+    // Create vertical line
+    const verticalLine = document.createElement('div');
+    verticalLine.id = 'vertical-line';
+    verticalLine.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 1px;
+        height: 100vh;
+        background: rgba(255, 255, 255, 0.3);
+        pointer-events: none;
+        z-index: 999;
+    `;
+    
+    // Create horizontal line
+    const horizontalLine = document.createElement('div');
+    horizontalLine.id = 'horizontal-line';
+    horizontalLine.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.3);
+        pointer-events: none;
+        z-index: 999;
+    `;
+    
+    // Create center dot
+    const centerDot = document.createElement('div');
+    centerDot.id = 'center-dot';
+    centerDot.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 1000;
+        transform: translate(-50%, -50%);
+    `;
+    
+    document.body.appendChild(verticalLine);
+    document.body.appendChild(horizontalLine);
+    document.body.appendChild(centerDot);
+    
+    return { verticalLine, horizontalLine, centerDot };
+}
+
+function updateCrossSectionGrid(x, y) {
+    const verticalLine = document.getElementById('vertical-line');
+    const horizontalLine = document.getElementById('horizontal-line');
+    const centerDot = document.getElementById('center-dot');
+    
+    if (verticalLine && horizontalLine && centerDot) {
+        verticalLine.style.left = `${x}px`;
+        horizontalLine.style.top = `${y}px`;
+        centerDot.style.left = `${x}px`;
+        centerDot.style.top = `${y}px`;
+    }
+}
+
 function createStarAnimation(x, y) {
     // Create star element
     const star = document.createElement('div');
-    star.innerHTML = '<i class="fa-solid fa-fill-drip"></i>';
+    star.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i>';
     star.style.cssText = `
         position: fixed;
         left: ${x}px;
@@ -72,6 +137,10 @@ function handleClick(event) {
     createStarAnimation(event.clientX, event.clientY);
 }
 
+function handleMouseMove(event) {
+    updateCrossSectionGrid(event.clientX, event.clientY);
+}
+
 function hslToHex(h, s, l) {
     l /= 100;
     const a = s * Math.min(l, 1 - l) / 100;
@@ -87,8 +156,12 @@ function hslToHex(h, s, l) {
 document.addEventListener('DOMContentLoaded', () => {
     generateTriadicColors();
     
-    // Add click event listener to the entire document
+    // Create cross-section grid
+    createCrossSectionGrid();
+    
+    // Add event listeners
     document.addEventListener('click', handleClick);
+    document.addEventListener('mousemove', handleMouseMove);
     
     // Add CSS animation for star
     const style = document.createElement('style');
