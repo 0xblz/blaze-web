@@ -39,6 +39,39 @@ function generateTriadicColors() {
     document.documentElement.style.setProperty('--after-right', `${afterRight}%`);
 }
 
+function createStarAnimation(x, y) {
+    // Create star element
+    const star = document.createElement('div');
+    star.innerHTML = '<i class="fa-solid fa-fill-drip"></i>';
+    star.style.cssText = `
+        position: fixed;
+        left: ${x}px;
+        top: ${y}px;
+        font-size: 1rem;
+        pointer-events: none;
+        z-index: 1000;
+        transform: translate(-50%, -50%);
+        animation: starFloat 0.5s ease-out forwards;
+    `;
+    
+    document.body.appendChild(star);
+    
+    // Remove star after animation
+    setTimeout(() => {
+        if (star.parentNode) {
+            star.parentNode.removeChild(star);
+        }
+    }, 1500);
+}
+
+function handleClick(event) {
+    // Regenerate colors and positions
+    generateTriadicColors();
+    
+    // Create star animation at click position
+    createStarAnimation(event.clientX, event.clientY);
+}
+
 function hslToHex(h, s, l) {
     l /= 100;
     const a = s * Math.min(l, 1 - l) / 100;
@@ -51,4 +84,33 @@ function hslToHex(h, s, l) {
 }
 
 // Generate colors when the page loads
-document.addEventListener('DOMContentLoaded', generateTriadicColors);
+document.addEventListener('DOMContentLoaded', () => {
+    generateTriadicColors();
+    
+    // Add click event listener to the entire document
+    document.addEventListener('click', handleClick);
+    
+    // Add CSS animation for star
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes starFloat {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            90% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+});
