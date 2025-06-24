@@ -124,6 +124,33 @@ function updateCrossSectionGrid(x, y) {
     }
 }
 
+function createRippleEffect(x, y) {
+    // Create ripple element
+    const ripple = document.createElement('div');
+    ripple.style.cssText = `
+        position: fixed;
+        left: ${x}px;
+        top: ${y}px;
+        width: 0;
+        height: 0;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 998;
+        transform: translate(-50%, -50%);
+        animation: rippleExpand 1s ease-out forwards;
+    `;
+    
+    document.body.appendChild(ripple);
+    
+    // Remove ripple after animation
+    setTimeout(() => {
+        if (ripple.parentNode) {
+            ripple.parentNode.removeChild(ripple);
+        }
+    }, 1000);
+}
+
 function createStarAnimation(x, y) {
     // Create star element
     const star = document.createElement('div');
@@ -169,6 +196,9 @@ function handleClick(event) {
         x = event.clientX;
         y = event.clientY;
     }
+    
+    // Create ripple effect at cursor position
+    createRippleEffect(x, y);
     
     // Create star animation at the same position as the cross-section grid
     createStarAnimation(x, y);
@@ -237,6 +267,21 @@ document.addEventListener('DOMContentLoaded', () => {
             100% {
                 opacity: 0;
                 transform: translate(-50%, -50%) scale(0);
+            }
+        }
+        
+        @keyframes rippleExpand {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+                border-width: 2px;
+            }
+            100% {
+                width: 200px;
+                height: 200px;
+                opacity: 0;
+                border-width: 1px;
             }
         }
     `;
