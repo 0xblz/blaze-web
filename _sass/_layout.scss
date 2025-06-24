@@ -16,6 +16,22 @@ body {
     }
 }
 
+body, main, html {
+    @media (prefers-color-scheme: dark) {
+        filter: saturate(1) contrast(0.8) invert(1) brightness(1.2) hue-rotate(90deg);
+        mix-blend-mode: difference;
+    }
+}
+
+// Chrome-specific override for mix-blend-mode
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    body, main, html {
+        @media (prefers-color-scheme: dark) {
+            mix-blend-mode: normal;
+        }
+    }
+}
+
 main {
     display: flex;
     flex-direction: column;
@@ -70,7 +86,8 @@ article {
         background: rgba(255, 255, 255, 0.4);
         border-top-left-radius: 1.5rem;
         border-top-right-radius: 1.5rem;
-        box-shadow: 0 0 20rem var(--secondary-color);
+        box-shadow: 0 0 20rem var(--tertiary-color);
+        border: 2px solid transparent;
     }
 
     header {
@@ -91,6 +108,10 @@ article {
             margin: 0 0.25rem;
             box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
 
+            @media (prefers-color-scheme: dark) {
+                filter: grayscale(0) invert(1) hue-rotate(90deg);
+            }
+
             &.avatar {
                 border-radius: 999px;
             }
@@ -106,6 +127,10 @@ table {
         padding: 1.5rem 0;
         border-bottom: 1px solid white;
         vertical-align: top;
+
+        @media (prefers-color-scheme: dark) {
+            border-color: rgba(0, 0, 0, 0.05);
+        }
     }
     
     td:first-child {
@@ -127,6 +152,10 @@ hr {
     position: relative;
     border-radius: 999px;
 
+    @media (prefers-color-scheme: dark) {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
     &:before {
         animation-duration: 2s;
         animation-timing-function: ease-in-out;
@@ -139,6 +168,10 @@ hr {
         position: absolute;
         width: 20%;
         border-radius: 999px;
+
+        @media (prefers-color-scheme: dark) {
+            filter: invert(1);
+        }
       }
 }
   

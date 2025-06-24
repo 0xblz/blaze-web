@@ -40,6 +40,15 @@ function generateTriadicColors() {
 }
 
 function createCrossSectionGrid() {
+    // Get actual document height for Chrome compatibility
+    const docHeight = Math.max(
+        document.body.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.clientHeight,
+        document.documentElement.scrollHeight,
+        document.documentElement.offsetHeight
+    );
+    
     // Create vertical line
     const verticalLine = document.createElement('div');
     verticalLine.id = 'vertical-line';
@@ -48,8 +57,8 @@ function createCrossSectionGrid() {
         top: 0;
         left: 0;
         width: 1px;
-        height: 100vh;
-        background: rgba(255, 255, 255, 0.3);
+        height: ${docHeight}px;
+        background: rgba(255, 255, 255, 0.1);
         pointer-events: none;
         z-index: 999;
     `;
@@ -63,7 +72,7 @@ function createCrossSectionGrid() {
         left: 0;
         width: 100vw;
         height: 1px;
-        background: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
         pointer-events: none;
         z-index: 999;
     `;
@@ -97,10 +106,21 @@ function updateCrossSectionGrid(x, y) {
     const centerDot = document.getElementById('center-dot');
     
     if (verticalLine && horizontalLine && centerDot) {
+        // Update positions
         verticalLine.style.left = `${x}px`;
         horizontalLine.style.top = `${y}px`;
         centerDot.style.left = `${x}px`;
         centerDot.style.top = `${y}px`;
+        
+        // Chrome-specific fix: ensure lines are visible when scrolling
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const windowHeight = window.innerHeight;
+        
+        // Adjust vertical line height dynamically for Chrome
+        if (verticalLine.style.height !== '100vh') {
+            const newHeight = Math.max(windowHeight, document.documentElement.scrollHeight);
+            verticalLine.style.height = `${newHeight}px`;
+        }
     }
 }
 
@@ -133,12 +153,47 @@ function handleClick(event) {
     // Regenerate colors and positions
     generateTriadicColors();
     
-    // Create star animation at click position
-    createStarAnimation(event.clientX, event.clientY);
+    // Use the same coordinate calculation as the cross-section grid
+    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    
+    let x, y;
+    
+    if (isChrome) {
+        // Chrome needs scroll position adjustment
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        x = event.clientX + scrollX;
+        y = event.clientY + scrollY;
+    } else {
+        // Safari and other browsers use clientX/Y directly
+        x = event.clientX;
+        y = event.clientY;
+    }
+    
+    // Create star animation at the same position as the cross-section grid
+    createStarAnimation(x, y);
 }
 
 function handleMouseMove(event) {
-    updateCrossSectionGrid(event.clientX, event.clientY);
+    // Detect Chrome vs Safari for different coordinate handling
+    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    const isSafari = /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
+    
+    let x, y;
+    
+    if (isChrome) {
+        // Chrome needs scroll position adjustment
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        x = event.clientX + scrollX;
+        y = event.clientY + scrollY;
+    } else {
+        // Safari and other browsers use clientX/Y directly
+        x = event.clientX;
+        y = event.clientY;
+    }
+    
+    updateCrossSectionGrid(x, y);
 }
 
 function hslToHex(h, s, l) {
