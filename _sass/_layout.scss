@@ -16,7 +16,8 @@ body {
     }
 }
 
-body, main, html {
+// dark mode
+html, body, main {
     @media (prefers-color-scheme: dark) {
         filter: saturate(1) contrast(0.8) invert(1) brightness(1.2) hue-rotate(90deg);
         mix-blend-mode: difference;
@@ -41,7 +42,7 @@ main {
     position: relative;
     background: linear-gradient(45deg, var(--primary-color), white);
     overflow: hidden;
-    transition: background 0.6s ease-out;
+    transition: background 1s ease-in-out;
 
     &:before,
     &:after {
@@ -57,7 +58,7 @@ main {
         z-index: 1;
         filter: blur(100px);
         transform: translateZ(0); // Force GPU acceleration
-        transition: background 0.6s ease-out, top 0.6s ease-out, left 0.6s ease-out;
+        transition: background 1s ease-in-out, top 1s ease-in-out, left 1s ease-in-out;
     }
 
     &:after {
@@ -66,7 +67,7 @@ main {
         left: auto;
         right: var(--after-right, -25%);
         background: var(--tertiary-color);
-        transition: background 0.6s ease-out, bottom 0.6s ease-out, right 0.6s ease-out;
+        transition: background 1s ease-in-out, bottom 1s ease-in-out, right 1s ease-in-out;
     }
 }
 
