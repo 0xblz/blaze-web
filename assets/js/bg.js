@@ -1,3 +1,26 @@
+// Audio setup
+let dropletAudio;
+
+function initAudio() {
+    try {
+        dropletAudio = new Audio('assets/audio/droplet.mp3');
+        dropletAudio.volume = 0.3; // Set volume to 30%
+        dropletAudio.preload = 'auto';
+    } catch (error) {
+        console.log('Audio not supported or file not found');
+    }
+}
+
+function playDropletSound() {
+    if (dropletAudio) {
+        // Reset audio to beginning and play
+        dropletAudio.currentTime = 0;
+        dropletAudio.play().catch(error => {
+            console.log('Audio playback failed:', error);
+        });
+    }
+}
+
 function generateTriadicColors() {
     // Generate a random base hue (0-360)
     const baseHue = Math.floor(Math.random() * 360);
@@ -177,6 +200,9 @@ function createStarAnimation(x, y) {
 }
 
 function handleClick(event) {
+    // Play droplet sound
+    playDropletSound();
+    
     // Regenerate colors and positions
     generateTriadicColors();
     
@@ -239,6 +265,9 @@ function hslToHex(h, s, l) {
 
 // Generate colors when the page loads
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize audio
+    initAudio();
+    
     generateTriadicColors();
     
     // Create cross-section grid
