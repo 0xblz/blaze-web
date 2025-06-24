@@ -4,7 +4,7 @@ let dropletAudio;
 function initAudio() {
     try {
         dropletAudio = new Audio('assets/audio/droplet.mp3');
-        dropletAudio.volume = 0.3; // Set volume to 30%
+        dropletAudio.volume = 0.1; // Set volume to 10% (reduced from 30%)
         dropletAudio.preload = 'auto';
     } catch (error) {
         console.log('Audio not supported or file not found');
