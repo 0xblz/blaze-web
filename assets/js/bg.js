@@ -129,20 +129,23 @@ function updateCrossSectionGrid(x, y) {
     const centerDot = document.getElementById('center-dot');
     
     if (verticalLine && horizontalLine && centerDot) {
-        // Update positions
+        // Use the same coordinates for everything
         verticalLine.style.left = `${x}px`;
         horizontalLine.style.top = `${y}px`;
         centerDot.style.left = `${x}px`;
         centerDot.style.top = `${y}px`;
         
         // Chrome-specific fix: ensure lines are visible when scrolling
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const windowHeight = window.innerHeight;
-        
-        // Adjust vertical line height dynamically for Chrome
-        if (verticalLine.style.height !== '100vh') {
-            const newHeight = Math.max(windowHeight, document.documentElement.scrollHeight);
-            verticalLine.style.height = `${newHeight}px`;
+        const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+        if (isChrome) {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const windowHeight = window.innerHeight;
+            
+            // Adjust vertical line height dynamically for Chrome
+            if (verticalLine.style.height !== '100vh') {
+                const newHeight = Math.max(windowHeight, document.documentElement.scrollHeight);
+                verticalLine.style.height = `${newHeight}px`;
+            }
         }
     }
 }
@@ -210,15 +213,11 @@ function handleClick(event) {
     const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
     
     let x, y;
-    
     if (isChrome) {
-        // Chrome needs scroll position adjustment
-        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-        x = event.clientX + scrollX;
-        y = event.clientY + scrollY;
+        // Adjust for Chrome's scroll behavior (same as cross-section grid)
+        x = event.clientX + window.scrollX;
+        y = event.clientY + window.scrollY;
     } else {
-        // Safari and other browsers use clientX/Y directly
         x = event.clientX;
         y = event.clientY;
     }
@@ -231,20 +230,15 @@ function handleClick(event) {
 }
 
 function handleMouseMove(event) {
-    // Detect Chrome vs Safari for different coordinate handling
+    // Use viewport coordinates but adjust for Chrome scroll
     const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    const isSafari = /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
     
     let x, y;
-    
     if (isChrome) {
-        // Chrome needs scroll position adjustment
-        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-        x = event.clientX + scrollX;
-        y = event.clientY + scrollY;
+        // Adjust for Chrome's scroll behavior
+        x = event.clientX + window.scrollX;
+        y = event.clientY + window.scrollY;
     } else {
-        // Safari and other browsers use clientX/Y directly
         x = event.clientX;
         y = event.clientY;
     }
