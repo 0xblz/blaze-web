@@ -1,25 +1,4 @@
-// Audio setup
-let dropletAudio;
-
-function initAudio() {
-    try {
-        dropletAudio = new Audio('assets/audio/droplet.mp3');
-        dropletAudio.volume = 0.1; // Set volume to 10% (reduced from 30%)
-        dropletAudio.preload = 'auto';
-    } catch (error) {
-        console.log('Audio not supported or file not found');
-    }
-}
-
-function playDropletSound() {
-    if (dropletAudio) {
-        // Reset audio to beginning and play
-        dropletAudio.currentTime = 0;
-        dropletAudio.play().catch(error => {
-            console.log('Audio playback failed:', error);
-        });
-    }
-}
+// ...existing code...
 
 function generateTriadicColors() {
     // Generate a random base hue (0-360)
@@ -203,15 +182,12 @@ function createStarAnimation(x, y) {
 }
 
 function handleClick(event) {
-    // Play droplet sound
-    playDropletSound();
-    
     // Regenerate colors and positions
     generateTriadicColors();
-    
+
     // Use the same coordinate calculation as the cross-section grid
     const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    
+
     let x, y;
     if (isChrome) {
         // Adjust for Chrome's scroll behavior (same as cross-section grid)
@@ -221,10 +197,10 @@ function handleClick(event) {
         x = event.clientX;
         y = event.clientY;
     }
-    
+
     // Create ripple effect at cursor position
     createRippleEffect(x, y);
-    
+
     // Create star animation at the same position as the cross-section grid
     createStarAnimation(x, y);
 }
@@ -259,18 +235,15 @@ function hslToHex(h, s, l) {
 
 // Generate colors when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize audio
-    initAudio();
-    
     generateTriadicColors();
-    
+
     // Create cross-section grid
     createCrossSectionGrid();
-    
+
     // Add event listeners
     document.addEventListener('click', handleClick);
     document.addEventListener('mousemove', handleMouseMove);
-    
+
     // Add CSS animation for star
     const style = document.createElement('style');
     style.textContent = `
