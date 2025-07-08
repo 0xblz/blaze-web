@@ -18,18 +18,14 @@ body {
 
 // dark mode
 html, body, main {
-    @media (prefers-color-scheme: dark) {
-        filter: saturate(1) contrast(0.8) invert(1) brightness(1.2) hue-rotate(90deg);
-        mix-blend-mode: difference;
-    }
+    filter: saturate(1) contrast(0.8) invert(1) brightness(1.2) hue-rotate(90deg);
+    mix-blend-mode: difference;
 }
 
 // Chrome-specific override for mix-blend-mode
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
     body, main, html {
-        @media (prefers-color-scheme: dark) {
-            mix-blend-mode: normal;
-        }
+        mix-blend-mode: normal;
     }
 }
 
@@ -113,10 +109,7 @@ article {
             vertical-align: text-bottom;
             margin: 0 0.25rem;
             box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-
-            @media (prefers-color-scheme: dark) {
-                filter: grayscale(0) invert(1) hue-rotate(90deg);
-            }
+            filter: grayscale(0) invert(1) hue-rotate(90deg);
 
             &.avatar {
                 border-radius: 999px;
@@ -131,12 +124,8 @@ table {
     
     td {
         padding: 1.5rem 0;
-        border-bottom: 1px solid white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         vertical-align: top;
-
-        @media (prefers-color-scheme: dark) {
-            border-color: rgba(0, 0, 0, 0.05);
-        }
     }
     
     td:first-child {
@@ -152,15 +141,11 @@ hr {
     display: block;
     text-align: center;
     width: 100%;
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(0, 0, 0, 0.05);
     height: 1px;
     overflow: hidden;
     position: relative;
     border-radius: 999px;
-
-    @media (prefers-color-scheme: dark) {
-        background: rgba(0, 0, 0, 0.05);
-    }
 
     &:before {
         animation-duration: 2s;
@@ -174,10 +159,7 @@ hr {
         position: absolute;
         width: 20%;
         border-radius: 999px;
-
-        @media (prefers-color-scheme: dark) {
-            filter: invert(1);
-        }
+        filter: invert(1);
       }
 }
   
