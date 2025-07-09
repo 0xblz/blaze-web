@@ -10,7 +10,7 @@ function generateTriadicColors() {
     const hue3 = (baseHue + 240) % 360;
 
     // Convert to HSL with fixed saturation and lightness
-    const saturation = 40;
+    const saturation = 35;
     const lightness = 60;
     
     // Create darker version of primary color for text
