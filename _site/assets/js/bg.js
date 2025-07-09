@@ -9,9 +9,10 @@ function generateTriadicColors() {
     const hue2 = (baseHue + 120) % 360;
     const hue3 = (baseHue + 240) % 360;
 
-    // Convert to HSL with fixed saturation and lightness
-    const saturation = 35;
-    const lightness = 60;
+    // Convert to HSL with saturation and lightness adjusted for dark mode
+    const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const saturation = prefersDarkMode ? 35 : 35;
+    const lightness = prefersDarkMode ? 80 : 60;
     
     // Create darker version of primary color for text
     const darkLightness = 20; // Much darker for text contrast
