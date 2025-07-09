@@ -10,8 +10,8 @@ function generateTriadicColors() {
     const hue3 = (baseHue + 240) % 360;
 
     // Convert to HSL with fixed saturation and lightness
-    const saturation = 85;
-    const lightness = 85;
+    const saturation = 40;
+    const lightness = 60;
     
     // Create darker version of primary color for text
     const darkLightness = 20; // Much darker for text contrast
@@ -165,6 +165,7 @@ function createStarAnimation(x, y) {
         left: ${x}px;
         top: ${y}px;
         font-size: 1rem;
+        color: white;
         pointer-events: none;
         z-index: 1000;
         transform: translate(-50%, -50%);
