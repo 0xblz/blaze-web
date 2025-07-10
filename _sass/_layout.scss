@@ -16,19 +16,6 @@ body {
     }
 }
 
-// dark mode
-html, body, main {
-    filter: saturate(1) contrast(0.8) invert(1) brightness(1.2) hue-rotate(90deg);
-    mix-blend-mode: difference;
-}
-
-// Chrome-specific override for mix-blend-mode
-@media screen and (-webkit-min-device-pixel-ratio: 0) {
-    body, main, html {
-        mix-blend-mode: normal;
-    }
-}
-
 main {
     display: flex;
     flex-direction: column;
@@ -36,7 +23,7 @@ main {
     width: 100%;
     min-height: 100vh;
     position: relative;
-    background: linear-gradient(45deg, var(--primary-color), white);
+    background: linear-gradient(45deg, var(--primary-color), var(--quaternary-color));
     overflow: hidden;
     transition: background 1s ease-in-out;
 
@@ -52,7 +39,7 @@ main {
         top: var(--before-top, 0);
         left: var(--before-left, -25%);
         z-index: 1;
-        filter: blur(100px);
+        filter: blur(6rem);
         transform: translateZ(0); // Force GPU acceleration
         transition: background 1s ease-in-out, top 1s ease-in-out, left 1s ease-in-out;
     }
@@ -78,7 +65,7 @@ header {
     z-index: 3;
     padding: 1.5rem;
     position: relative;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
 
     &:before {
@@ -86,7 +73,7 @@ header {
         animation-timing-function: ease-in-out;
         animation-iteration-count: infinite;
         animation-name: progress;
-        background: var(--secondary-color);
+        background: white;
         content: "";
         display: block;
         height: 1px;
@@ -95,7 +82,6 @@ header {
         bottom: 0;
         left: 0;
         border-radius: 999px;
-        filter: invert(1);
     }
 }
 
@@ -113,16 +99,18 @@ article {
     transition: all 0.5s ease-in-out;
 
     &.box {
-        background: rgba(255, 255, 255, 0.4);
+        background: rgba(0, 0, 0, 0.1);
         border-top-left-radius: 1.5rem;
         border-top-right-radius: 1.5rem;
         box-shadow: 0 0 20rem var(--primary-color);
         border: 2px solid transparent;
         gap: 0;
         margin-top: 1.5rem;
+        backdrop-filter: blur(10rem);
+        -webkit-backdrop-filter: blur(10rem);
 
         &:hover {
-            box-shadow: 0 0 20rem black;
+            box-shadow: 0 0 20rem var(--secondary-color);
         }
 
         h2 {
@@ -134,7 +122,7 @@ article {
             flex-wrap: wrap;
             gap: 1.5rem;
             padding: 1.5rem 0;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
             > div:first-child {
                 flex: 0 0 8rem;
@@ -166,7 +154,6 @@ article {
             vertical-align: text-bottom;
             margin: 0 0.25rem;
             box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-            filter: grayscale(0) invert(1) hue-rotate(90deg);
 
             &.avatar {
                 border-radius: 999px;

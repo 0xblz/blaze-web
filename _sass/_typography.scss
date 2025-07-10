@@ -2,7 +2,7 @@
 body {
     font-family: var(--font-primary);
     font-size: 16px;
-    color: var(--quaternary-color);
+    color: white;
     font-weight: 600;
 }
 
@@ -21,31 +21,31 @@ h2 {
 
 p {
     font-size: 1rem;
-    line-height: 1.6em;
+    line-height: 1.8em;
 }
 
 a {
     transition: all 0.2s ease-in-out;
-    color: black;
+    color: white;
     text-decoration: none;
     font-weight: 800;
     
     &:hover,
     &:focus,
     &:active {
-        color: var(--quaternary-color);
+        color: white;
     }
 
     &.button {
         padding: 0.5rem 1rem;
         border-radius: 0.5rem;
-        background: rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.1);
         border: 2px solid transparent;
 
         &:hover,
         &:focus,
         &:active {
-            border-color: black;
+            border-color: white;
         }
     }
 }

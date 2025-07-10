@@ -1,33 +1,42 @@
-// ...existing code...
-
-function generateTriadicColors() {
+function generateSplitComplementaryColors() {
     // Generate a random base hue (0-360)
     const baseHue = Math.floor(Math.random() * 360);
     
-    // Calculate triadic colors (120° apart)
-    const hue1 = baseHue;
-    const hue2 = (baseHue + 120) % 360;
-    const hue3 = (baseHue + 240) % 360;
-
     // Convert to HSL with saturation and lightness adjusted for dark mode
     const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const saturation = prefersDarkMode ? 35 : 35;
-    const lightness = prefersDarkMode ? 80 : 60;
+    const saturation = prefersDarkMode ? 30 : 20;
+    const lightness = prefersDarkMode ? 30 : 40;
     
-    // Create darker version of primary color for text
-    const darkLightness = 20; // Much darker for text contrast
-    
-    // Convert HSL to hex
-    const color1 = hslToHex(hue1, saturation, lightness);
-    const color2 = hslToHex(hue2, saturation, lightness);
-    const color3 = hslToHex(hue3, saturation, lightness);
-    const color4 = hslToHex(hue1, saturation, darkLightness); // Quaternary color (dark primary)
+    // Filter effects to mimic CSS filter
+    const hueRotate = prefersDarkMode ? 0 : 0;         // hue-rotate(90deg)
+    const brightness = prefersDarkMode ? 1 : 1.2;    // brightness(1.2)
+    const contrast = prefersDarkMode ? 0.8 : 0.8;      // contrast(0.8)
+    const shouldInvert = prefersDarkMode ? false : true; // invert(1)
 
-    // Generate random positions for the pseudo-elements
-    const beforeTop = Math.random() * 20 - 10; // -10% to 10%
-    const beforeLeft = Math.random() * 50 - 50; // -50% to 0%
-    const afterBottom = Math.random() * 20 - 10; // -10% to 10%
-    const afterRight = Math.random() * 50 - 50; // -50% to 0%
+    // Calculate split-complementary colors (base + complement ± 30°)
+    const hue1 = (baseHue + hueRotate) % 360;                    // Primary color
+    const hue2 = (baseHue + 45 + hueRotate) % 360;             // Complementary color
+    const hue3 = (baseHue + 90 + hueRotate) % 360;             // Split-complementary (-30° from complement)
+    
+    // Apply brightness and contrast to lightness
+    let adjustedLightness = lightness * brightness;
+    adjustedLightness = 50 + (adjustedLightness - 50) * contrast; // Apply contrast around midpoint
+    adjustedLightness = Math.min(100, Math.max(0, adjustedLightness)); // Clamp to 0-100
+    
+    // Apply invert
+    const finalLightness = shouldInvert ? 100 - adjustedLightness : adjustedLightness;
+    
+    // Convert HSL to hex - create 3 split-complementary colors + 1 dark
+    const color1 = hslToHex(hue1, saturation, finalLightness);                    // Primary color
+    const color2 = hslToHex(hue2, saturation, finalLightness);                    // Complementary color
+    const color3 = hslToHex(hue3, saturation, finalLightness);                    // Split-complementary color
+    const color4 = hslToHex(hue1, saturation, Math.max(10, finalLightness * 0.4)); // Dark version of primary
+
+    // Generate random positions for the pseudo-elements with good movement
+    const beforeTop = Math.random() * 80 - 40; // -40% to 40%
+    const beforeLeft = Math.random() * 120 - 60; // -60% to 60%
+    const afterBottom = Math.random() * 80 - 40; // -40% to 40%
+    const afterRight = Math.random() * 120 - 60; // -60% to 60%
 
     // Update CSS variables
     document.documentElement.style.setProperty('--primary-color', color1);
@@ -185,7 +194,7 @@ function createStarAnimation(x, y) {
 
 function handleClick(event) {
     // Regenerate colors and positions
-    generateTriadicColors();
+    generateSplitComplementaryColors();
 
     // Use the same coordinate calculation as the cross-section grid
     const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
@@ -237,7 +246,7 @@ function hslToHex(h, s, l) {
 
 // Generate colors when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    generateTriadicColors();
+    generateSplitComplementaryColors();
 
     // Create cross-section grid
     createCrossSectionGrid();
