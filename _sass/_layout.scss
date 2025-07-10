@@ -34,7 +34,6 @@ main {
     flex-direction: column;
     align-items: center;
     width: 100%;
-    gap: 4rem;
     position: relative;
     background: linear-gradient(45deg, var(--primary-color), white);
     overflow: hidden;
@@ -67,37 +66,94 @@ main {
     }
 }
 
+header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1.5rem;
+    max-width: var(--container-width);
+    width: 100%;
+    z-index: 3;
+    padding: 1.5rem;
+    position: relative;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+
+    &:before {
+        animation-duration: 2s;
+        animation-timing-function: ease-in-out;
+        animation-iteration-count: infinite;
+        animation-name: progress;
+        background: var(--secondary-color);
+        content: "";
+        display: block;
+        height: 1px;
+        position: absolute;
+        width: 20%;
+        bottom: 0;
+        left: 0;
+        border-radius: 999px;
+        filter: invert(1);
+    }
+}
+
 article {
     display: flex;
     flex-direction: column;
     width: 100%;
     max-width: var(--container-width);
-    gap: 1rem;
-    z-index: 2;
+    gap: 1.5rem;
     padding: 1.5rem;
+    z-index: 2;
     opacity: 0;
     will-change: transform, opacity;
     animation: fade-up 0.5s ease-out forwards;
     transition: all 0.5s ease-in-out;
 
-    &:nth-child(2) {
+    &.box {
         background: rgba(255, 255, 255, 0.4);
         border-top-left-radius: 1.5rem;
         border-top-right-radius: 1.5rem;
         box-shadow: 0 0 20rem var(--primary-color);
         border: 2px solid transparent;
+        gap: 0;
+        margin-top: 1.5rem;
 
         &:hover {
             box-shadow: 0 0 20rem black;
         }
-    }
 
-    header {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 1.5rem;
+        h2 {
+            margin-bottom: 1.5rem;
+        }
+
+        > div {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+
+            > div:first-child {
+                flex: 0 0 8rem;
+                font-weight: 800;
+                font-size: 0.8rem;
+            }
+
+            > div:last-child {
+                flex: 1;
+            }
+
+            @media (max-width: 768px) {
+                flex-direction: column;
+                gap: 0.5rem;
+                
+                > div:first-child {
+                    flex: none;
+                }
+            }
+        }
     }
 
     p { 
@@ -118,48 +174,7 @@ article {
     }
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    
-    td {
-        padding: 1.5rem 0;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        vertical-align: top;
-    }
-    
-    td:first-child {
-        width: 8rem;
-        font-weight: 800;
-        font-size: 0.8rem;
-    }
-}
 
-hr {
-    border: 0;
-    clear: both;
-    display: block;
-    text-align: center;
-    width: 100%;
-    background: rgba(0, 0, 0, 0.05);
-    height: 1px;
-    overflow: hidden;
-    position: relative;
-    border-radius: 999px;
 
-    &:before {
-        animation-duration: 2s;
-        animation-timing-function: ease-in-out;
-        animation-iteration-count: infinite;
-        animation-name: progress;
-        background: var(--secondary-color);
-        content: "";
-        display: block;
-        height: 1px;
-        position: absolute;
-        width: 20%;
-        border-radius: 999px;
-        filter: invert(1);
-      }
-}
+
   
