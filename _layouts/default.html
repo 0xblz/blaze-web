@@ -12,6 +12,11 @@
 <body class="{% if page.custom_class %}{{ page.custom_class }}{% endif %}">
 
     <main>
+        <header>
+            <h1>{{ page.title }}</h1>
+            <a href="https://forms.gle/HLtNWHQx3FmcS3Zn7" class="button" target="_blank"><i class="fa-solid fa-envelope"></i></a>
+        </header>
+        
         {{ content }}
     </main>
     
