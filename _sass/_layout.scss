@@ -73,7 +73,7 @@ header {
         animation-timing-function: ease-in-out;
         animation-iteration-count: infinite;
         animation-name: progress;
-        background: white;
+        background: var(--primary-color);
         content: "";
         display: block;
         height: 1px;

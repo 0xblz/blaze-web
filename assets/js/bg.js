@@ -4,7 +4,7 @@ function generateSplitComplementaryColors() {
     
     // Convert to HSL with saturation and lightness adjusted for dark mode
     const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const saturation = prefersDarkMode ? 30 : 20;
+    const saturation = prefersDarkMode ? 30 : 25;
     const lightness = prefersDarkMode ? 30 : 40;
     
     // Filter effects to mimic CSS filter
