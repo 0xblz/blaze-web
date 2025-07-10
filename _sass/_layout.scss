@@ -110,7 +110,8 @@ article {
         border-top-left-radius: 1.5rem;
         border-top-right-radius: 1.5rem;
         box-shadow: 0 0 20rem var(--primary-color);
-        border: 2px solid transparent;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-bottom: none;
         gap: 0;
         margin-top: 1.5rem;
         backdrop-filter: blur(10rem);

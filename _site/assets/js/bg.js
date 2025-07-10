@@ -32,11 +32,11 @@ function generateSplitComplementaryColors() {
     const color3 = hslToHex(hue3, saturation, finalLightness);                    // Split-complementary color
     const color4 = hslToHex(hue1, saturation, Math.max(10, finalLightness * 0.4)); // Dark version of primary
 
-    // Generate random positions for the pseudo-elements with good movement
-    const beforeTop = Math.random() * 80 - 40; // -40% to 40%
-    const beforeLeft = Math.random() * 120 - 60; // -60% to 60%
-    const afterBottom = Math.random() * 80 - 40; // -40% to 40%
-    const afterRight = Math.random() * 120 - 60; // -60% to 60%
+    // Generate random positions for the pseudo-elements with moderate movement
+    const beforeTop = Math.random() * 50 - 25; // -25% to 25%
+    const beforeLeft = Math.random() * 80 - 40; // -40% to 40%
+    const afterBottom = Math.random() * 50 - 25; // -25% to 25%
+    const afterRight = Math.random() * 80 - 40; // -40% to 40%
 
     // Update CSS variables
     document.documentElement.style.setProperty('--primary-color', color1);
