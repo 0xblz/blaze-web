@@ -11,7 +11,7 @@ function generateTriadicColors() {
 
     // Convert to HSL with saturation and lightness adjusted for dark mode
     const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const saturation = prefersDarkMode ? 35 : 40;
+    const saturation = prefersDarkMode ? 35 : 35;
     const lightness = prefersDarkMode ? 80 : 60;
     
     // Create darker version of primary color for text
