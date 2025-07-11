@@ -109,16 +109,17 @@ article {
         background: rgba(0, 0, 0, 0.1);
         border-top-left-radius: 1.5rem;
         border-top-right-radius: 1.5rem;
-        box-shadow: 0 0 20rem var(--primary-color);
-        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 0 10rem white, inset 0 0 1rem white;
+        border: 1px solid white;
         border-bottom: none;
         gap: 0;
         margin-top: 1.5rem;
         backdrop-filter: blur(10rem);
         -webkit-backdrop-filter: blur(10rem);
+        mix-blend-mode: overlay;
 
         &:hover {
-            box-shadow: 0 0 20rem var(--secondary-color);
+            box-shadow: 0 0 5rem white, inset 0 0 2rem white;
         }
 
         h2 {

@@ -4,13 +4,13 @@ function generateSplitComplementaryColors() {
     
     // Convert to HSL with saturation and lightness adjusted for dark mode
     const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const saturation = prefersDarkMode ? 30 : 25;
-    const lightness = prefersDarkMode ? 30 : 40;
+    const saturation = prefersDarkMode ? 20 : 25;
+    const lightness = prefersDarkMode ? 20 : 45;
     
     // Filter effects to mimic CSS filter
     const hueRotate = prefersDarkMode ? 0 : 0;         // hue-rotate(90deg)
-    const brightness = prefersDarkMode ? 1 : 1.2;    // brightness(1.2)
-    const contrast = prefersDarkMode ? 0.8 : 0.8;      // contrast(0.8)
+    const brightness = prefersDarkMode ? 1 : 1.3;    // brightness(1.2)
+    const contrast = prefersDarkMode ? 0.5 : 0.8;      // contrast(0.8)
     const shouldInvert = prefersDarkMode ? false : true; // invert(1)
 
     // Calculate split-complementary colors (base + complement ± 30°)
@@ -169,7 +169,7 @@ function createRippleEffect(x, y) {
 function createStarAnimation(x, y) {
     // Create star element
     const star = document.createElement('div');
-    star.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i>';
+    star.innerHTML = '<i class="fa-regular fa-circle"></i>';
     star.style.cssText = `
         position: fixed;
         left: ${x}px;
