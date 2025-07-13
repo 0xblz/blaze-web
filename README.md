@@ -18,7 +18,7 @@
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/blaze-web.git
+git clone https://github.com/0xblz/blaze-web.git
 cd blaze-web
 ```
 
