@@ -19,6 +19,7 @@ body {
 main {
     display: flex;
     flex-direction: column;
+    gap: 1.5rem;
     align-items: center;
     width: 100%;
     min-height: 100vh;
@@ -69,22 +70,6 @@ header {
     position: relative;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
-
-    &:before {
-        animation-duration: 2s;
-        animation-timing-function: ease-in-out;
-        animation-iteration-count: infinite;
-        animation-name: progress;
-        background: white;
-        content: "";
-        display: block;
-        height: 1px;
-        position: absolute;
-        width: 20%;
-        bottom: 0;
-        left: 0;
-        border-radius: 999px;
-    }
 
     nav {
         display: flex;
