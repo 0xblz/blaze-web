@@ -48,11 +48,11 @@ function generateSplitComplementaryColors() {
     document.documentElement.style.setProperty('--tertiary-color', color3);
     document.documentElement.style.setProperty('--quaternary-color', color4);
     
-    // Update position variables
-    document.documentElement.style.setProperty('--before-top', `${beforeTop}%`);
-    document.documentElement.style.setProperty('--before-left', `${beforeLeft}%`);
-    document.documentElement.style.setProperty('--after-bottom', `${afterBottom}%`);
-    document.documentElement.style.setProperty('--after-right', `${afterRight}%`);
+    // Update position variables for transform-based animation
+    document.documentElement.style.setProperty('--before-top', `${beforeTop}vw`);
+    document.documentElement.style.setProperty('--before-left', `${beforeLeft}vw`);
+    document.documentElement.style.setProperty('--after-bottom', `${afterBottom}vw`);
+    document.documentElement.style.setProperty('--after-right', `${afterRight}vw`);
     
     // Update rotation variables
     document.documentElement.style.setProperty('--before-rotation', `${beforeRotation}deg`);
@@ -87,10 +87,16 @@ class RippleDistortion {
             z-index: 1001;
             mix-blend-mode: difference;
             opacity: 0.8;
+            will-change: auto;
         `;
         
         document.body.appendChild(this.canvas);
-        this.ctx = this.canvas.getContext('2d');
+        
+        // Optimize canvas context for performance
+        this.ctx = this.canvas.getContext('2d', { 
+            alpha: true, 
+            desynchronized: true // Better performance in Chrome
+        });
         
         this.resize();
         window.addEventListener('resize', () => this.resize());
@@ -160,13 +166,10 @@ class RippleDistortion {
             
             const baseOpacity = ripple.opacity;
             
-            // Much smoother gradient stops
+            // Optimized gradient stops for better performance
             gradient.addColorStop(0, `rgba(255, 255, 255, 0)`);
-            gradient.addColorStop(0.3, `rgba(255, 255, 255, ${baseOpacity * 0.1})`);
-            gradient.addColorStop(0.5, `rgba(255, 255, 255, ${baseOpacity * 0.3})`);
+            gradient.addColorStop(0.4, `rgba(255, 255, 255, ${baseOpacity * 0.2})`);
             gradient.addColorStop(0.7, `rgba(255, 255, 255, ${baseOpacity * 0.5})`);
-            gradient.addColorStop(0.85, `rgba(255, 255, 255, ${baseOpacity * 0.3})`);
-            gradient.addColorStop(0.95, `rgba(255, 255, 255, ${baseOpacity * 0.1})`);
             gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
             
             // Draw main ripple with smoother distortion effect
@@ -175,18 +178,16 @@ class RippleDistortion {
             this.ctx.fillStyle = gradient;
             this.ctx.fill();
             
-            // Draw fewer, more consistent concentric circles
-            for (let i = 0; i < 2; i++) {
-                const waveRadius = ripple.radius + (i * 20);
-                const waveOpacity = baseOpacity * (0.4 - i * 0.2);
+            // Draw single concentric circle for better performance
+            if (baseOpacity > 0.05) {
+                const waveRadius = ripple.radius + 15;
+                const waveOpacity = baseOpacity * 0.3;
                 
-                if (waveOpacity > 0.01) {
-                    this.ctx.beginPath();
-                    this.ctx.arc(ripple.x, ripple.y, waveRadius, 0, Math.PI * 2);
-                    this.ctx.strokeStyle = `rgba(255, 255, 255, ${waveOpacity})`;
-                    this.ctx.lineWidth = 1.5 - i * 0.3;
-                    this.ctx.stroke();
-                }
+                this.ctx.beginPath();
+                this.ctx.arc(ripple.x, ripple.y, waveRadius, 0, Math.PI * 2);
+                this.ctx.strokeStyle = `rgba(255, 255, 255, ${waveOpacity})`;
+                this.ctx.lineWidth = 1;
+                this.ctx.stroke();
             }
             
             this.ctx.restore();
@@ -195,7 +196,15 @@ class RippleDistortion {
 
     animate() {
         this.updateRipples();
-        this.drawRipples();
+        
+        // Only redraw if there are active ripples (performance optimization)
+        if (this.ripples.length > 0) {
+            this.drawRipples();
+        } else {
+            // Clear canvas when no ripples to save GPU resources
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+        
         this.animationId = requestAnimationFrame(() => this.animate());
     }
 
