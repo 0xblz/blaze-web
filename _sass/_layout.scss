@@ -31,6 +31,7 @@ main {
     background-size: 2rem, cover;
     background-position: center, center;
     background-repeat: repeat, no-repeat;
+    background-attachment: fixed, fixed;
     overflow: hidden;
     transition: background 1s ease-in-out;
 
@@ -52,7 +53,7 @@ main {
         transform: translateZ(0) translate(var(--before-left, 0), var(--before-top, 0)) rotate(var(--before-rotation, 0deg));
         transition: background-color 1s ease-in-out, transform 1s ease-in-out;
 
-        @media (max-width: 420px) {
+        @media (max-width: 500px) {
             width: 100vh;
             height: 100vh;
         }
