@@ -110,12 +110,9 @@ article {
         box-shadow: 0 0 10rem white, inset 0 0 2rem white;
         border: 1px solid white;
         gap: 0;
-        backdrop-filter: blur(10rem);
-        -webkit-backdrop-filter: blur(10rem);
         mix-blend-mode: overlay;
 
         &:hover {
-            // box-shadow: 0 0 5rem white, inset 0 0 1rem white;
             mix-blend-mode: hard-light;
         }
 
