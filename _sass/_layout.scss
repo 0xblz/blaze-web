@@ -38,7 +38,7 @@ main {
     &:after {
         content: "";
         display: block;
-        width: 200vw;
+        width: 100vw;
         height: 100vw;
         border-radius: 100%;
         border: 4rem solid white;
@@ -51,6 +51,11 @@ main {
         will-change: transform, background-color; // Tell browser to optimize these properties
         transform: translateZ(0) translate(var(--before-left, 0), var(--before-top, 0)) rotate(var(--before-rotation, 0deg));
         transition: background-color 1s ease-in-out, transform 1s ease-in-out;
+
+        @media (max-width: 420px) {
+            width: 100vh;
+            height: 100vh;
+        }
     }
 
     &:after {
