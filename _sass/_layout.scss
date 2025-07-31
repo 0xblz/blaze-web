@@ -25,7 +25,12 @@ main {
     width: 100%;
     min-height: 100vh;
     position: relative;
-    background: linear-gradient(45deg, var(--primary-color), var(--quaternary-color));
+    background-image: 
+        url('/assets/images/bg.png'),
+        linear-gradient(45deg, var(--primary-color), var(--quaternary-color));
+    background-size: 2rem, cover;
+    background-position: center, center;
+    background-repeat: repeat, no-repeat;
     overflow: hidden;
     transition: background 1s ease-in-out;
 
@@ -55,6 +60,7 @@ main {
         background: var(--tertiary-color);
         transform: translateZ(0) rotate(var(--after-rotation, 0deg)); // Force GPU acceleration + rotation
         transition: background 1s ease-in-out, bottom 1s ease-in-out, right 1s ease-in-out, transform 1s ease-in-out;
+        mix-blend-mode: lighten;
     }
 }
 
