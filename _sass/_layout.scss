@@ -19,11 +19,19 @@ body {
 main {
     display: flex;
     flex-direction: column;
+    gap: 3rem;
+    padding-bottom: 3rem;
     align-items: center;
     width: 100%;
     min-height: 100vh;
     position: relative;
-    background: linear-gradient(45deg, var(--primary-color), var(--quaternary-color));
+    background-image: 
+        url('/assets/images/bg.png'),
+        linear-gradient(45deg, var(--primary-color), var(--quaternary-color));
+    background-size: 2rem, cover;
+    background-position: center, center;
+    background-repeat: repeat, no-repeat;
+    background-attachment: fixed, fixed;
     overflow: hidden;
     transition: background 1s ease-in-out;
 
@@ -31,28 +39,35 @@ main {
     &:after {
         content: "";
         display: block;
-        width: 200vw;
+        width: 100vw;
         height: 100vw;
         border-radius: 100%;
         border: 4rem solid white;
         background: var(--secondary-color);
         position: fixed;
-        top: var(--before-top, 0);
-        left: var(--before-left, -25%);
+        top: 0;
+        left: -25%;
         z-index: 1;
         filter: blur(6rem);
-        transform: translateZ(0) rotate(var(--before-rotation, 0deg)); // Force GPU acceleration + rotation
-        transition: background 1s ease-in-out, top 1s ease-in-out, left 1s ease-in-out, transform 1s ease-in-out;
+        will-change: transform, background-color; // Tell browser to optimize these properties
+        transform: translateZ(0) translate(var(--before-left, 0), var(--before-top, 0)) rotate(var(--before-rotation, 0deg));
+        transition: background-color 1s ease-in-out, transform 1s ease-in-out;
+
+        @media (max-width: 500px) {
+            width: 100vh;
+            height: 100vh;
+        }
     }
 
     &:after {
         top: auto;
-        bottom: var(--after-bottom, 0);
+        bottom: 0;
         left: auto;
-        right: var(--after-right, -25%);
+        right: -25%;
         background: var(--tertiary-color);
-        transform: translateZ(0) rotate(var(--after-rotation, 0deg)); // Force GPU acceleration + rotation
-        transition: background 1s ease-in-out, bottom 1s ease-in-out, right 1s ease-in-out, transform 1s ease-in-out;
+        transform: translateZ(0) translate(var(--after-right, 0), var(--after-bottom, 0)) rotate(var(--after-rotation, 0deg));
+        transition: background-color 1s ease-in-out, transform 1s ease-in-out;
+        mix-blend-mode: lighten;
     }
 }
 
@@ -69,22 +84,6 @@ header {
     position: relative;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
-
-    &:before {
-        animation-duration: 2s;
-        animation-timing-function: ease-in-out;
-        animation-iteration-count: infinite;
-        animation-name: progress;
-        background: white;
-        content: "";
-        display: block;
-        height: 1px;
-        position: absolute;
-        width: 20%;
-        bottom: 0;
-        left: 0;
-        border-radius: 999px;
-    }
 
     nav {
         display: flex;
@@ -107,7 +106,7 @@ article {
     animation: fade-up 0.5s ease-out forwards;
     transition: all 0.5s ease-in-out;
 
-    &.intro {
+    &.intro{
         // empty for now
     }
 
@@ -117,14 +116,9 @@ article {
         box-shadow: 0 0 10rem white, inset 0 0 2rem white;
         border: 1px solid white;
         gap: 0;
-        margin-top: 1.5rem;
-        margin-bottom: 1.5rem;
-        backdrop-filter: blur(10rem);
-        -webkit-backdrop-filter: blur(10rem);
         mix-blend-mode: overlay;
 
         &:hover {
-            box-shadow: 0 0 5rem white, inset 0 0 1rem white;
             mix-blend-mode: hard-light;
         }
 

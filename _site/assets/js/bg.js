@@ -48,104 +48,20 @@ function generateSplitComplementaryColors() {
     document.documentElement.style.setProperty('--tertiary-color', color3);
     document.documentElement.style.setProperty('--quaternary-color', color4);
     
-    // Update position variables
-    document.documentElement.style.setProperty('--before-top', `${beforeTop}%`);
-    document.documentElement.style.setProperty('--before-left', `${beforeLeft}%`);
-    document.documentElement.style.setProperty('--after-bottom', `${afterBottom}%`);
-    document.documentElement.style.setProperty('--after-right', `${afterRight}%`);
+    // Update position variables for transform-based animation
+    document.documentElement.style.setProperty('--before-top', `${beforeTop}vw`);
+    document.documentElement.style.setProperty('--before-left', `${beforeLeft}vw`);
+    document.documentElement.style.setProperty('--after-bottom', `${afterBottom}vw`);
+    document.documentElement.style.setProperty('--after-right', `${afterRight}vw`);
     
     // Update rotation variables
     document.documentElement.style.setProperty('--before-rotation', `${beforeRotation}deg`);
     document.documentElement.style.setProperty('--after-rotation', `${afterRotation}deg`);
 }
 
-function createCrossSectionGrid() {
-    // Get actual document height for Chrome compatibility
-    const docHeight = Math.max(
-        document.body.scrollHeight,
-        document.body.offsetHeight,
-        document.documentElement.clientHeight,
-        document.documentElement.scrollHeight,
-        document.documentElement.offsetHeight
-    );
-    
-    // Create vertical line
-    const verticalLine = document.createElement('div');
-    verticalLine.id = 'vertical-line';
-    verticalLine.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 1px;
-        height: ${docHeight}px;
-        background: rgba(255, 255, 255, 0.1);
-        pointer-events: none;
-        z-index: 999;
-    `;
-    
-    // Create horizontal line
-    const horizontalLine = document.createElement('div');
-    horizontalLine.id = 'horizontal-line';
-    horizontalLine.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 1px;
-        background: rgba(255, 255, 255, 0.1);
-        pointer-events: none;
-        z-index: 999;
-    `;
-    
-    // Create center dot
-    const centerDot = document.createElement('div');
-    centerDot.id = 'center-dot';
-    centerDot.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 6px;
-        height: 6px;
-        background: rgba(255, 255, 255, 0.8);
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 1000;
-        transform: translate(-50%, -50%);
-    `;
-    
-    document.body.appendChild(verticalLine);
-    document.body.appendChild(horizontalLine);
-    document.body.appendChild(centerDot);
-    
-    return { verticalLine, horizontalLine, centerDot };
-}
 
-function updateCrossSectionGrid(x, y) {
-    const verticalLine = document.getElementById('vertical-line');
-    const horizontalLine = document.getElementById('horizontal-line');
-    const centerDot = document.getElementById('center-dot');
-    
-    if (verticalLine && horizontalLine && centerDot) {
-        // Use the same coordinates for everything
-        verticalLine.style.left = `${x}px`;
-        horizontalLine.style.top = `${y}px`;
-        centerDot.style.left = `${x}px`;
-        centerDot.style.top = `${y}px`;
-        
-        // Chrome-specific fix: ensure lines are visible when scrolling
-        const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-        if (isChrome) {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const windowHeight = window.innerHeight;
-            
-            // Adjust vertical line height dynamically for Chrome
-            if (verticalLine.style.height !== '100vh') {
-                const newHeight = Math.max(windowHeight, document.documentElement.scrollHeight);
-                verticalLine.style.height = `${newHeight}px`;
-            }
-        }
-    }
-}
+
+
 
 // Ripple distortion system
 class RippleDistortion {
@@ -171,10 +87,16 @@ class RippleDistortion {
             z-index: 1001;
             mix-blend-mode: difference;
             opacity: 0.8;
+            will-change: auto;
         `;
         
         document.body.appendChild(this.canvas);
-        this.ctx = this.canvas.getContext('2d');
+        
+        // Optimize canvas context for performance
+        this.ctx = this.canvas.getContext('2d', { 
+            alpha: true, 
+            desynchronized: true // Better performance in Chrome
+        });
         
         this.resize();
         window.addEventListener('resize', () => this.resize());
@@ -244,13 +166,10 @@ class RippleDistortion {
             
             const baseOpacity = ripple.opacity;
             
-            // Much smoother gradient stops
+            // Optimized gradient stops for better performance
             gradient.addColorStop(0, `rgba(255, 255, 255, 0)`);
-            gradient.addColorStop(0.3, `rgba(255, 255, 255, ${baseOpacity * 0.1})`);
-            gradient.addColorStop(0.5, `rgba(255, 255, 255, ${baseOpacity * 0.3})`);
+            gradient.addColorStop(0.4, `rgba(255, 255, 255, ${baseOpacity * 0.2})`);
             gradient.addColorStop(0.7, `rgba(255, 255, 255, ${baseOpacity * 0.5})`);
-            gradient.addColorStop(0.85, `rgba(255, 255, 255, ${baseOpacity * 0.3})`);
-            gradient.addColorStop(0.95, `rgba(255, 255, 255, ${baseOpacity * 0.1})`);
             gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
             
             // Draw main ripple with smoother distortion effect
@@ -259,18 +178,16 @@ class RippleDistortion {
             this.ctx.fillStyle = gradient;
             this.ctx.fill();
             
-            // Draw fewer, more consistent concentric circles
-            for (let i = 0; i < 2; i++) {
-                const waveRadius = ripple.radius + (i * 20);
-                const waveOpacity = baseOpacity * (0.4 - i * 0.2);
+            // Draw single concentric circle for better performance
+            if (baseOpacity > 0.05) {
+                const waveRadius = ripple.radius + 15;
+                const waveOpacity = baseOpacity * 0.3;
                 
-                if (waveOpacity > 0.01) {
-                    this.ctx.beginPath();
-                    this.ctx.arc(ripple.x, ripple.y, waveRadius, 0, Math.PI * 2);
-                    this.ctx.strokeStyle = `rgba(255, 255, 255, ${waveOpacity})`;
-                    this.ctx.lineWidth = 1.5 - i * 0.3;
-                    this.ctx.stroke();
-                }
+                this.ctx.beginPath();
+                this.ctx.arc(ripple.x, ripple.y, waveRadius, 0, Math.PI * 2);
+                this.ctx.strokeStyle = `rgba(255, 255, 255, ${waveOpacity})`;
+                this.ctx.lineWidth = 1;
+                this.ctx.stroke();
             }
             
             this.ctx.restore();
@@ -279,7 +196,15 @@ class RippleDistortion {
 
     animate() {
         this.updateRipples();
-        this.drawRipples();
+        
+        // Only redraw if there are active ripples (performance optimization)
+        if (this.ripples.length > 0) {
+            this.drawRipples();
+        } else {
+            // Clear canvas when no ripples to save GPU resources
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+        
         this.animationId = requestAnimationFrame(() => this.animate());
     }
 
@@ -366,42 +291,18 @@ function handleClick(event) {
     // Regenerate colors and positions
     generateSplitComplementaryColors();
 
-    // Use the same coordinate calculation as the cross-section grid
-    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-
-    let x, y;
-    if (isChrome) {
-        // Adjust for Chrome's scroll behavior (same as cross-section grid)
-        x = event.clientX + window.scrollX;
-        y = event.clientY + window.scrollY;
-    } else {
-        x = event.clientX;
-        y = event.clientY;
-    }
+    // Use viewport coordinates for fixed-positioned elements
+    const x = event.clientX;
+    const y = event.clientY;
 
     // Create ripple effect at cursor position
     createRippleEffect(x, y);
 
-    // Create star animation at the same position as the cross-section grid
+    // Create star animation at click position
     createStarAnimation(x, y);
 }
 
-function handleMouseMove(event) {
-    // Use viewport coordinates but adjust for Chrome scroll
-    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    
-    let x, y;
-    if (isChrome) {
-        // Adjust for Chrome's scroll behavior
-        x = event.clientX + window.scrollX;
-        y = event.clientY + window.scrollY;
-    } else {
-        x = event.clientX;
-        y = event.clientY;
-    }
-    
-    updateCrossSectionGrid(x, y);
-}
+
 
 function hslToHex(h, s, l) {
     l /= 100;
@@ -417,16 +318,12 @@ function hslToHex(h, s, l) {
 // Generate colors when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     generateSplitComplementaryColors();
-
-    // Create cross-section grid
-    createCrossSectionGrid();
     
     // Initialize ripple distortion system
     rippleDistortion = new RippleDistortion();
 
     // Add event listeners
     document.addEventListener('click', handleClick);
-    document.addEventListener('mousemove', handleMouseMove);
 
     // Add CSS animation for star and enhanced ripple
     const style = document.createElement('style');
