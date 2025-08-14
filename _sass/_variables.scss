@@ -1,15 +1,15 @@
 // Fonts
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Zen+Dots&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Zen+Dots&display=swap');
 
 // Color variables
 :root {
     
-    --primary-color: lightblue;
-    --secondary-color: blue;
-    --tertiary-color: darkblue;
-    --quaternary-color: black;
+    --primary-color: SteelBlue;
+    --secondary-color: LightSteelBlue;
+    --light-color: WhiteSmoke;
+    --dark-color: MidnightBlue;
 
-    --font-primary: 'Outfit', sans-serif;
+    --font-primary: 'DM Sans', sans-serif;
     --font-secondary: 'Zen Dots', sans-serif;
-    --container-width: 620px;
+    --container-width: 440px;
 } 
