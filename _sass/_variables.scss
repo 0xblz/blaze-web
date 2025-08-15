@@ -3,10 +3,12 @@
 
 // Color variables
 :root {
-    --primary-color: SteelBlue;
-    --secondary-color: LightSteelBlue;
-    --light-color: WhiteSmoke;
-    --dark-color: MidnightBlue;
+    --primary-color: #5b84ff;
+    --secondary-color: #ff5ba5;
+    --light-color: #dee0e5;
+    --dark-color: #18222f;
+    --soft-light: rgba(255, 255, 255, 0.5);
+    --soft-dark: rgba(0, 0, 0, 0.5);
 
     --font-primary: 'DM Sans', sans-serif;
     --font-secondary: 'Zen Dots', sans-serif;
