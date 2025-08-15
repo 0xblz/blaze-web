@@ -15,8 +15,8 @@ const CONFIG = {
     lineLength: 60,           // Length of each line
     lineSpacing: 0.3,        // Vertical spacing between lines
     linePoints: 600,         // Number of points per line (higher = smoother curves)
-    lineColor: 0xFF8A58,     // Line color (hex: 0xffffff = white, 0xff0000 = red, etc.)
-    lineOpacity: 0.1,        // Line transparency (0.0 = invisible, 1.0 = solid)
+    lineColor: "HotPink",     // Line color (hex: 0xffffff = white, 0xff0000 = red, etc.)
+    lineOpacity: 0.3,        // Line transparency (0.0 = invisible, 1.0 = solid)
     lineWidth: 1,            // Line thickness
     
     // Contour shape (abstract curve the lines follow)
@@ -38,8 +38,8 @@ const CONFIG = {
     // Natural wave animation (subtle movement when no mouse interaction)
     naturalWaveEnabled: true,     // Enable/disable natural wave animation
     naturalWaveAmplitude: 1.2,    // How much natural movement (very subtle)
-    naturalWaveSpeed: 0.005,      // Speed of natural wave animation (very slow)
-    naturalWaveFrequency: 0.4,    // Frequency of natural waves
+    naturalWaveSpeed: 0.002,      // Speed of natural wave animation (very slow)
+    naturalWaveFrequency: 0.3,    // Frequency of natural waves
     
     // Electrical pulse effect
     pulseEnabled: true,           // Enable/disable pulse effect
