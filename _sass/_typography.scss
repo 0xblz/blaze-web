@@ -38,8 +38,6 @@ h3 {
 }
 
 p {
-    font-family: var(--font-mono);
-    font-size: 0.9rem;
     line-height: 1.4em;
     font-weight: 500;
     transition: opacity 0.25s ease-in-out;
@@ -73,6 +71,7 @@ small {
     font-size: 0.7rem;
     font-weight: 700;
     opacity: 0.6;
+    font-family: var(--font-mono);
 }
 
 a {
