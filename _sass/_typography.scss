@@ -8,7 +8,7 @@ body {
 
 h1 {
     font-size: 1.4rem;
-    font-weight: 700;
+    font-weight: 500;
     line-height: 1.4em;
 
     img {
@@ -38,27 +38,40 @@ h3 {
 }
 
 p {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
     line-height: 1.4em;
     font-weight: 500;
     transition: opacity 0.25s ease-in-out;
 }
 
 // Paragraph hover effect - fade siblings when hovering
-article:hover p {
-    opacity: 0.4;
 
-    @media (max-width: 600px) {
-        opacity: 1;
+article {
+    &:hover {
+        p {
+            transition: all 0.25s ease-in-out;
+            opacity: 0.4;
+
+            &:hover {
+                opacity: 1;
+                transform: scale(1.05);
+
+                @media (max-width: 600px) {
+                    transform: scale(1);
+                }
+            }
+
+            @media (max-width: 600px) {
+                opacity: 1;
+            }
+        }
     }
 }
 
-article:hover p:hover {
-    opacity: 1;
-}
-
 small {
-    font-size: 0.8rem;
-    font-weight: 900;
+    font-size: 0.7rem;
+    font-weight: 700;
     opacity: 0.6;
 }
 
@@ -66,7 +79,7 @@ a {
     transition: all 0.2s ease-in-out;
     color: white;
     text-decoration: none;
-    font-weight: 800;
+    font-weight: 700;
 
     &:hover,
     &:focus,
