@@ -9,9 +9,14 @@
     --dark-color: #18222f;
     --soft-light: rgba(255, 255, 255, 0.5);
     --soft-dark: rgba(0, 0, 0, 0.5);
+    --line-color: white;
 
     --font-primary: 'DM Sans', sans-serif;
     --font-secondary: 'Zen Dots', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
     --container-width: 440px;
+
+    @media (prefers-color-scheme: dark) {
+        --line-color: var(--secondary-color);
+    }
 } 

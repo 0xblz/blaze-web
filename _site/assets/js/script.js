@@ -13,14 +13,14 @@ const CONFIG = {
     // Line properties
     lineCount: 200,           // Number of horizontal lines
     lineLength: 60,           // Length of each line
-    lineSpacing: 0.3,        // Vertical spacing between lines
+    lineSpacing: 0.25,        // Vertical spacing between lines
     linePoints: 600,         // Number of points per line (higher = smoother curves)
     lineColor: null,     // Will be set dynamically from CSS variable
     lineOpacity: 0.3,        // Line transparency (0.0 = invisible, 1.0 = solid)
     lineWidth: 1,            // Line thickness
     
     // Contour shape (abstract curve the lines follow)
-    contourAmplitude1: 0.6,  // Primary wave amplitude
+    contourAmplitude1: 0.3,  // Primary wave amplitude
     contourAmplitude2: 0.2,  // Secondary wave amplitude  
     contourAmplitude3: 0.5,  // Tertiary wave amplitude
     contourFrequency1: 0.3,  // Primary wave frequency
@@ -68,7 +68,7 @@ let activePulses = []; // Track active electrical pulses
 // Initialize the scene
 function init() {
     // Get the primary color from CSS variable
-    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--line-color').trim();
     CONFIG.lineColor = primaryColor;
     console.log('Using primary color:', primaryColor);
     
