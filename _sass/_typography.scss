@@ -2,75 +2,102 @@
 body {
     font-family: var(--font-primary);
     font-size: 16px;
-    color: white;
-    font-weight: 500;
+    color: var(--dark-color);
+    font-weight: 400;
+
+    @media (prefers-color-scheme: dark) {
+        color: var(--light-color);
+    }
 }
 
 h1 {
-    font-family: var(--font-secondary);
-    font-size: 1.2rem;
-    font-weight: 800;
-    line-height: 1em;
+    font-size: 1.4rem;
+    font-weight: 500;
+    line-height: 1.4em;
+
+    img {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 999px;
+        display: inline-block;
+        vertical-align: text-bottom;
+        margin: 0 0.25rem;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    }
 }
 
 h2 {
     font-family: var(--font-secondary);
-    font-size: 0.9rem;
-    font-weight: 800;
+    font-size: 0.8rem;
+    font-weight: 700;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     line-height: 1.2em;
 }
 
 h3 {
-    font-size: 1.1rem;
-    font-weight: 500;
-    line-height: 1.6em;
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.2em;
 }
 
 p {
-    font-size: 1rem;
-    line-height: 1.8em;
+    line-height: 1.4em;
+    font-weight: 500;
+    transition: opacity 0.25s ease-in-out;
+}
+
+// Paragraph hover effect - fade siblings when hovering
+
+article {
+    &:hover {
+        p {
+            transition: all 0.25s ease-in-out;
+            opacity: 0.4;
+
+            &:hover {
+                opacity: 1;
+                transform: scale(1.05);
+
+                @media (max-width: 600px) {
+                    transform: scale(1);
+                }
+            }
+
+            @media (max-width: 600px) {
+                opacity: 1;
+            }
+        }
+    }
+}
+
+small {
+    font-size: 0.7rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--soft-dark);
+
+    @media (prefers-color-scheme: dark) {
+        color: var(--soft-light);
+    }
 }
 
 a {
     transition: all 0.2s ease-in-out;
-    color: white;
+    color: var(--dark-color);
     text-decoration: none;
-    font-weight: 800;
-    
+    font-weight: 700;
+
+    @media (prefers-color-scheme: dark) {
+        color: var(--light-color);
+    }
+
     &:hover,
     &:focus,
     &:active {
-        color: rgba(255, 255, 255, 0.4);
-    }
-
-    &.button {
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        background: rgba(255, 255, 255, 0.1);
-        border: 2px solid transparent;
-
-        &:hover,
-        &:focus,
-        &:active {
-            border-color: white;
-        }
+        color: var(--primary-color);
     }
 }
 
-h1, h2, h3, p { 
-    img {
-        width: 1.5rem;
-        height: 1.5rem;
-        border-radius: 0.5rem;
-        display: inline-block;
-        vertical-align: text-bottom;
-        margin: 0 0.25rem;
-        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
 
-        &.avatar {
-            border-radius: 999px;
-        }
-    }
-}
+// build fix

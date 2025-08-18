@@ -1,15 +1,22 @@
 // Fonts
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Zen+Dots&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Zen+Dots:wght@400;700&display=swap');
 
 // Color variables
 :root {
-    
-    --primary-color: lightblue;
-    --secondary-color: blue;
-    --tertiary-color: darkblue;
-    --quaternary-color: black;
+    --primary-color: #5b84ff;
+    --secondary-color: #ff5ba5;
+    --light-color: #dee0e5;
+    --dark-color: #18222f;
+    --soft-light: rgba(255, 255, 255, 0.5);
+    --soft-dark: rgba(0, 0, 0, 0.5);
+    --line-color: white;
 
     --font-primary: 'DM Sans', sans-serif;
     --font-secondary: 'Zen Dots', sans-serif;
-    --container-width: 580px;
+    --font-mono: 'JetBrains Mono', monospace;
+    --container-width: 440px;
+
+    @media (prefers-color-scheme: dark) {
+        --line-color: var(--secondary-color);
+    }
 } 
