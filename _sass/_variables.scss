@@ -1,15 +1,24 @@
 // Fonts
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Zen+Dots&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gabarito:wght@400..900&family=Zen+Dots&display=swap');
 
 // Color variables
 :root {
-    
-    --primary-color: lightblue;
-    --secondary-color: blue;
-    --tertiary-color: darkblue;
-    --quaternary-color: black;
+    --primary-color: #5b84ff;
+    --secondary-color: #ff5ba5;
+    --light-color: #e1e9ff;
+    --dark-color: #191f2e;
+    --soft-light: rgba(255, 255, 255, 0.8);
+    --softer-light: rgba(255, 255, 255, 0.4);
+    --soft-dark: rgba(0, 0, 0, 0.8);
+    --softer-dark: rgba(0, 0, 0, 0.4);
+    --line-color: var(--primary-color);
 
-    --font-primary: 'DM Sans', sans-serif;
+    --font-primary: 'Gabarito', sans-serif;
     --font-secondary: 'Zen Dots', sans-serif;
-    --container-width: 580px;
+    --font-mono: monospace;
+    --container-width: 440px;
+
+    @media (prefers-color-scheme: dark) {
+        --line-color: var(--secondary-color);
+    }
 } 
