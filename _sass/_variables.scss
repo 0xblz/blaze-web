@@ -1,0 +1,15 @@
+/* ==========================================================================
+   Variables & Fonts
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Funnel+Sans:ital,wght@0,300..800;1,300..800&family=Science+Gothic:wght@100..900&display=swap");
+
+:root {
+  --primary-color: hsl(240, 100%, 70%);
+  --secondary-color: hsl(340, 100%, 70%);
+  --tertiary-color: hsl(210, 100%, 70%);
+  --light-color: hsl(240, 30%, 95%);
+  --dark-color: hsl(240, 30%, 15%);
+  --font-primary: "Funnel Sans", sans-serif;
+  --font-secondary: "Science Gothic", sans-serif;
+}

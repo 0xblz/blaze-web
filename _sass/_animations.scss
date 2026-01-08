@@ -1,0 +1,49 @@
+/* ==========================================================================
+   Animations - Keyframes
+   ========================================================================== */
+
+@keyframes skew {
+  0% {
+    transform: skew(-125deg, -2deg) rotate(-9deg) scale(1.4);
+  }
+  50% {
+    transform: skew(-165deg, -6deg) rotate(-19deg) scale(1.4);
+  }
+  100% {
+    transform: skew(-125deg, -2deg) rotate(-9deg) scale(1.4);
+  }
+}
+
+@keyframes warp {
+  0% {
+    transform: skew(-135deg, -2deg) rotate(-9deg) scale(1.6);
+  }
+  50% {
+    transform: skew(-155deg, -2deg) rotate(-19deg) scale(1.6);
+  }
+  100% {
+    transform: skew(-135deg, -2deg) rotate(-9deg) scale(1.6);
+  }
+}
+
+@keyframes slide-up {
+  0% {
+    transform: translateY(10%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-down {
+  0% {
+    transform: translateY(-10%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

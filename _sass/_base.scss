@@ -1,0 +1,146 @@
+/* ==========================================================================
+   Base Styles - Reset, Typography, Links
+   ========================================================================== */
+
+/* Reset */
+*,
+html {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Selection */
+::-moz-selection {
+  color: white;
+  background: var(--secondary-color);
+}
+
+::selection {
+  color: white;
+  background: var(--secondary-color);
+}
+
+/* Body Typography */
+body {
+  font-family: var(--font-primary);
+  font-size: 16px;
+  color: var(--dark-color);
+  font-weight: 400;
+
+  @media (prefers-color-scheme: dark) {
+    color: var(--light-color);
+  }
+}
+
+/* Headings */
+h1 {
+  font-family: var(--font-secondary);
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1em;
+}
+
+h2 {
+  font-family: var(--font-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1em;
+  letter-spacing: 1px;
+  color: var(--tertiary-color);
+}
+
+h3 {
+  font-family: var(--font-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1em;
+  letter-spacing: 1px;
+}
+
+/* Paragraphs */
+p {
+  line-height: 1.6em;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: opacity 0.25s ease-in-out;
+
+  span {
+    opacity: 0.6;
+    font-weight: 400;
+  }
+
+  &.intro {
+    font-size: 1.2rem;
+
+    img {
+      margin-bottom: 0.25rem;
+    }
+  }
+}
+
+small {
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: var(--font-primary);
+}
+
+/* Links */
+a {
+  transition: all 0.2s ease-in-out;
+  color: var(--dark-color);
+  text-decoration: none;
+  font-weight: 700;
+
+  @media (prefers-color-scheme: dark) {
+    color: white;
+  }
+
+  span {
+    opacity: 0.6;
+    font-weight: 400;
+  }
+
+  &:hover,
+  &:focus,
+  &:active {
+    color: var(--tertiary-color);
+  }
+}
+
+/* Inline Images in Text */
+h1 a,
+h2 a,
+h3 a,
+p a {
+  white-space: nowrap;
+}
+
+h1 img,
+h2 img,
+h3 img,
+p img {
+  width: 1.25rem;
+  height: 1.25rem;
+  object-fit: cover;
+  display: inline-block;
+  margin-bottom: 0.125rem;
+  vertical-align: bottom;
+  border-radius: 0.5rem;
+  margin-right: 0.25rem;
+  box-shadow: 0 0.125rem 0.25rem 1px rgba(0, 0, 0, 0.1);
+}
+
+/* Horizontal Rule */
+hr {
+  width: 100%;
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+
+  @media (prefers-color-scheme: dark) {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
