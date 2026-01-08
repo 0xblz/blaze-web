@@ -6,8 +6,8 @@
    Main SCSS File
    ========================================================================== */
 
-@use "variables";
-@use "base";
-@use "layout";
-@use "components";
-@use "animations";
+@import "variables";
+@import "base";
+@import "layout";
+@import "components";
+@import "animations";
