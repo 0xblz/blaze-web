@@ -2,16 +2,15 @@
    Variables & Fonts
    ========================================================================== */
 
-@import url("https://fonts.googleapis.com/css2?family=TikTok+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Funnel+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 
 :root {
   --bg: #fff;
   --text: rgba(0, 0, 0, 0.7);
   --text-secondary: black;
-  --link: #007AFF;
-  --link-visited: #007AFF;
+  --link: #2b92ff;
   --border: #f2f2f2;
-  --font: "TikTok Sans", sans-serif;
+  --font: "Funnel Sans", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,8 +18,7 @@
     --bg: #000;
     --text: rgba(255, 255, 255, 0.7);
     --text-secondary: white;
-    --link: #0A84FF;
-    --link-visited: #0A84FF;
+    --link: #2b92ff;
     --border: #222;
   }
 }
